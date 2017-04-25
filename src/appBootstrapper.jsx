@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'mobx-react';
-import { hashHistory, Router } from 'react-router';
+import { hashHistory, createMemoryHistory, Router } from 'react-router';
 import { RouterStore, syncHistoryWithStore  } from 'mobx-react-router';
 import ExtendedRoutingStore from './shared/lib/ExtendedRouterStore';
 import { computed, extendObservable } from 'mobx';
@@ -15,13 +15,17 @@ lodash.noConflict();
 
 const routingStore = new ExtendedRoutingStore();
 
+//sometimes we need to use memory history where there would be a conflict with
+//existing use of url hashfragment
+const history = (window.historyType === 'memory') ? createMemoryHistory() : hashHistory;
+
 const stores = {
     // Key can be whatever you want
     routing: routingStore,
     // ...other stores
 };
 
-const history = syncHistoryWithStore(hashHistory, routingStore);
+const syncedHistory = syncHistoryWithStore(history, routingStore);
 
 
 const qs = URL.parse(window.location.href, true).query;
@@ -56,7 +60,7 @@ let render = () => {
     ReactDOM.render(
         <Provider {...stores}>
             <Router
-                history={history} routes={makeRoutes()} >
+                history={syncedHistory} routes={makeRoutes()} >
             </Router>
         </Provider>
     , rootNode);
