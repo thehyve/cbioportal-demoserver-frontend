@@ -82,6 +82,6 @@ export default class HomePage extends React.Component<IHomePageProps, IHomePageS
 
     public render()
     {
-        return null;
+        return (<div style={{width:350}}><RightBar/></div>);
     }
 }
