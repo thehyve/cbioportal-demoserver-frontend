@@ -167,8 +167,6 @@ th.reactable-header-sort-asc:after {
   left: -9999px;
 }
 
-$gutterWidth: 20px;
-
 // corrects for a problem with build of react-bootstrap (unicode corrupted when build on linux  machines)
 .modal-header .close {
 
@@ -186,6 +184,14 @@ $gutterWidth: 20px;
   justify-content:space-between;
   background:#fff;
   min-height:500px;
+
+  h1 {
+    font-size:22px;
+  }
+
+  h3 {
+    color:#cfd9ea;
+  }
 
   #mainColumn {
     flex:1;
@@ -225,3 +231,12 @@ $gutterWidth: 20px;
 
 }
 
+.fixedWidth .contentWidth {
+  width:1200px;
+  margin:0 auto;
+  display:flex;
+
+  #mainColumn {
+    padding-left:0;
+  }
+}
