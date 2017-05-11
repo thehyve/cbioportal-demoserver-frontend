@@ -1,17 +1,30 @@
 import * as React from 'react';
+import client from '../../api/cbioportalClientInstance';
+import {remoteData} from "../../api/remoteData";
+import BarGraph from "../barGraph/BarGraph";
+import {observer} from "mobx-react";
+import Testimonials from "../testimonials/Testimonials";
+import {ThreeBounce} from 'better-react-spinkit';
 
+export class StudyStore {
+
+    readonly data = remoteData({
+        invoke: () => {
+            return client.getAllStudiesUsingGET({projection: "DETAILED"});
+
+        }
+    });
+}
+
+@observer
 export default class RightBar extends React.Component<{}, {}> {
 
+    public studyStore = new StudyStore();
 
     render(){
 
         return (
             <div>
-
-                <div className="rightBarSection">
-                    <h3>Citations</h3>
-                    <p>Please cite <a href="http://www.ncbi.nlm.nih.gov/pubmed/23550210">Gao et al. <i>Sci. Signal.</i> 2013</a> &amp;  <a href="http://cancerdiscovery.aacrjournals.org/content/2/5/401.abstract"> Cerami et al. <i>Cancer Discov.</i> 2012</a> when publishing results based on cBioPortal.</p>
-                </div>
 
                 <div className="rightBarSection">
                     <h3>What's New <a href="http://www.twitter.com/cbioportal" className="pull-right">@cbioportal <i className="fa fa-twitter" aria-hidden="true"></i></a></h3>
@@ -23,6 +36,20 @@ export default class RightBar extends React.Component<{}, {}> {
                             </div>
                             <button type="submit" className="btn btn-default">Subscribe</button>
                         </form>
+                </div>
+
+                <div className="rightBarSection">
+                    <h3>Cases by Primary Site</h3>
+                    {
+                        (this.studyStore.data.isComplete) && (
+                            <BarGraph data={ this.studyStore.data.result }/>
+                        )
+                    }
+                    {
+                        (this.studyStore.data.isPending) && (
+                            <ThreeBounce className="center-block text-center" />
+                        )
+                    }
                 </div>
 
                 <div className="rightBarSection exampleQueries">
@@ -53,7 +80,15 @@ export default class RightBar extends React.Component<{}, {}> {
 
                 </div>
 
+                <div className="rightBarSection">
+                    <h3>Citations</h3>
+                    <p>Please cite <a href="http://www.ncbi.nlm.nih.gov/pubmed/23550210">Gao et al. <i>Sci. Signal.</i> 2013</a> &amp;  <a href="http://cancerdiscovery.aacrjournals.org/content/2/5/401.abstract"> Cerami et al. <i>Cancer Discov.</i> 2012</a> when publishing results based on cBioPortal.</p>
+                </div>
 
+                <div className="rightBarSection">
+                    <h3>Testimonials</h3>
+                    <Testimonials/>
+                </div>
 
             </div>
         )
