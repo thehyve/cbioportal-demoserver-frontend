@@ -190,6 +190,12 @@ th.reactable-header-sort-asc:after {
 
 }
 
+.fixedWidth {
+  .contentWrapper {
+    background:#fff;
+  }
+}
+
 .contentWrapper {
   display:flex;
   justify-content:space-between;
