@@ -187,15 +187,19 @@ th.reactable-header-sort-asc:after {
 
   h1 {
     font-size:22px;
+    margin-top:0;
   }
 
   h3 {
-    color:#cfd9ea;
+    color:$brand-primary;
+    font-size:19px;
   }
 
   #mainColumn {
     flex:1;
     padding: $gutterWidth;
+    line-height:26px;
+
   }
 
   #rightColumn {
@@ -209,7 +213,6 @@ th.reactable-header-sort-asc:after {
         border-bottom:1px solid #cfd9ea;
         margin: 0 0 8px 0;
         padding-bottom:5px;
-        font-size:18px;
       }
       padding: 0 $gutterWidth $gutterWidth $gutterWidth;
     }
@@ -232,7 +235,7 @@ th.reactable-header-sort-asc:after {
 }
 
 .fixedWidth .contentWidth {
-  width:1200px;
+  width:1222px;
   margin:0 auto;
   display:flex;
 
