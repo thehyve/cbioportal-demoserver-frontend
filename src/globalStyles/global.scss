@@ -179,11 +179,25 @@ th.reactable-header-sort-asc:after {
   }
 }
 
+
+.fixedWidth {
+  #mainColumn {
+    flex:1;
+    padding: $gutterWidth;
+    line-height:26px;
+
+  }
+
+}
+
 .contentWrapper {
   display:flex;
   justify-content:space-between;
-  background:#fff;
   min-height:500px;
+
+  &.fixedWidth {
+    background:#fff;
+  }
 
   h1 {
     font-size:22px;
@@ -195,12 +209,6 @@ th.reactable-header-sort-asc:after {
     font-size:19px;
   }
 
-  #mainColumn {
-    flex:1;
-    padding: $gutterWidth;
-    line-height:26px;
-
-  }
 
   #rightColumn {
     background:#F1F6FE;
