@@ -34,7 +34,7 @@ export default class RightBar extends React.Component<{}, {}> {
                             <div className="form-group form-group-sm">
                                 <input type="email" className="form-control" id="exampleInputEmail2" placeholder="jane.doe@example.com" />
                             </div>
-                            &nbsp;
+
                             <button type="submit" className="btn btn-default btn-sm">Subscribe</button>
                         </form>
                 </div>
