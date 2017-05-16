@@ -246,7 +246,7 @@ header {
 
 
   #rightColumn {
-    background:#F1F6FE;
+    background:#e8f1f8;
     padding:$gutterWidth 0;
     font-size:12px;
     flex:0 0 325px;
@@ -277,6 +277,10 @@ header {
 
   }
 
+}
+
+.fixedWidth .contentWrapper .contentWidth {
+  width:1222px;
 }
 
 .fixedWidth .contentWidth {
