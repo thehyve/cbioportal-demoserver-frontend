@@ -234,9 +234,14 @@ header {
     border-left:2px solid #C0BFC0;
   }
 
+  h2 {
+    color:#777;
+    font-size:20px;
+  }
+
   h3 {
     color:$brand-primary;
-    font-size:19px;
+    font-size:18px;
   }
 
 
@@ -275,7 +280,8 @@ header {
 }
 
 .fixedWidth .contentWidth {
-  width:1222px;
+  max-width:1222px;
+  min-width:840px;
   margin:0 auto;
   display:flex;
   padding-left:20px;
