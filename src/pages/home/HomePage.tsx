@@ -69,6 +69,8 @@ export default class HomePage extends React.Component<IHomePageProps, IHomePageS
 
         exposeComponentRenderer('renderQuerySelector', ()=>{ return <QueryAndDownloadTabs store={this.store} />  });
 
+        (window as any).onReactAppReady();
+
 	}
 
     getModalWrappedComponent(){
