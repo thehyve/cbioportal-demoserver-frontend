@@ -69,12 +69,14 @@ export default class GeneSetSelector extends QueryStoreComponent<GeneSetSelector
 	render()
 	{
 		return (
-			<FlexCol padded overflow className={styles.GeneSetSelector}>
+			<FlexCol style={{position:'relative'}} padded overflow className={styles.GeneSetSelector}>
 				<SectionHeader promises={[this.store.mutSigForSingleStudy, this.store.gisticForSingleStudy, this.store.genes]}>
 					Enter Gene Set:
 				</SectionHeader>
 
-				<a href={getOncoQueryDocUrl()}>Advanced: Onco Query Language (OQL)</a>
+				<a style={{position:'absolute', right:10, top:3 }} href={getOncoQueryDocUrl()}>Advanced: Onco Query Language (OQL)</a>
+
+
 				<ReactSelect
 					value={this.selectedGeneListOption}
 					options={this.geneListOptions}

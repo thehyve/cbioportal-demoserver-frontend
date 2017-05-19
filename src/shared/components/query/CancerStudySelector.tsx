@@ -114,7 +114,80 @@ export default class CancerStudySelector extends QueryStoreComponent<ICancerStud
 	{
 		return (
 			<FlexCol overflow className={styles.CancerStudySelector}>
-				<SectionHeader promises={[this.store.cancerTypes, this.store.cancerStudies]}>
+				<FlexRow overflow className={styles.CancerStudySelectorHeader}>
+					<h2 style={{display:'inline-block'}}>Select Studies</h2>
+
+					<div>
+					{!!(!this.store.cancerTypes.isPending && !this.store.cancerStudies.isPending) && (
+						<Observer>
+							{() => {
+								let numSelectedStudies = expr(() => this.store.selectedStudyIds.length);
+								let selectedCountClass = classNames({
+									[styles.selectedCount]: true,
+									[styles.selectionsExist]: numSelectedStudies > 0
+								});
+								return (
+									<span
+										className={selectedCountClass}
+										onClick={() => {
+											if (numSelectedStudies)
+												this.store.showSelectedStudiesOnly = !this.store.showSelectedStudiesOnly;
+										}}
+									>
+										<b>{numSelectedStudies}</b> studies selected
+										(<b>{this.store.selectedStudies_totalSampleCount}</b> samples)
+									</span>
+								);
+							}}
+						</Observer>
+					)}
+
+					{!!(!this.store.forDownloadTab) && (
+						<Observer>
+							{() => {
+								let selectAllChecked = expr(() => this.logic.mainView.getCheckboxProps(this.store.treeData.rootCancerType).checked);
+								return (
+									<span className={classNames('btn','btn-link btn-sm')} onClick={() => this.logic.mainView.onCheck(this.store.treeData.rootCancerType, !selectAllChecked)}>
+										{selectAllChecked ? "Deselect all" : "Select all"}
+									</span>
+								);
+							}}
+						</Observer>
+					)}
+					</div>
+
+					<Observer>
+						{() => {
+							let searchTextOptions = this.store.searchTextPresets;
+							if (this.store.searchText && searchTextOptions.indexOf(this.store.searchText) < 0)
+								searchTextOptions = [this.store.searchText].concat(searchTextOptions as string[]);
+
+							return (
+								<ReactSelect
+									className={styles.searchTextInput}
+									value={this.store.searchText}
+									autofocus={true}
+									options={searchTextOptions.map(str => ({label: str, value: str}))}
+									placeholder='Search...'
+									noResultsText={false}
+									onCloseResetsInput={false}
+									onInputChange={(searchText:string) => {
+										this.store.searchText = searchText;
+										this.store.selectedCancerTypeIds = [];
+									}}
+									onChange={option => {
+										this.store.searchText = option ? option.value || '' : '';
+										this.store.selectedCancerTypeIds = [];
+									}}
+								/>
+							);
+						}}
+					</Observer>
+
+
+				</FlexRow>
+
+				<SectionHeader style={{display:'none'}} promises={[this.store.cancerTypes, this.store.cancerStudies]}>
 					Select Studies:
 					{!!(!this.store.cancerTypes.isPending && !this.store.cancerStudies.isPending) && (
 						<Observer>
@@ -141,7 +214,7 @@ export default class CancerStudySelector extends QueryStoreComponent<ICancerStud
 					)}
 				</SectionHeader>
 
-				<FlexRow overflow className={styles.cancerStudySelectorHeader}>
+				<FlexRow overflow className={styles.cancerStudySelectorHeader + ' hidden'}>
 					<Observer>
 						{() => {
 							let searchTextOptions = this.store.searchTextPresets;
