@@ -60,6 +60,10 @@
     }
   }
 
+  :global(.sectionLabel) {
+    width:246px;
+  }
+
   label {
     margin-bottom: 0;
     font-weight: normal;
@@ -375,6 +379,7 @@ div.SelectedStudiesWindow {
 .GeneSetSelector {
   div:global(.Select) {
     width: 555px;
+    margin-bottom:8px;
   }
 
   .buttonRow {
@@ -390,6 +395,7 @@ div.SelectedStudiesWindow {
         background: linear-gradient(to bottom, #eaeaea 50%, #f3f3f3 100%);
       }
     }
+    margin-bottom:8px;
   }
 
   textarea.geneSet {
