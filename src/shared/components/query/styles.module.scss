@@ -141,32 +141,6 @@ div.SelectedStudiesWindow {
     padding: 0;
   }
 
-  .header {
-
-  }
-
-  .cancerStudySelectorHeader {
-    display:none;
-    border-bottom: 1px solid $mediumGrey;
-    height: 50px !important;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-
-    :global(.Select-control) {
-      height: 28px;
-    }
-
-    :global(.Select-input) {
-      height: 38px;
-    }
-
-    :global(.Select-placeholder),
-    :global(.Select--single) > :global(.Select-control .Select-value) {
-      line-height: 28px !important;
-    }
-  }
-
   .selectAll {
     text-transform: uppercase;
     min-width: 105px;
@@ -631,6 +605,9 @@ label.transposeDataMatrix {
 }
 
 div.submitRow {
+
+  align-items:center;
+
   button.submit {
     font-weight: 300;
     font-size: 18px;

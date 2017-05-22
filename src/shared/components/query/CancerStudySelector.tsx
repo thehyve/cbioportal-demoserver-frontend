@@ -17,7 +17,7 @@ import {Modal} from 'react-bootstrap';
 const styles = styles_any as {
 	SelectedStudiesWindow: string,
 	CancerStudySelector: string,
-	cancerStudySelectorHeader: string,
+	CancerStudySelectorHeader: string,
 	selectable: string,
 	selected: string,
 	selectedCount: string,
@@ -115,7 +115,10 @@ export default class CancerStudySelector extends QueryStoreComponent<ICancerStud
 		return (
 			<FlexCol overflow className={styles.CancerStudySelector}>
 				<FlexRow overflow className={styles.CancerStudySelectorHeader}>
-					<h2 style={{display:'inline-block'}}>Select Studies</h2>
+
+					<SectionHeader>
+						Select Studies
+					</SectionHeader>
 
 					<div>
 					{!!(!this.store.cancerTypes.isPending && !this.store.cancerStudies.isPending) && (
@@ -142,14 +145,14 @@ export default class CancerStudySelector extends QueryStoreComponent<ICancerStud
 						</Observer>
 					)}
 
-					{!!(!this.store.forDownloadTab) && (
+					{ (!!(!this.store.forDownloadTab) && !!(!this.store.cancerTypes.isPending && !this.store.cancerStudies.isPending)) && (
 						<Observer>
 							{() => {
 								let selectAllChecked = expr(() => this.logic.mainView.getCheckboxProps(this.store.treeData.rootCancerType).checked);
 								return (
-									<span className={classNames('btn','btn-link btn-sm')} onClick={() => this.logic.mainView.onCheck(this.store.treeData.rootCancerType, !selectAllChecked)}>
+									<a onClick={() => this.logic.mainView.onCheck(this.store.treeData.rootCancerType, !selectAllChecked)}>
 										{selectAllChecked ? "Deselect all" : "Select all"}
-									</span>
+									</a>
 								);
 							}}
 						</Observer>
@@ -213,48 +216,6 @@ export default class CancerStudySelector extends QueryStoreComponent<ICancerStud
 						</Observer>
 					)}
 				</SectionHeader>
-
-				<FlexRow overflow className={styles.cancerStudySelectorHeader + ' hidden'}>
-					<Observer>
-						{() => {
-							let searchTextOptions = this.store.searchTextPresets;
-							if (this.store.searchText && searchTextOptions.indexOf(this.store.searchText) < 0)
-								searchTextOptions = [this.store.searchText].concat(searchTextOptions as string[]);
-
-							return (
-								<ReactSelect
-									className={styles.searchTextInput}
-									value={this.store.searchText}
-									autofocus={true}
-									options={searchTextOptions.map(str => ({label: str, value: str}))}
-									placeholder='Search...'
-									noResultsText={false}
-									onCloseResetsInput={false}
-									onInputChange={(searchText:string) => {
-										this.store.searchText = searchText;
-										this.store.selectedCancerTypeIds = [];
-									}}
-									onChange={option => {
-										this.store.searchText = option ? option.value || '' : '';
-										this.store.selectedCancerTypeIds = [];
-									}}
-								/>
-							);
-						}}
-					</Observer>
-					{!!(!this.store.forDownloadTab) && (
-						<Observer>
-							{() => {
-								let selectAllChecked = expr(() => this.logic.mainView.getCheckboxProps(this.store.treeData.rootCancerType).checked);
-								return (
-									<span className={classNames('cta', styles.selectAll)} onClick={() => this.logic.mainView.onCheck(this.store.treeData.rootCancerType, !selectAllChecked)}>
-										{selectAllChecked ? "Deselect all" : "Select all"}
-									</span>
-								);
-							}}
-						</Observer>
-					)}
-				</FlexRow>
 
 				<FlexRow className={styles.cancerStudySelectorBody}>
 					<div className={styles.cancerTypeListContainer}>
