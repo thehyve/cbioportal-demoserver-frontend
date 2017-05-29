@@ -12,9 +12,13 @@ import {
     GisticToGene, Gistic, CopyNumberCountIdentifier, MutSig
 } from "shared/api/generated/CBioPortalAPIInternal";
 import oncokbClient from "shared/api/oncokbClientInstance";
+import civicClient from "shared/api/civicClientInstance";
 import {
     generateIdToIndicatorMap, generateQueryVariant, generateEvidenceQuery
 } from "shared/lib/OncoKbUtils";
+import {
+    getCivicVariants, getCivicGenes
+} from "shared/lib/CivicUtils";
 import {Query, default as OncoKbAPI} from "shared/api/generated/OncoKbAPI";
 import {getAlterationString} from "shared/lib/CopyNumberUtils";
 import {MobxPromise} from "mobxpromise";
@@ -24,6 +28,7 @@ import {IGisticData} from "shared/model/Gistic";
 import {IMutSigData} from "shared/model/MutSig";
 import {IMyCancerGenomeData, IMyCancerGenome} from "shared/model/MyCancerGenome";
 import {IHotspotData, ICancerHotspotData} from "shared/model/CancerHotspots";
+import {ICivicGeneData, ICivicVariant, ICivicGene} from "shared/model/Civic.ts";
 import CancerHotspotsAPI from "shared/api/generated/CancerHotspotsAPI";
 import {GENETIC_PROFILE_MUTATIONS_SUFFIX, GENETIC_PROFILE_UNCALLED_MUTATIONS_SUFFIX} from "shared/constants";
 
@@ -312,6 +317,56 @@ export async function queryOncoKbData(queryVariants: Query[],
     };
 
     return oncoKbData;
+}
+
+export async function fetchCivicGenes(mutationData?:MobxPromise<Mutation[]>, 
+                                     uncalledMutationData?:MobxPromise<Mutation[]>) {
+    
+    const mutationDataResult = concatMutationData(mutationData, uncalledMutationData);
+    
+    let queryHugoSymbols: Array<string> = [];
+        
+    mutationDataResult.forEach(function(mutation: Mutation) {
+        queryHugoSymbols.push(mutation.gene.hugoGeneSymbol);
+    });
+
+    //For some reason, Typescript indicates that getCivicGenes can be undefined: it can't
+    let civicGenes: ICivicGene = (await getCivicGenes(queryHugoSymbols)) as ICivicGene;
+
+    return civicGenes;
+}
+
+export async function fetchCnaCivicGenes(discreteCNAData:MobxPromise<DiscreteCopyNumberData[]>) {
+    
+    if (discreteCNAData.result && discreteCNAData.result.length > 0) {
+        let queryHugoSymbols: Array<string> = [];
+        
+        discreteCNAData.result.forEach(function(cna: DiscreteCopyNumberData) {
+            queryHugoSymbols.push(cna.gene.hugoGeneSymbol);
+        });
+    
+        //For some reason, Typescript indicates that getCivicGenes can be undefined: it can't
+        let civicGenes: ICivicGene = (await getCivicGenes(queryHugoSymbols)) as ICivicGene;
+    
+        return civicGenes;
+    } else {
+        return {};
+    }
+}
+
+export async function fetchCivicVariants(civicGenes: ICivicGene, mutationData?:MobxPromise<Mutation[]>,
+                                         uncalledMutationData?:MobxPromise<Mutation[]>) {
+
+    //For some reason, Typescript indicates that getCivicVariants can be undefined: it can't
+    let civicVariants: ICivicVariant;
+    if (mutationData && uncalledMutationData) {
+        const mutationDataResult = concatMutationData(mutationData, uncalledMutationData);
+        civicVariants = (await getCivicVariants(civicGenes, mutationDataResult)) as ICivicVariant;
+    } else {
+        civicVariants = (await getCivicVariants(civicGenes)) as ICivicVariant;
+    }
+
+    return civicVariants;
 }
 
 export async function fetchDiscreteCNAData(discreteCopyNumberFilter:DiscreteCopyNumberFilter,

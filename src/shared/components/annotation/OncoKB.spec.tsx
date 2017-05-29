@@ -31,7 +31,7 @@ describe('OncoKB', () => {
             "Spinner color should be #aaa");
     });
 
-    it('properly calculates OncoKB sort values', () => {
+    it('properly displays the correct CIViC icon', () => {
 
         let queryA = initQueryIndicator({
             oncogenic: 'Oncogenic'
