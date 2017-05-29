@@ -18,7 +18,7 @@ import PmidCache from "shared/cache/PmidCache";
 import MrnaExprRankCache from "shared/cache/MrnaExprRankCache";
 import {IGisticData} from "../../../shared/model/Gistic";
 import CopyNumberCountCache from "../clinicalInformation/CopyNumberCountCache";
-
+import {ICivicData, ICivicVariant} from "shared/model/Civic.ts";
 
 class CNATableComponent extends LazyMobXTable<DiscreteCopyNumberData[]> {
 
@@ -30,6 +30,8 @@ type ICopyNumberTableWrapperProps = {
     sampleIds:string[];
     sampleManager:SampleManager|null;
     cnaOncoKbData?:IOncoKbData;
+    cnaCivicData?: ICivicData;
+    cnaCivicVariants?: ICivicVariant,
     oncoKbEvidenceCache?:OncoKbEvidenceCache;
     pmidCache?:PmidCache;
     data:DiscreteCopyNumberData[][];
@@ -86,14 +88,17 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
             render: (d:DiscreteCopyNumberData[]) => (AnnotationColumnFormatter.renderFunction(d, {
                 oncoKbData: this.props.cnaOncoKbData,
                 oncoKbEvidenceCache: this.props.oncoKbEvidenceCache,
+                civicData: this.props.cnaCivicData,
+                civicVariants: this.props.cnaCivicVariants,
                 pmidCache: this.props.pmidCache,
+                enableCivic: true,
                 enableOncoKb: true,
                 enableMyCancerGenome: false,
                 enableHotspot: false
             })),
             sortBy:(d:DiscreteCopyNumberData[])=>{
                 return AnnotationColumnFormatter.sortValue(d,
-                    this.props.cnaOncoKbData);
+                    this.props.cnaOncoKbData, this.props.cnaCivicData, this.props.cnaCivicVariants);
             },
             order: 50
         });

@@ -38,6 +38,8 @@ import VariantCountCache from "shared/cache/VariantCountCache";
 import CopyNumberCountCache from "./CopyNumberCountCache";
 import CancerTypeCache from "shared/cache/CancerTypeCache";
 import MutationCountCache from "shared/cache/MutationCountCache";
+import {CivicAPI} from "shared/api/CivicAPI.ts";
+import {ICivicGeneData, ICivicVariant, ICivicData} from "shared/model/Civic.ts";
 
 type PageMode = 'patient' | 'sample';
 
@@ -117,6 +119,33 @@ export async function fetchOncoKbData(sampleIdToTumorType: {[sampleId: string]: 
     };
 
     return oncoKbData;
+}
+
+export async function fetchCivicData(data: Array<Mutation | DiscreteCopyNumberData>) {
+    
+    let queryHugoSymbols: Array<string> = [];
+        
+    data.forEach(function(datum: Mutation | DiscreteCopyNumberData) {
+        queryHugoSymbols.push(datum.gene.hugoGeneSymbol);
+    });
+
+    //For some reason, Typescript indicates that getCivicGenes can be undefined: it can't
+    let civicData: ICivicData = (await CivicAPI().getCivicGenes(queryHugoSymbols)) as ICivicData;
+
+    return civicData;
+}
+
+export async function fetchCivicVariants(civicData: ICivicData, variants?: Array<{gene:{hugoGeneSymbol: string}, proteinChange:string}>) {
+
+    //For some reason, Typescript indicates that getCivicVariants can be undefined: it can't
+    let civicVariants: ICivicVariant;
+    if (variants) {
+        civicVariants = (await CivicAPI().getCivicVariants(civicData, variants)) as ICivicVariant;
+    } else {
+        civicVariants = (await CivicAPI().getCivicVariants(civicData)) as ICivicVariant;
+    }
+
+    return civicVariants;
 }
 
 export class PatientViewPageStore {
@@ -629,6 +658,35 @@ export class PatientViewPageStore {
         ],
         invoke: async() => this.oncoKbDataInvoke()
     }, ONCOKB_DEFAULT);
+    
+    async civicDataInvoke(){
+
+        if (this.mutationData.result.length === 0) {
+            return {};
+        }
+        
+        return fetchCivicData(this.mutationData.result);
+    }
+    
+    readonly civicData = remoteData<ICivicData | undefined>({
+        await: () => [
+            this.mutationData,
+            this.clinicalDataForSamples
+        ],
+        invoke: async() => this.civicDataInvoke()
+    }, undefined);
+    
+    readonly civicVariants = remoteData<ICivicVariant | undefined>({
+        await: () => [
+            this.civicData,
+            this.mutationData
+        ],
+        invoke: async() => {
+            if (this.civicData.status == "complete") {
+                return fetchCivicVariants(this.civicData.result as ICivicData, this.mutationData.result);
+            }
+       }
+    }, undefined);
 
     readonly cnaOncoKbData = remoteData<IOncoKbData>({
         await: () => [
@@ -648,6 +706,32 @@ export class PatientViewPageStore {
             }
         }
     }, ONCOKB_DEFAULT);
+    
+    readonly cnaCivicData = remoteData<ICivicData | undefined>({
+        await: () => [
+            this.discreteCNAData,
+            this.clinicalDataForSamples
+        ],
+        invoke: async() => {
+            if (this.discreteCNAData.result.length > 0) {
+                return fetchCivicData(this.discreteCNAData.result);
+            } else {
+                return {};
+            }
+        }
+    }, undefined);
+    
+    readonly cnaCivicVariants = remoteData<ICivicVariant | undefined>({
+        await: () => [
+            this.civicData,
+            this.mutationData
+        ],
+        invoke: async() => {
+            if (this.cnaCivicData.status == "complete") {
+                return fetchCivicVariants(this.cnaCivicData.result as ICivicData);
+            }
+       }
+    }, undefined);
 
     readonly copyNumberCountData = remoteData<CopyNumberCount[]>({
         await: () => [

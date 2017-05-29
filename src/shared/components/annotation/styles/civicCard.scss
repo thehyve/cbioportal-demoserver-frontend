@@ -1,0 +1,172 @@
+.civic-card {
+  margin: auto;
+  width: 500px;
+  font-size: 14px;
+  line-height: 18px; }
+.civic-card * {
+  border-collapse: collapse;
+  box-sizing: border-box; }
+.civic-card ul {
+  padding: 0; }
+.civic-card ul li {
+  list-style-type: none; }
+.civic-card .secondary-content {
+  float: right;
+  color: #26a69a; }
+.civic-card table, .civic-card th, .civic-card td {
+  border: none; }
+.civic-card table {
+  width: 100%;
+  display: table; }
+.civic-card table.bordered > thead > tr,
+.civic-card table.bordered > tbody > tr {
+  border-bottom: 1px solid #d0d0d0; }
+.civic-card table.striped > tbody > tr:nth-child(odd) {
+  background-color: #ddd; }
+.civic-card table.striped > tbody > tr > td {
+  border-radius: 0; }
+.civic-card table.highlight > tbody > tr {
+  -webkit-transition: background-color .25s ease;
+  transition: background-color .25s ease; }
+.civic-card table.highlight > tbody > tr:hover {
+  background-color: #ddd; }
+.civic-card table.centered thead tr th, .civic-card table.centered tbody tr td {
+  text-align: center; }
+.civic-card thead {
+  border-bottom: 1px solid #d0d0d0; }
+.civic-card td, .civic-card th {
+  padding: 15px 5px;
+  display: table-cell;
+  text-align: left;
+  vertical-align: middle;
+  border-radius: 2px; }
+.civic-card .disclaimer {
+  color: grey;
+  font-style: italic;
+  padding: 5px 10px; }
+.civic-card .item-list i.glyphicon-chevron-down, .civic-card .item-list i.glyphicon-chevron-up {
+  color: #ffa500;
+  margin-right: 0; }
+.civic-card .footer {
+  width: 100%;
+  padding-top: 3px;
+  line-height: 32px;
+  height: 32px; 
+  background: #333; }
+.civic-card .footer .civic-logo {
+  height: 32px;
+  margin-left: 10px;
+  margin-top: -3px;
+  vertical-align: top; }
+.civic-card .tab-content > .tab-pane {
+  padding: 5px 10px 0 10px; }
+.civic-card .enable-hover > a:hover {
+  opacity: 0.7;
+  cursor: pointer; }
+.civic-card li.tab.enable-hover.active {
+  border-bottom: 3px solid #ffa500; }
+.civic-card .thead {
+  border: 0; }
+.civic-card .collapsible-body p {
+  padding: 0 1rem; }
+.civic-card .collapsible {
+  border-left: 0;
+  border-right: 0;
+  box-shadow: none;
+  margin: 0; }
+.civic-card td, .civic-card th {
+  text-align: center; }
+.civic-card th {
+  font-size: 12px; }
+.civic-card td {
+  font-size: 13px; }
+.civic-card table thead th {
+  border-bottom: 2px solid #1c75cd; }
+.civic-card .levels {
+  padding: 5px 10px;
+  font-size: 12px; }
+.civic-card .levels ul {
+  line-height: 8px; }
+.civic-card .levels li {
+  line-height: 16px;
+  margin: 3px 0;
+  display: inline-block; }
+.civic-card .levels li i {
+  float: left;
+  width: 16px; }
+.civic-card .levels li > span {
+  float: left;
+  width: calc(100% - 22px); }
+.civic-card .tip-header {
+  line-height: 22px;
+  font-size: 22px;
+  background-color: #8539b2;
+  color: #fff;
+  text-align: center;
+  padding: 5px 10px; }
+.civic-card .grey-out {
+  opacity: 0.4 !important; }
+.civic-card .additional-info {
+  padding: 5px 10px;
+  line-height: 20px;
+  border-bottom: 1px solid lightgrey; }
+.civic-card-content {
+    max-height: 400px;
+    overflow: auto;
+}
+
+.civic-card-gene,
+.civic-card-variant {
+    margin: 5px 9px;
+}
+
+.civic-card-variant-header {
+    margin-bottom: 1px;
+    padding: 3px 6px 3px;
+    background: #ece3f2;
+}
+
+.civic-card-variant-description {
+    padding: 3px 6px 3px;
+    background: #ece3f2;
+}
+
+.civic-card-gene-name a,
+.civic-card-variant-name a {
+    font-weight: bold;
+    color: #1974b8;
+}
+
+.qtip.qtip-civic-card-refs {
+  color: black;
+  max-width: 400px;
+  border: 0;
+  border-radius: 0;
+  font-size: 11px; }
+.qtip.qtip-civic-card-refs * {
+  box-sizing: border-box; }
+.qtip.qtip-civic-card-refs ul.list-group {
+  max-height: 200px;
+  overflow-y: auto; }
+.qtip.qtip-civic-card-refs .list-group-item {
+  border: 0;
+  padding: 5px;
+  line-height: 16px; }
+.qtip.qtip-civic-card-refs .list-group-item a {
+  color: #1c75cd; }
+.qtip.qtip-civic-card-refs .list-group-item:not(:first-child) {
+  border-top: 1px solid #d0d0d0; }
+.qtip.qtip-civic-card-refs .list-group-item:last-child {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0; }
+.qtip.qtip-civic-card-refs .list-group-item:first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0; }
+
+.qtip.civic-card-qtip {
+  border: 0;
+  max-width: 500px; }
+.qtip.civic-card-qtip .qtip-content {
+  padding: 0; }
+.qtip.civic-card-qtip .oncogenic-loading {
+  margin: 5px 9px; }

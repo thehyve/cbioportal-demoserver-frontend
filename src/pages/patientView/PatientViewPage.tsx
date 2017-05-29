@@ -319,6 +319,8 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                         hotspots={patientViewPageStore.indexedHotspotData}
                                         cosmicData={patientViewPageStore.cosmicData.result}
                                         oncoKbData={patientViewPageStore.oncoKbData.result}
+                                        civicData={patientViewPageStore.civicData.result}
+                                        civicVariants={patientViewPageStore.civicVariants.result}
                                     />
                                 )
                             }
@@ -331,6 +333,8 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                 sampleIds={sampleManager ? sampleManager.getSampleIdsInOrder() : []}
                                 sampleManager={sampleManager}
                                 cnaOncoKbData={patientViewPageStore.cnaOncoKbData.result}
+                                cnaCivicData={patientViewPageStore.cnaCivicData.result}
+                                cnaCivicVariants={patientViewPageStore.cnaCivicVariants.result}
                                 oncoKbEvidenceCache={patientViewPageStore.oncoKbEvidenceCache}
                                 pmidCache={patientViewPageStore.pmidCache}
                                 data={patientViewPageStore.mergedDiscreteCNAData}
