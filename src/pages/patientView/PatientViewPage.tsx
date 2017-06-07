@@ -332,6 +332,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                 cnaCivicVariants={patientViewPageStore.cnaCivicVariants.result}
                                 oncoKbEvidenceCache={patientViewPageStore.oncoKbEvidenceCache}
                                 enableOncoKb={AppConfig.showOncoKB}
+                                enableCivic={AppConfig.showCivic}
                                 pubMedCache={patientViewPageStore.pubMedCache}
                                 data={patientViewPageStore.mergedDiscreteCNAData}
                                 copyNumberCountCache={patientViewPageStore.copyNumberCountCache}

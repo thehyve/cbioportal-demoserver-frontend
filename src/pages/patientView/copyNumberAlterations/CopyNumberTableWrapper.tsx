@@ -34,6 +34,7 @@ type ICopyNumberTableWrapperProps = {
     cnaCivicVariants?: ICivicVariant,
     oncoKbEvidenceCache?:OncoKbEvidenceCache;
     enableOncoKb?:boolean;
+    enableCivic?:boolean;
     pubMedCache?:PubMedCache;
     data:DiscreteCopyNumberData[][];
     copyNumberCountCache?:CopyNumberCountCache;
@@ -48,7 +49,8 @@ type ICopyNumberTableWrapperProps = {
 export default class CopyNumberTableWrapper extends React.Component<ICopyNumberTableWrapperProps, {}> {
 
     public static defaultProps = {
-        enableOncoKb: true
+        enableOncoKb: true,
+        enableCivic: false
     };
 
     render() {
