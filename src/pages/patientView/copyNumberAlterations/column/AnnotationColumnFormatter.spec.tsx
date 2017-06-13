@@ -41,7 +41,7 @@ describe('AnnotationColumnFormatter', () => {
         let cna = getCnaData();
         
         assert.deepEqual(
-            AnnotationColumnFormatter.isCivicDisabled(cna, civicGenes, civicVariants), false,
+            AnnotationColumnFormatter.hasCivicVariants(cna, civicGenes, civicVariants), true,
             'Civic is not disabled');
     });
 

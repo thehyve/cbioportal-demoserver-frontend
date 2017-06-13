@@ -36,7 +36,7 @@ export interface IAnnotation {
     myCancerGenomeLinks: string[];
     oncoKbIndicator?: IndicatorQueryResp;
     civicEntry?: ICivicEntry | null;
-    isCivicDisabled: boolean;
+    hasCivicVariants: boolean;
 }
 
 /**
@@ -61,7 +61,7 @@ export default class AnnotationColumnFormatter
                     AnnotationColumnFormatter.getIndicatorData(mutation, oncoKbData) : undefined,
                 civicEntry: civicGenes && civicVariants ?
                     AnnotationColumnFormatter.getCivicEntry(mutation, civicGenes, civicVariants) : undefined,
-                isCivicDisabled: false,
+                hasCivicVariants: true,
                 myCancerGenomeLinks: myCancerGenomeData ?
                     AnnotationColumnFormatter.getMyCancerGenomeLinks(mutation, myCancerGenomeData) : [],
                 isHotspot: hotspotsData ?
@@ -75,7 +75,7 @@ export default class AnnotationColumnFormatter
                 myCancerGenomeLinks: [],
                 isHotspot: false,
                 is3dHotspot: false,
-                isCivicDisabled: false
+                hasCivicVariants: true
             };
         }
 
@@ -227,7 +227,7 @@ export default class AnnotationColumnFormatter
                 <If condition={columnProps.enableCivic || false}>
                     <Civic
                         civicEntry={annotation.civicEntry}
-                        isCivicDisabled={annotation.isCivicDisabled}
+                        hasCivicVariants={annotation.hasCivicVariants}
                     />
                 </If>
             </span>

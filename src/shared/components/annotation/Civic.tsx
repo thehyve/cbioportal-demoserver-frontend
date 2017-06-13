@@ -10,7 +10,7 @@ import CivicCard from "./CivicCard";
 
 export interface ICivicProps { 
     civicEntry: ICivicEntry | null | undefined;
-    isCivicDisabled: boolean;
+    hasCivicVariants: boolean;
 }
 
 export function hideArrow(tooltipEl: any) {
@@ -50,9 +50,9 @@ export default class Civic extends React.Component<ICivicProps, {}>
         const civicImgWidth:number = 14;
         let civicImgHeight:number = 14;
         let civicImgSrc = require("./images/civic-logo.png");
-        if (this.props.isCivicDisabled)
+        if (!this.props.hasCivicVariants)
         {
-            civicImgSrc = require("./images/civic-logo-disabled.png");
+            civicImgSrc = require("./images/civic-logo-no-variants.png");
         }
 
         if (this.props.civicEntry !== undefined)

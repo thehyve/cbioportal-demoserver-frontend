@@ -9,7 +9,7 @@ import {IndicatorQueryResp} from "../../api/generated/OncoKbAPI";
 describe('Civic', () => {
     const props = {
         civicEntry: undefined,
-        isCivicDisabled: false
+        hasCivicVariants: true
     };
 
     let component: ReactWrapper<any, any>;

@@ -30,8 +30,8 @@ export default class AnnotationColumnFormatter
                     AnnotationColumnFormatter.getIndicatorData(copyNumberData, oncoKbData) : undefined,
                 civicEntry: civicGenes && civicVariants ?
                     AnnotationColumnFormatter.getCivicEntry(copyNumberData, civicGenes, civicVariants) : undefined,
-                isCivicDisabled: civicGenes && civicVariants ?
-                    AnnotationColumnFormatter.isCivicDisabled(copyNumberData, civicGenes, civicVariants) : false,
+                hasCivicVariants: civicGenes && civicVariants ?
+                    AnnotationColumnFormatter.hasCivicVariants(copyNumberData, civicGenes, civicVariants) : true,
                 myCancerGenomeLinks: [],
                 isHotspot: false,
                 is3dHotspot: false
@@ -42,7 +42,7 @@ export default class AnnotationColumnFormatter
                 myCancerGenomeLinks: [],
                 isHotspot: false,
                 is3dHotspot: false,
-                isCivicDisabled: false
+                hasCivicVariants: true
             };
         }
 
@@ -72,17 +72,17 @@ export default class AnnotationColumnFormatter
         return civicEntry;
     }
 
-    public static isCivicDisabled (copyNumberData:DiscreteCopyNumberData[], civicGenes:ICivicGene, civicVariants:ICivicVariant): boolean
+    public static hasCivicVariants (copyNumberData:DiscreteCopyNumberData[], civicGenes:ICivicGene, civicVariants:ICivicVariant): boolean
     {
         let geneSymbol: string = copyNumberData[0].gene.hugoGeneSymbol;
         let geneVariants: {[name: string]: ICivicVariantData} = civicVariants[geneSymbol];
         let geneEntry: ICivicGeneData = civicGenes[geneSymbol];
     
         if (geneEntry && !geneVariants) {
-            return true;
+            return false;
             }
         
-        return false;
+        return true;
     }
     
     public static getIndicatorData(copyNumberData:DiscreteCopyNumberData[], oncoKbData:IOncoKbData):IndicatorQueryResp
