@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as request from 'superagent';
 import CivicAPI from "shared/api/CivicAPI.ts";
 import {ICivicGene, ICivicGeneData, ICivicVariant, ICivicVariantData} from "shared/model/Civic.ts";
 import civicClient from "shared/api/civicClientInstance";
@@ -6,20 +7,9 @@ import civicClient from "shared/api/civicClientInstance";
 type MutationSpec = {gene:{hugoGeneSymbol: string}, proteinChange: string};
 
 /**
- * Asynchronously adds to civicGenes the gene entries corresponding to the ids given.
- */
-function setCivicGenesBatch(ids: string, civicGenes: ICivicGene): JQueryPromise<void> {
-    return civicClient.getCivicGenesBatch(ids).then(function (arrayCivicGenes: Array<ICivicGeneData>) {
-           arrayCivicGenes.forEach((civicGene) => {
-           civicGenes[civicGene.name] = civicGene;
-        });
-    })
-}
-
-/**
  * Asynchronously adds the given variant from a gene to the variant map specified.
  */
-function addCivicVariant(variantMap: ICivicVariant, variantId: number, variantName: string, geneSymbol: string, geneId: number): JQueryPromise<void> {
+function addCivicVariant(variantMap: ICivicVariant, variantId: number, variantName: string, geneSymbol: string, geneId: number): Promise<void> {
     return civicClient.getVariant(variantId, variantName, geneId)
     .then(function(result: ICivicVariantData) {
         if (result) {
@@ -34,12 +24,12 @@ function addCivicVariant(variantMap: ICivicVariant, variantId: number, variantNa
 /**
  * Asynchronously return a map with Civic information from the genes given.
  */
-export function getCivicGenes(geneSymbols: Array<string>): JQueryPromise<ICivicGene> {
+export function getCivicGenes(geneSymbols: Array<string>): Promise<ICivicGene> {
     
     let civicGenes: ICivicGene = {};
 
     // Assemble a list of promises, each of which will retrieve a batch of genes
-    let promises: Array<JQueryPromise<void>> = [];
+    let promises: Array<Promise<Array<ICivicGeneData>>> = [];
     let ids = '';
     geneSymbols.forEach(function(geneSymbol: string) {
         // Check if we already have it in the cache
@@ -56,28 +46,23 @@ export function getCivicGenes(geneSymbols: Array<string>): JQueryPromise<ICivicG
         // To prevent the request from growing too large, we send it off
         // when it reaches this limit and start a new one
         if (ids.length >= 1900) {
-            promises.push(setCivicGenesBatch(ids, civicGenes));
+            promises.push(civicClient.getCivicGenesBatch(ids));
             ids = '';
         }
     });
     if (ids.length > 0) {
-        promises.push(setCivicGenesBatch(ids, civicGenes));
+        promises.push(civicClient.getCivicGenesBatch(ids));
     }
 
-    // We're explicitly waiting for all promises to finish (done or fail).
-    // We are wrapping them in another promise separately, to make sure we also 
-    // wait in case one of the promises fails and the other is still busy.
-    let wrappedPromises = $.map(promises, function(promise: JQueryPromise<void>) {
-        let wrappingDeferred = $.Deferred();
-        promise.always(function (result) {
-            wrappingDeferred.resolve();
-        });
-        return wrappingDeferred.promise();
-    });
-    
-    let mainPromise = $.when.apply($, wrappedPromises);
-
-    return mainPromise.then(function() {
+    // We're waiting for all promises to finish, then return civicGenes
+    return Promise.all(promises).then(function(responses) {
+        for (let res in responses) {
+            let arrayCivicGenes: Array<ICivicGeneData> = responses[res];
+            arrayCivicGenes.forEach((civicGene) => {
+                civicGenes[civicGene.name] = civicGene;
+            });
+        }
+    }).then(function() {
         return civicGenes;
     });
 }
@@ -86,10 +71,10 @@ export function getCivicGenes(geneSymbols: Array<string>): JQueryPromise<ICivicG
  * Asynchronously retrieve a map with Civic information from the mutationSpecs given for all genes in civicGenes.
  * If no mutationSpecs are given, then return the Civic information of all the CNA variants of the genes in civicGenes.
  */
-export function getCivicVariants(civicGenes: ICivicGene, mutationSpecs?: Array<MutationSpec>): JQueryPromise<ICivicVariant> {
+export function getCivicVariants(civicGenes: ICivicGene, mutationSpecs?: Array<MutationSpec>): Promise<ICivicVariant> {
 
     let civicVariants: ICivicVariant = {};
-    let promises: Array<JQueryPromise<void>> = [];
+    let promises: Array<Promise<void>> = [];
     
     if (mutationSpecs){
         for (let mutation of mutationSpecs) {
@@ -131,17 +116,7 @@ export function getCivicVariants(civicGenes: ICivicGene, mutationSpecs?: Array<M
     // We're explicitly waiting for all promises to finish (done or fail).
     // We are wrapping them in another promise separately, to make sure we also 
     // wait in case one of the promises fails and the other is still busy.
-    let wrappedPromises = $.map(promises, function(promise: JQueryPromise<void>) {
-        let wrappingDeferred = $.Deferred();
-        promise.always(function (result) {
-            wrappingDeferred.resolve();
-        });
-        return wrappingDeferred.promise();
-    });
-    
-    let mainPromise = $.when.apply($, wrappedPromises);
-
-    return mainPromise.then(function() {
+    return Promise.all(promises).then(function() {
         return civicVariants;
     });
 }

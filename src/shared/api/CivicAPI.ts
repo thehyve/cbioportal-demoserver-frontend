@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import * as request from 'superagent';
 import {ICivicGene, ICivicGeneData, ICivicVariant, ICivicVariantData} from "shared/model/Civic.ts";
 
 type CivicAPIGene = {
@@ -60,58 +60,47 @@ function createVariantMap(variantArray: Array<CivicAPIGeneVariant>): {[variantNa
  * CIViC
  */
 export default class CivicAPI {
-  
-      /**
-       * Retrieves the gene entries for the ids given, if they are in the Civic API.
-       */
-       getCivicGenesBatch(ids: string): JQueryPromise<Array<ICivicGeneData>> {
-        return $.ajax({
-            type: 'GET',
-            url: 'https://civic.genome.wustl.edu/api/genes/' + ids,
-            dataType: 'json',
-            data: {
-                identifier_type: 'entrez_symbol'
-            }
-        }).then(function (response: CivicAPIGene | Array<CivicAPIGene>) {
-            let result: Array<CivicAPIGene>;
-            if (response instanceof Array) {
-              result = response;
-            } else {
-              result = [response];
-            }
-            return result.map((record: CivicAPIGene) => ({
-                id: record.id,
-                name: record.name,
-                description: record.description,
-                url: 'https://civic.genome.wustl.edu/#/events/genes/'
-                + record.id + '/summary',
-                variants: createVariantMap(record.variants)
-            }));
-        }, function () {
-            return [];
-        });
+    /**
+     * Retrieves the gene entries for the ids given, if they are in the Civic API.
+    */
+    getCivicGenesBatch(ids: string): Promise<Array<ICivicGeneData>> {
+    return request.get('https://civic.genome.wustl.edu/api/genes/' + ids)
+           .query({identifier_type: 'entrez_symbol'})
+           .then((res) => {
+                let response = res.body;
+                let result: Array<CivicAPIGene>;
+                if (response instanceof Array) {
+                  result = response;
+                } else {
+                  result = [response];
+                }
+                return result.map((record: CivicAPIGene) => ({
+                    id: record.id,
+                    name: record.name,
+                    description: record.description,
+                    url: 'https://civic.genome.wustl.edu/#/events/genes/'
+                    + record.id + '/summary',
+                    variants: createVariantMap(record.variants)
+                }));
+            });
     }
     
     /**
-     * Returns a promise that resolves with the variants for parameters given.
+     * Returns a promise that resolves with the variants for the parameters given.
      */
-     getVariant(variantId: number, name: string, geneId: number): JQueryPromise<ICivicVariantData> {
-        return $.ajax({
-            type: 'GET',
-            url: 'https://civic.genome.wustl.edu/api/variants/' + variantId,
-            dataType: 'json'
-            })
-            .then(function (result: CivicAPIVariant) {
-                // Aggregate evidence items per type
-                return {
-                    id: variantId,
-                    name: name,
-                    geneId: geneId,
-                    description: result.description,
-                    url: 'https://civic.genome.wustl.edu/#/events/genes/' + geneId +
-                         '/summary/variants/' + variantId + '/summary#variant',
-                    evidence: countEvidenceTypes(result.evidence_items)
-                };
-            });
+     getVariant(variantId: number, name: string, geneId: number): Promise<ICivicVariantData> {
+        return request.get('https://civic.genome.wustl.edu/api/variants/' + variantId)
+               .then((res) => {
+                   let result = res.body;
+                   return {
+                       id: variantId,
+                       name: name,
+                       geneId: geneId,
+                       description: result.description,
+                       url: 'https://civic.genome.wustl.edu/#/events/genes/' + geneId +
+                            '/summary/variants/' + variantId + '/summary#variant',
+                       evidence: countEvidenceTypes(result.evidence_items)
+                   };
+              })
     }
 }

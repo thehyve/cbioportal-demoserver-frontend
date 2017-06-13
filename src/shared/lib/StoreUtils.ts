@@ -331,7 +331,7 @@ export async function fetchCivicGenes(mutationData?:MobxPromise<Mutation[]>,
     });
 
     //For some reason, Typescript indicates that getCivicGenes can be undefined: it can't
-    let civicGenes: ICivicGene = (await getCivicGenes(queryHugoSymbols)) as ICivicGene;
+    let civicGenes: ICivicGene = await getCivicGenes(queryHugoSymbols);
 
     return civicGenes;
 }
