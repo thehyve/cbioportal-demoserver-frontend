@@ -1,12 +1,11 @@
 import Civic from './Civic';
 import React from 'react';
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import {shallow, mount, ReactWrapper} from 'enzyme';
 import sinon from 'sinon';
-import {lazyMobXTableSort} from "../lazyMobXTable/LazyMobXTable";
-import {IndicatorQueryResp} from "../../api/generated/OncoKbAPI";
+import {getExpectedCivicEntry, getExpectedCnaCivicEntry} from "test/CivicMockUtils";
 
-describe('Civic', () => {
+describe('Civic with no data', () => {
     const props = {
         civicEntry: undefined,
         hasCivicVariants: true
@@ -29,6 +28,72 @@ describe('Civic', () => {
 
         assert.equal(spinner.prop("color"), "#aaa",
             "Spinner color should be #aaa");
+    });
+
+    after(() => {
+
+    });
+});
+
+describe('Civic with data with variants', () => {
+    const props = {
+        civicEntry: getExpectedCivicEntry(),
+        hasCivicVariants: true
+    };
+
+    let component: ReactWrapper<any, any>;
+
+    before(() => {
+        component = mount(<Civic {...props}/>);
+    });
+
+    it('displays the correct Civic icon', () => {
+        const civicIcon = component.find('img');
+
+        assert.isTrue(civicIcon.exists(),
+        "Civic icon should exist");
+
+        assert.equal(civicIcon.prop("width"), 14,
+        "Civic icon width should be equal to 14");
+
+        assert.equal(civicIcon.prop("height"), 14,
+        "Civic icon height should be equal to 14");
+
+        assert.equal(civicIcon.prop("src"), require("./images/civic-logo.png"),
+        "Civic icon should be civic-logo.png");
+    });
+
+    after(() => {
+
+    });
+});
+
+describe('Civic with data with no variants', () => {
+    const props = {
+        civicEntry: getExpectedCnaCivicEntry(),
+        hasCivicVariants: false
+    };
+
+    let component: ReactWrapper<any, any>;
+
+    before(() => {
+        component = mount(<Civic {...props}/>);
+    });
+
+    it('displays the correct Civic icon', () => {
+        const civicIcon = component.find('img');
+
+        assert.isTrue(civicIcon.exists(),
+        "Civic icon should exist");
+
+        assert.equal(civicIcon.prop("width"), 14,
+        "Civic icon width should be equal to 14");
+
+        assert.equal(civicIcon.prop("height"), 14,
+        "Civic icon height should be equal to 14");
+
+        assert.equal(civicIcon.prop("src"), require("./images/civic-logo-no-variants.png"),
+        "Civic icon should be civic-logo-no-variants.png");
     });
 
     after(() => {
