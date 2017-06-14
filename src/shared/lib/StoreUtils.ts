@@ -324,13 +324,16 @@ export async function fetchCivicGenes(mutationData?:MobxPromise<Mutation[]>,
     
     const mutationDataResult = concatMutationData(mutationData, uncalledMutationData);
     
+    if (mutationDataResult.length === 0) {
+        return {};
+    }
+    
     let queryHugoSymbols: Array<string> = [];
         
     mutationDataResult.forEach(function(mutation: Mutation) {
         queryHugoSymbols.push(mutation.gene.hugoGeneSymbol);
     });
 
-    //For some reason, Typescript indicates that getCivicGenes can be undefined: it can't
     let civicGenes: ICivicGene = await getCivicGenes(queryHugoSymbols);
 
     return civicGenes;
@@ -357,13 +360,12 @@ export async function fetchCnaCivicGenes(discreteCNAData:MobxPromise<DiscreteCop
 export async function fetchCivicVariants(civicGenes: ICivicGene, mutationData?:MobxPromise<Mutation[]>,
                                          uncalledMutationData?:MobxPromise<Mutation[]>) {
 
-    //For some reason, Typescript indicates that getCivicVariants can be undefined: it can't
     let civicVariants: ICivicVariant;
     if (mutationData && uncalledMutationData) {
         const mutationDataResult = concatMutationData(mutationData, uncalledMutationData);
-        civicVariants = (await getCivicVariants(civicGenes, mutationDataResult)) as ICivicVariant;
+        civicVariants = (await getCivicVariants(civicGenes, mutationDataResult));
     } else {
-        civicVariants = (await getCivicVariants(civicGenes)) as ICivicVariant;
+        civicVariants = (await getCivicVariants(civicGenes));
     }
 
     return civicVariants;

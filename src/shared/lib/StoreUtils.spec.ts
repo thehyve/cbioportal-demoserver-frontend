@@ -1,4 +1,4 @@
-import {fetchCosmicData, fetchOncoKbData, makeStudyToCancerTypeMap} from "./StoreUtils";
+import {fetchCosmicData, fetchOncoKbData, makeStudyToCancerTypeMap, fetchCivicGenes} from "./StoreUtils";
 import { assert } from 'chai';
 import sinon from 'sinon';
 import {MobxPromise} from "mobxpromise";
@@ -143,6 +143,13 @@ describe('StoreUtils', () => {
     it("won't fetch onkokb data if there are no mutations", (done) => {
         fetchOncoKbData({}, emptyMutationData).then((data: any) => {
             assert.deepEqual(data, {sampleToTumorMap: {}, indicatorMap: {}});
+            done();
+        });
+    });
+    
+    it("won't fetch civic genes if there are no mutations", (done) => {
+        fetchCivicGenes(emptyMutationData, emptyUncalledMutationData).then((data: any) => {
+            assert.deepEqual(data, {});
             done();
         });
     });
