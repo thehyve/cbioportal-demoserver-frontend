@@ -1,8 +1,8 @@
-import {fetchCosmicData, fetchOncoKbData, makeStudyToCancerTypeMap, fetchCivicGenes} from "./StoreUtils";
+import {fetchCosmicData, fetchOncoKbData, makeStudyToCancerTypeMap, fetchCivicGenes, fetchCnaCivicGenes, fetchCivicVariants} from "./StoreUtils";
 import { assert } from 'chai';
 import sinon from 'sinon';
 import {MobxPromise} from "mobxpromise";
-import {CancerStudy, Mutation} from "../api/generated/CBioPortalAPI";
+import {CancerStudy, Mutation, DiscreteCopyNumberData} from "../api/generated/CBioPortalAPI";
 
 describe('StoreUtils', () => {
 
@@ -10,6 +10,7 @@ describe('StoreUtils', () => {
     let emptyUncalledMutationData: MobxPromise<Mutation[]>;
     let mutationDataWithNoKeyword: MobxPromise<Mutation[]>;
     let mutationDataWithKeywords: MobxPromise<Mutation[]>;
+    let emptyCnaData: MobxPromise<DiscreteCopyNumberData[]>;
 
     before(() => {
         emptyMutationData =  {
@@ -40,6 +41,15 @@ describe('StoreUtils', () => {
         };
 
         emptyUncalledMutationData =  {
+            result: [],
+            status: 'complete' as 'complete',
+            isPending: false,
+            isError: false,
+            isComplete: true,
+            error: undefined
+        };
+        
+        emptyCnaData =  {
             result: [],
             status: 'complete' as 'complete',
             isPending: false,
@@ -149,6 +159,25 @@ describe('StoreUtils', () => {
     
     it("won't fetch civic genes if there are no mutations", (done) => {
         fetchCivicGenes(emptyMutationData, emptyUncalledMutationData).then((data: any) => {
+            assert.deepEqual(data, {});
+            done();
+        });
+    });
+    
+    it("won't fetch cna civic genes if there are no mutations", (done) => {
+        fetchCnaCivicGenes(emptyCnaData).then((data: any) => {
+            assert.deepEqual(data, {});
+            done();
+        });
+    });
+    it("won't fetch civic variants if there are no mutations", (done) => {
+        fetchCivicVariants({}, emptyMutationData, emptyUncalledMutationData).then((data: any) => {
+            assert.deepEqual(data, {});
+            done();
+        });
+    });
+    it("won't fetch civic variants if there are no civic genes", (done) => {
+        fetchCivicVariants({}).then((data: any) => {
             assert.deepEqual(data, {});
             done();
         });

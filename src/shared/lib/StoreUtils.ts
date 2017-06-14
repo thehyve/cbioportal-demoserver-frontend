@@ -360,12 +360,16 @@ export async function fetchCnaCivicGenes(discreteCNAData:MobxPromise<DiscreteCop
 export async function fetchCivicVariants(civicGenes: ICivicGene, mutationData?:MobxPromise<Mutation[]>,
                                          uncalledMutationData?:MobxPromise<Mutation[]>) {
 
-    let civicVariants: ICivicVariant;
+    let civicVariants: ICivicVariant = {};
     if (mutationData && uncalledMutationData) {
-        const mutationDataResult = concatMutationData(mutationData, uncalledMutationData);
-        civicVariants = (await getCivicVariants(civicGenes, mutationDataResult));
+        if (mutationData != {} && uncalledMutationData !={}) {
+            const mutationDataResult = concatMutationData(mutationData, uncalledMutationData);
+            civicVariants = (await getCivicVariants(civicGenes, mutationDataResult));
+        }
     } else {
-        civicVariants = (await getCivicVariants(civicGenes));
+        if (civicGenes != {}) {
+            civicVariants = (await getCivicVariants(civicGenes));
+        }
     }
 
     return civicVariants;
