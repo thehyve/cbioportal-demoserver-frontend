@@ -27,7 +27,6 @@ export function getCivicGenes(): ICivicGene
 export function getCnaCivicVariants(): ICivicVariant
 {
     return {
-        "PIK3CA": {},
         "RAF1": { "AMPLIFICATION": {
                                    id: 591,
                                    name: "AMPLIFICATION",
@@ -38,6 +37,11 @@ export function getCnaCivicVariants(): ICivicVariant
                                    }
                 }
     }
+}
+
+export function getCnaCivicEmptyVariants(): ICivicVariant
+{
+    return {}
 }
 
 export function getMutationCivicVariants(): ICivicVariant

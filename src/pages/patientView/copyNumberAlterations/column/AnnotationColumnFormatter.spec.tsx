@@ -3,7 +3,7 @@ import React from 'react';
 import { assert } from 'chai';
 import { shallow, mount } from 'enzyme';
 import sinon from 'sinon';
-import {getCivicGenes, getCnaCivicVariants, getCnaData, getExpectedCnaCivicEntry} from "test/CivicMockUtils";
+import {getCivicGenes, getCnaCivicVariants, getCnaData, getExpectedCnaCivicEntry, getCnaCivicEmptyVariants} from "test/CivicMockUtils";
 import {ICivicEntry} from "shared/model/Civic";
 
 describe('AnnotationColumnFormatter', () => {
@@ -32,7 +32,7 @@ describe('AnnotationColumnFormatter', () => {
 
     });
     
-    it('properly does not disable civic', () => {
+    it('properly points that Civic has variants', () => {
         
         let civicGenes = getCivicGenes();
 
@@ -42,7 +42,20 @@ describe('AnnotationColumnFormatter', () => {
         
         assert.deepEqual(
             AnnotationColumnFormatter.hasCivicVariants(cna, civicGenes, civicVariants), true,
-            'Civic is not disabled');
+            'Civic has variants');
+    });
+    
+    it('properly points that Civic has no variants', () => {
+        
+        let civicGenes = getCivicGenes();
+
+        let civicVariants = getCnaCivicEmptyVariants();
+        
+        let cna = getCnaData();
+        
+        assert.deepEqual(
+            AnnotationColumnFormatter.hasCivicVariants(cna, civicGenes, civicVariants), false,
+            'Civic has variants');
     });
 
 
