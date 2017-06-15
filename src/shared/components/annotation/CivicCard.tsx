@@ -1,10 +1,6 @@
 import * as React from 'react';
-import * as _ from 'lodash';
-import Collapse from 'react-collapse';
-import {If, Then, Else} from 'react-if';
-import DefaultTooltip from 'shared/components/DefaultTooltip';
-import {ICache} from "shared/lib/SimpleCache";
-import {ICivicVariantData} from "shared/model/Civic.ts";
+import { If, Then, Else } from 'react-if';
+import { ICivicVariantData } from "shared/model/Civic.ts";
 import "./styles/civicCard.scss";
 
 export interface ICivicCardProps {
@@ -12,29 +8,31 @@ export interface ICivicCardProps {
     geneName: string;
     geneDescription: string;
     geneUrl: string;
-    variants: {[name: string]: ICivicVariantData};
+    variants: { [name: string]: ICivicVariantData };
 }
 
-export default class CivicCard extends React.Component<ICivicCardProps, {}>
-{
-    constructor()
-    {
+export default class CivicCard extends React.Component<ICivicCardProps, {}> {
+    constructor() {
         super();
     }
 
-    public generateVariants(variantMap:{[name: string]: ICivicVariantData})
-    {
-        const list:JSX.Element[] = [];
-        
+    /**
+     * Generate variants
+     * @param variantMap
+     * @returns {JSX.Element[]}
+     */
+    public generateVariants(variantMap: { [name: string]: ICivicVariantData }) {
+        const list: JSX.Element[] = [];
+
         if (variantMap) {
             for (let name in variantMap) {
                 let variant = variantMap[name];
                 let entryTypes: string = '';
                 for (let evidenceType in variant.evidence) {
-                    entryTypes += evidenceType.toLowerCase() + ': ' + variant.evidence[evidenceType] +', '
+                    entryTypes += evidenceType.toLowerCase() + ': ' + variant.evidence[evidenceType] + ', '
                 }
-                entryTypes = entryTypes.slice(0, -2)+'.'
-                 
+                entryTypes = entryTypes.slice(0, -2) + '.';
+
                 list.push(this.variantItem(variant.url, variant.name, entryTypes, variant.description));
             }
         } else {
@@ -44,33 +42,45 @@ export default class CivicCard extends React.Component<ICivicCardProps, {}>
         return list;
     }
 
-    public variantItem(url?:string, name?:string, entryTypes?:string, description?:string)
-    {
+    /**
+     * Get variant item
+     * @param url
+     * @param name
+     * @param entryTypes
+     * @param description
+     * @returns {any}
+     */
+    public variantItem(url?: string, name?: string, entryTypes?: string, description?: string) {
         let result;
-        
+
         if (url || name || entryTypes || description) {
             result = (
-            <div className="civic-card-variant">
-                <div className="civic-card-variant-header">
-                    <span className="civic-card-variant-name"><a href={url} target="_blank">{name}</a></span>
-                    <span className="civic-card-variant-entry-types"> Entries: {entryTypes}</span>
+                <div className="civic-card-variant">
+                    <div className="civic-card-variant-header">
+                        <span className="civic-card-variant-name"><a href={url} target="_blank">{name}</a></span>
+                        <span className="civic-card-variant-entry-types"> Entries: {entryTypes}</span>
+                    </div>
+                    <div className="civic-card-variant-description summary">{description}</div>
                 </div>
-                <div className="civic-card-variant-description summary">{description}</div>
-            </div>
             );
         } else {
             result = (
-            <div className="civic-card-variant">
-                <div className="civic-card-variant-description summary">Information about the oncogenic activity of this alteration is not yet available in CIViC.</div>
-            </div>
+                <div className="civic-card-variant">
+                    <div className="civic-card-variant-description summary">Information about the oncogenic activity of
+                        this alteration is not yet available in CIViC.
+                    </div>
+                </div>
             );
-       }
-        
-       return result;
+        }
+
+        return result;
     }
 
-    public render()
-    {
+    /**
+     * Render civic card component
+     * @returns {any}
+     */
+    public render() {
         return (
             <div className="civic-card">
                 <span>
@@ -102,7 +112,7 @@ export default class CivicCard extends React.Component<ICivicCardProps, {}>
 
                 <div className="item footer">
                     <a href={this.props.geneUrl} target="_blank">
-                        <img src={require("./images/civic_text_logo.png")} className="civic-logo" alt="CIViC" />
+                        <img src={require("./images/civic_text_logo.png")} className="civic-logo" alt="CIViC"/>
                     </a>
                 </div>
             </div>
