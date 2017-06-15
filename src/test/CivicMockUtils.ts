@@ -56,7 +56,6 @@ export function getMutationCivicVariants(): ICivicVariant
                              evidence: {"Prognostic": 1, "Predictive": 14}
                              }
                 },
-        "RAF1": {}
     }
 }
 

@@ -4,6 +4,7 @@ import { assert, expect } from 'chai';
 import {shallow, mount, ReactWrapper} from 'enzyme';
 import sinon from 'sinon';
 import {getExpectedCivicEntry, getExpectedCnaCivicEntry} from "test/CivicMockUtils";
+import CivicCard from "./CivicCard";
 
 describe('Civic with no data', () => {
     const props = {
@@ -94,6 +95,23 @@ describe('Civic with data with no variants', () => {
 
         assert.equal(civicIcon.prop("src"), require("./images/civic-logo-no-variants.png"),
         "Civic icon should be civic-logo-no-variants.png");
+    });
+
+    after(() => {
+
+    });
+});
+
+describe('Counts correctly', () => {
+
+    before(() => {
+    });
+
+    it('Gives 1 point per Entry', () => {
+        const value = Civic.sortValue(getExpectedCnaCivicEntry());
+        
+        assert.equal(value, 1,
+        "Correctly gives 1 point for an entry");
     });
 
     after(() => {
