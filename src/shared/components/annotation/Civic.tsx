@@ -27,7 +27,7 @@ export default class Civic extends React.Component<ICivicProps, {}>
     {
         let score: number = 0;
 
-        if (civicEntry && civicEntry != null) {
+        if (civicEntry) {
             score = 1;
         }
 

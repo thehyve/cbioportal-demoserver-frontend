@@ -107,13 +107,26 @@ describe('Counts correctly', () => {
     before(() => {
     });
 
-    it('Gives 1 point per Entry', () => {
+    it('Gives 1 point per entry', () => {
         const value = Civic.sortValue(getExpectedCnaCivicEntry());
         
         assert.equal(value, 1,
         "Correctly gives 1 point for an entry");
     });
 
+    it('Gives 0 points if the entry is undefined', () => {
+        const value = Civic.sortValue(undefined);
+        
+        assert.equal(value, 0,
+        "Correctly gives 0 points if the entry is undefined");
+    });
+    
+    it('Gives 0 points if the entry is null', () => {
+        const value = Civic.sortValue(null);
+        
+        assert.equal(value, 0,
+        "Correctly gives 0 points if the entry is null");
+    });
     after(() => {
 
     });
