@@ -1,6 +1,18 @@
-import {ICivicGene, ICivicVariant, ICivicEntry} from "shared/model/Civic";
+import { ICivicGene, ICivicVariant, ICivicEntry, ICivicVariantData } from "shared/model/Civic";
 import {DiscreteCopyNumberData, Mutation} from "shared/api/generated/CBioPortalAPI";
 import * as _ from 'lodash';
+
+export function getCivicVariantData(): ICivicVariantData
+{
+    return {
+        id: 0,
+        name: 'variantdata',
+        geneId: 124,
+        description: 'descr',
+        url: 'http://',
+        evidence: {'type1' : 1}
+    };
+}
 
 export function getCivicGenes(): ICivicGene
 {
