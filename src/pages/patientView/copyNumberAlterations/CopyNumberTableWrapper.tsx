@@ -58,6 +58,8 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
                 name: "Tumors",
                 render:(d:DiscreteCopyNumberData[])=>TumorColumnFormatter.renderFunction(d, this.props.sampleManager),
                 sortBy:(d:DiscreteCopyNumberData[])=>TumorColumnFormatter.getSortValue(d, this.props.sampleManager),
+                download: (d:DiscreteCopyNumberData[], s:DiscreteCopyNumberData)=>TumorColumnFormatter.getSample(s),
+                toDownload: true,
                 order: 20
             });
         }
@@ -69,6 +71,7 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
                 return d[0].gene.hugoGeneSymbol.indexOf(filterStringUpper) > -1;
             },
             download: (d:DiscreteCopyNumberData[])=>d[0].gene.hugoGeneSymbol,
+            toDownload: true,
             sortBy: (d:DiscreteCopyNumberData[])=>d[0].gene.hugoGeneSymbol,
             visible: true,
             order: 30
@@ -81,6 +84,7 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
                 return CnaColumnFormatter.displayText(d).toUpperCase().indexOf(filterStringUpper) > -1;
             },
             download: CnaColumnFormatter.download,
+            toDownload: true,
             sortBy: CnaColumnFormatter.sortValue,
             visible: true,
             order: 40
@@ -100,6 +104,7 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
                 return AnnotationColumnFormatter.sortValue(d,
                     this.props.cnaOncoKbData);
             },
+            toDownload: true,
             order: 50
         });
 
@@ -107,6 +112,7 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
             name: "Cytoband",
             render: (d:DiscreteCopyNumberData[])=><span>{d[0].gene.cytoband}</span>,
             download: (d:DiscreteCopyNumberData[])=>d[0].gene.cytoband,
+            toDownload: true,
             sortBy: (d:DiscreteCopyNumberData[])=>d[0].gene.cytoband,
             visible: true,
             order: 60
@@ -127,6 +133,7 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
                 }
             },
             tooltip: (<span>Alteration frequency in cohort</span>),
+            toDownload: true,
             defaultSortDirection: "desc",
             order: 80
         });
@@ -137,6 +144,7 @@ export default class CopyNumberTableWrapper extends React.Component<ICopyNumberT
                 render: (d:DiscreteCopyNumberData[])=>(this.props.mrnaExprRankCache
                                     ? MrnaExprColumnFormatter.cnaRenderFunction(d, this.props.mrnaExprRankCache)
                                     : (<span/>)),
+                toDownload: true,
                 order: 70
             });
         }

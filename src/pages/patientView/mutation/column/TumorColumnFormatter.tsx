@@ -3,7 +3,6 @@ import 'rc-tooltip/assets/bootstrap_white.css';
 import SampleManager from "../../sampleManager";
 import {isUncalled} from '../../../../shared/lib/mutationUtils';
 
-
 export default class TumorColumnFormatter {
 
     public static renderFunction<T extends {sampleId:string}>(data:T[], sampleManager:SampleManager|null) {
@@ -66,5 +65,13 @@ export default class TumorColumnFormatter {
             }
             return map;
         }, {});
+    }
+
+    public static getSample(data:{sampleId:string}): string {
+        let result ='';
+        if (data) {
+            result = data.sampleId;
+        }
+        return result;
     }
 }

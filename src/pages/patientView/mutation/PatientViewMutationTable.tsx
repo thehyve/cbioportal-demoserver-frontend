@@ -11,6 +11,7 @@ import AlleleFreqColumnFormatter from "./column/AlleleFreqColumnFormatter";
 import TumorColumnFormatter from "./column/TumorColumnFormatter";
 import ProteinChangeColumnFormatter from "./column/ProteinChangeColumnFormatter";
 import {isUncalled} from "../../../shared/lib/mutationUtils";
+import TumorAlleleFreqColumnFormatter from "shared/components/mutationTable/column/TumorAlleleFreqColumnFormatter";
 
 export interface IPatientViewMutationTableProps extends IMutationTableProps {
     sampleManager:SampleManager | null;
@@ -71,13 +72,17 @@ export default class PatientViewMutationTable extends MutationTable<IPatientView
             name: "Allele Freq",
             render: (d:Mutation[])=>AlleleFreqColumnFormatter.renderFunction(d, this.props.sampleManager),
             sortBy:(d:Mutation[])=>AlleleFreqColumnFormatter.getSortValue(d, this.props.sampleManager),
+            download: (d:Mutation[], s:Mutation)=>AlleleFreqColumnFormatter.getFrequency(s),
+            toDownload: true,
             tooltip:(<span>Variant allele frequency in the tumor sample</span>)
         };
 
         this._columns[MutationTableColumnType.TUMORS] = {
             name: "Tumors",
             render:(d:Mutation[])=>TumorColumnFormatter.renderFunction(d, this.props.sampleManager),
-            sortBy:(d:Mutation[])=>TumorColumnFormatter.getSortValue(d, this.props.sampleManager)
+            sortBy:(d:Mutation[])=>TumorColumnFormatter.getSortValue(d, this.props.sampleManager),
+            download: (d:Mutation[], s:Mutation)=>TumorColumnFormatter.getSample(s),
+            toDownload: true
         };
 
         // patient view has a custom renderer for protein change column, so we need to override render function
@@ -88,22 +93,26 @@ export default class PatientViewMutationTable extends MutationTable<IPatientView
         this._columns[MutationTableColumnType.REF_READS_N].render =
             (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, this.getSamples(), "normalRefCount");
         this._columns[MutationTableColumnType.REF_READS_N].download =
-            (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, this.getSamples(), "normalRefCount");
+            (d:Mutation[], s:Mutation)=>AlleleCountColumnFormatter.getReads(s, "normalRefCount");
+        this._columns[MutationTableColumnType.REF_READS_N].toDownload = true;
 
         this._columns[MutationTableColumnType.VAR_READS_N].render =
             (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, this.getSamples(), "normalAltCount");
         this._columns[MutationTableColumnType.VAR_READS_N].download =
-            (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, this.getSamples(), "normalAltCount");
+            (d:Mutation[], s:Mutation)=>AlleleCountColumnFormatter.getReads(s, "normalAltCount");
+        this._columns[MutationTableColumnType.VAR_READS_N].toDownload = true;
 
         this._columns[MutationTableColumnType.REF_READS].render =
             (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, this.getSamples(), "tumorRefCount");
         this._columns[MutationTableColumnType.REF_READS].download =
-            (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, this.getSamples(), "tumorRefCount");
+            (d:Mutation[], s:Mutation)=>AlleleCountColumnFormatter.getReads(s, "tumorRefCount");
+        this._columns[MutationTableColumnType.REF_READS].toDownload = true;
 
         this._columns[MutationTableColumnType.VAR_READS].render =
             (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, this.getSamples(), "tumorAltCount");
         this._columns[MutationTableColumnType.VAR_READS].download =
-            (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, this.getSamples(), "tumorAltCount");
+            (d:Mutation[], s:Mutation)=>AlleleCountColumnFormatter.getReads(s, "tumorAltCount");
+        this._columns[MutationTableColumnType.VAR_READS].toDownload = true;
 
 
         // order columns

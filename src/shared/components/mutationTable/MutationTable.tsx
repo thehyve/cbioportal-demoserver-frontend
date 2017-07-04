@@ -160,6 +160,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Sample ID",
             render: (d:Mutation[]) => SampleColumnFormatter.renderFunction(d, this.props.studyId),
             sortBy: SampleColumnFormatter.getTextValue,
+            toDownload: true,
             visible: true
         };
 
@@ -168,6 +169,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             render: TumorAlleleFreqColumnFormatter.renderFunction,
             sortBy: TumorAlleleFreqColumnFormatter.getSortValue,
             tooltip:(<span>Variant allele frequency in the tumor sample</span>),
+            toDownload: true,
             visible: true
         };
 
@@ -176,11 +178,13 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             render: NormalAlleleFreqColumnFormatter.renderFunction,
             sortBy: NormalAlleleFreqColumnFormatter.getSortValue,
             tooltip:(<span>Variant allele frequency in the normal sample</span>),
+            toDownload: true,
             visible: false
         };
 
         this._columns[MutationTableColumnType.MRNA_EXPR] = {
             name:"mRNA Expr.",
+            toDownload: true,
             render:(d:Mutation[])=>(this.props.mrnaExprRankCache
                 ? MrnaExprColumnFormatter.renderFunction(d, this.props.mrnaExprRankCache as MrnaExprRankCache)
                 : (<span></span>))
@@ -200,6 +204,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
                 }
             },
             tooltip: (<span>Mutation frequency in cohort</span>),
+            toDownload: true,
             defaultSortDirection: "desc"
         };
 
@@ -208,6 +213,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             render:(d:Mutation[])=>(this.props.discreteCNACache
                 ? DiscreteCNAColumnFormatter.renderFunction(d, this.props.discreteCNACache as DiscreteCNACache)
                 : (<span></span>)),
+            toDownload: true,
             sortBy: (d:Mutation[]):number|null=>{
                 const cache = this.props.discreteCNACache;
                 if (cache) {
@@ -229,6 +235,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Ref Reads (N)",
             render: (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, [d[0].sampleId], "normalRefCount"),
             download: (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, [d[0].sampleId], "normalRefCount"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.normalRefCount),
             visible: false
         };
@@ -237,6 +244,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Variant Reads (N)",
             render: (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, [d[0].sampleId], "normalAltCount"),
             download: (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, [d[0].sampleId], "normalAltCount"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.normalAltCount),
             visible: false
         };
@@ -245,6 +253,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Ref Reads",
             render: (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, [d[0].sampleId], "tumorRefCount"),
             download: (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, [d[0].sampleId], "tumorRefCount"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.tumorRefCount),
             visible: false
         };
@@ -253,6 +262,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Variant Reads",
             render: (d:Mutation[])=>AlleleCountColumnFormatter.renderFunction(d, [d[0].sampleId], "tumorAltCount"),
             download: (d:Mutation[])=>AlleleCountColumnFormatter.getTextValue(d, [d[0].sampleId], "tumorAltCount"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.tumorAltCount),
             visible: false
         };
@@ -261,6 +271,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Start Pos",
             render: (d:Mutation[])=>getSpanForDataField(d, "startPosition"),
             download: (d:Mutation[])=>getTextForDataField(d, "startPosition"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.startPosition),
             visible: false
         };
@@ -269,6 +280,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "End Pos",
             render: (d:Mutation[])=>getSpanForDataField(d, "endPosition"),
             download: (d:Mutation[])=>getTextForDataField(d, "endPosition"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.endPosition),
             visible: false
         };
@@ -277,6 +289,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Ref",
             render: (d:Mutation[])=>getSpanForDataField(d, "referenceAllele"),
             download: (d:Mutation[])=>getTextForDataField(d, "referenceAllele"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.referenceAllele),
             visible: false
         };
@@ -285,6 +298,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Var",
             render: (d:Mutation[])=>getSpanForDataField(d, "variantAllele"),
             download: (d:Mutation[])=>getTextForDataField(d, "variantAllele"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.variantAllele),
             visible: false
         };
@@ -293,6 +307,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "MS",
             render: (d:Mutation[])=>getSpanForDataField(d, "mutationStatus"),
             download: (d:Mutation[])=>getTextForDataField(d, "mutationStatus"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.mutationStatus),
             filter: (d:Mutation[], filterString:string, filterStringUpper:string) =>
                 defaultFilter(d, "mutationStatus", filterStringUpper),
@@ -303,6 +318,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "VS",
             render: (d:Mutation[])=>getSpanForDataField(d, "validationStatus"),
             download: (d:Mutation[])=>getTextForDataField(d, "validationStatus"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.validationStatus),
             filter: (d:Mutation[], filterString:string, filterStringUpper:string) =>
                 defaultFilter(d, "validationStatus", filterStringUpper),
@@ -313,6 +329,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Center",
             render: (d:Mutation[])=>getSpanForDataField(d, "center"),
             download: (d:Mutation[])=>getTextForDataField(d, "center"),
+            toDownload: true,
             sortBy:(d:Mutation[])=>d.map(m=>m.center),
             filter: (d:Mutation[], filterString:string, filterStringUpper:string) =>
                 defaultFilter(d, "center", filterStringUpper),
@@ -323,6 +340,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Gene",
             render: (d:Mutation[])=>GeneColumnFormatter.renderFunction(d),
             download: (d:Mutation[])=>GeneColumnFormatter.getTextValue(d),
+            toDownload: true,
             sortBy:(d:Mutation[])=>GeneColumnFormatter.getSortValue(d),
             filter:(d:Mutation[], filterString:string, filterStringUpper:string) =>
                 GeneColumnFormatter.getTextValue(d).toUpperCase().indexOf(filterStringUpper) > -1
@@ -332,6 +350,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Chromosome",
             render: (d:Mutation[])=>(<span>{ChromosomeColumnFormatter.getData(d)}</span>),
             download: (d:Mutation[])=>(ChromosomeColumnFormatter.getData(d) || ""),
+            toDownload: true,
             sortBy:(d:Mutation[])=>ChromosomeColumnFormatter.getSortValue(d),
             filter:(d:Mutation[], filterString:string, filterStringUpper:string) =>
                 (ChromosomeColumnFormatter.getData(d)+'').toUpperCase().indexOf(filterStringUpper) > -1,
@@ -342,6 +361,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Protein Change",
             render: ProteinChangeColumnFormatter.renderFunction,
             download: ProteinChangeColumnFormatter.getTextValue,
+            toDownload: true,
             sortBy:(d:Mutation[])=>ProteinChangeColumnFormatter.getSortValue(d),
             filter: (d:Mutation[], filterString:string, filterStringUpper:string) =>
                 ProteinChangeColumnFormatter.getTextValue(d).toUpperCase().indexOf(filterStringUpper) > -1
@@ -351,6 +371,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Mutation Type",
             render:MutationTypeColumnFormatter.renderFunction,
             download:MutationTypeColumnFormatter.getTextValue,
+            toDownload: true,
             sortBy:(d:Mutation[])=>MutationTypeColumnFormatter.getDisplayValue(d),
             filter:(d:Mutation[], filterString:string, filterStringUpper:string) =>
                 MutationTypeColumnFormatter.getDisplayValue(d).toUpperCase().indexOf(filterStringUpper) > -1
@@ -360,6 +381,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             name: "Mutation Assessor",
             render:MutationAssessorColumnFormatter.renderFunction,
             download:MutationAssessorColumnFormatter.getTextValue,
+            toDownload: true,
             sortBy:(d:Mutation[])=>MutationAssessorColumnFormatter.getSortValue(d),
             filter:(d:Mutation[], filterString:string, filterStringUpper:string) =>
                 MutationAssessorColumnFormatter.filterValue(d).toUpperCase().indexOf(filterStringUpper) > -1,
@@ -371,6 +393,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             render: (d:Mutation[])=>CosmicColumnFormatter.renderFunction(d, this.props.cosmicData),
             sortBy: (d:Mutation[])=>CosmicColumnFormatter.getSortValue(d, this.props.cosmicData),
             download: (d:Mutation[])=>CosmicColumnFormatter.getDownloadValue(d, this.props.cosmicData),
+            toDownload: true,
             tooltip: (<span>COSMIC occurrences</span>),
             defaultSortDirection: "desc"
         };
@@ -387,6 +410,7 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
                 enableMyCancerGenome: this.props.enableMyCancerGenome as boolean,
                 enableHotspot: this.props.enableHotspot as boolean
             })),
+            toDownload: true,
             sortBy:(d:Mutation[])=>{
                 return AnnotationColumnFormatter.sortValue(d,
                     this.props.hotspots,
@@ -400,12 +424,14 @@ export default class MutationTable<P extends IMutationTableProps> extends React.
             render:CancerTypeColumnFormatter.makeRenderFunction(this),
             sortBy:(d:Mutation[])=>CancerTypeColumnFormatter.sortBy(d, this.props.studyId, this.props.cancerTypeCache),
             tooltip:(<span>Cancer Type</span>),
+            toDownload: true,
         };
 
         this._columns[MutationTableColumnType.NUM_MUTATIONS] = {
             name: "# Mut in Sample",
             render: MutationCountColumnFormatter.makeRenderFunction(this),
             sortBy: (d:Mutation[]) => MutationCountColumnFormatter.sortBy(d, this.props.mutationCountCache),
+            toDownload: true,
             tooltip:(<span>Total number of nonsynonymous mutations in the sample</span>)
         };
     }

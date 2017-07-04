@@ -48,4 +48,13 @@ export default class AlleleCountColumnFormatter
             </div>
         );
     }
+    
+    public static getReads(sample:Mutation, dataField:string): string
+    {
+        let result = '';
+        if (sample) {
+            result = (sample as any)[dataField];
+        }
+        return result;
+    }
 }

@@ -34,5 +34,12 @@ describe('TumorColumnFormatter', () => {
         assert(!('B' in presentSamples), "sample B mutation is not present because it has 0 supporting reads");
         assert(presentSamples['C'] === false, "sample C mutation is present and is uncalled with > 0 supporting reads");
     });
+    
+    it('test get sample id', ()=>{
+        let testData = {sampleId:'A',
+        geneticProfileId:GENETIC_PROFILE_MUTATIONS_SUFFIX
+        }
+        assert.deepEqual(TumorColumnFormatter.getSample(testData), "A");
+    });
 
 });

@@ -1,5 +1,7 @@
 import AlleleFreqColumnFormatter from './AlleleFreqColumnFormatter';
 import {GENETIC_PROFILE_UNCALLED_MUTATIONS_SUFFIX, GENETIC_PROFILE_MUTATIONS_SUFFIX} from '../../../../shared/constants';
+import {initMutation} from "test/MutationMockUtils";
+import {Mutation} from "shared/api/generated/CBioPortalAPI";
 import React from 'react';
 import { assert } from 'chai';
 import { shallow, mount } from 'enzyme';
@@ -51,5 +53,12 @@ describe('AlleleFreqColumnFormatter', () => {
         };
         const res = AlleleFreqColumnFormatter.convertMutationToSampleElement(uncalledMutationWithSupport, 'red', 5, {});
         assert(res && mount(res.text).text().indexOf('(uncalled)') !== -1);
+    });
+    it('calculates the Allele frequency for a mutation', ()=> {
+        const mutation:Mutation = initMutation({
+            tumorAltCount:1,
+            tumorRefCount:10
+        });
+        assert.deepEqual(AlleleFreqColumnFormatter.getFrequency(mutation), "0.09090909090909091");
     });
 });

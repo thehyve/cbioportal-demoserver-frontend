@@ -142,4 +142,15 @@ export default class AlleleFreqColumnFormatter {
             return (altReads / (altReads + refReads));
         });
     }
+
+    public static getFrequency(data:Mutation): string {
+        let result = '';
+        if (data) {
+            let frequency = data.tumorAltCount/(data.tumorAltCount+data.tumorRefCount);
+            if (frequency) {
+                result = String(frequency);
+            }
+        }
+        return result;
+    }
 }

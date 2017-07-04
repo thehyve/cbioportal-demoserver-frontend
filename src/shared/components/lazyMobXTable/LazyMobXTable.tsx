@@ -17,7 +17,11 @@ import { If } from 'react-if';
 import {SortMetric} from "../../lib/ISortMetric";
 import {IMobXApplicationDataStore, SimpleMobXApplicationDataStore} from "../../lib/IMobXApplicationDataStore";
 
+import {shallow, mount, ReactWrapper} from 'enzyme';
+
 export type SortDirection = 'asc' | 'desc';
+
+export type TChild = {};
 
 export type Column<T> = {
     name: string;
@@ -25,10 +29,11 @@ export type Column<T> = {
     visible?:boolean;
     sortBy?:((data:T)=>(number|null)) | ((data:T)=>(string|null)) | ((data:T)=>(number|null)[]) | ((data:T)=>(string|null)[]);
     render:(data:T)=>JSX.Element;
-    download?:(data:T)=>string;
+    download?:(data:T, sample?:TChild)=>string;
     tooltip?:JSX.Element;
     defaultSortDirection?:SortDirection;
     togglable?:boolean;
+    toDownload?:boolean;
 };
 
 type LazyMobXTableProps<T> = {
@@ -198,29 +203,33 @@ class LazyMobXTableStore<T> {
     @computed public get downloadData()
     {
         const tableDownloadData:string[][] = [];
-
+        
         // add header (including hidden columns)
         tableDownloadData[0] = [];
         this.columns.forEach((column:Column<T>) => {
-            tableDownloadData[0].push(column.name);
+            if (column.toDownload) {
+                tableDownloadData[0].push(column.name);
+            }
         });
 
         // add rows (including hidden columns)
         this.dataStore.sortedData.forEach((rowData:T) => {
-            const rowDownloadData:string[] = [];
-
-            this.columns.forEach((column:Column<T>) => {
-                if (column.download) {
-                    rowDownloadData.push(column.download(rowData));
+            if (rowData instanceof Array) {
+                for (let sample of rowData) {
+                    const rowDownloadData:string[] = [];
+                    this.columns.forEach((column:Column<T>) => {
+                        if (column.toDownload) {
+                            if (column.download) {
+                                rowDownloadData.push(column.download(rowData, sample));
+                            } else {
+                                rowDownloadData.push("");
+                            }
+                        }
+                    });
+                    tableDownloadData.push(rowDownloadData);
                 }
-                else {
-                    rowDownloadData.push("");
-                }
-            });
-
-            tableDownloadData.push(rowDownloadData);
+            }
         });
-
         return tableDownloadData;
     }
 
