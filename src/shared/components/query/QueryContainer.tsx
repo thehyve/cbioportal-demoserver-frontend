@@ -9,6 +9,7 @@ import {observable, computed, action} from 'mobx';
 import {observer} from "mobx-react";
 import DataTypePrioritySelector from "./DataTypePrioritySelector";
 import GeneSetSelector from "./GeneSetSelector";
+import GeneSelector from "./GeneSelector";
 import LabeledCheckbox from "../labeledCheckbox/LabeledCheckbox";
 import {QueryStore} from "./QueryStore";
 import {providesStoreContext} from "../../lib/ContextUtils";
@@ -55,6 +56,7 @@ export default class QueryContainer extends React.Component<QueryContainerProps,
 			this.props.onSubmit();
 		}
 	}
+	
 
     render():JSX.Element
     {
@@ -71,7 +73,14 @@ export default class QueryContainer extends React.Component<QueryContainerProps,
 					<CaseSetSelector/>
 				)}
 
-				<GeneSetSelector/>
+				<GeneSelector/>
+				
+				{!! (this.store.isGenesetProfileSelected) && (
+				    <GeneSetSelector/>
+				)}
+
+				
+				
 
 				{!!(this.store.forDownloadTab) && (
 					<span className={styles.downloadSubmitExplanation}>

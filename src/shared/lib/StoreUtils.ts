@@ -825,3 +825,10 @@ export function groupBySampleId(sampleIds: Array<string>, clinicalDataArray: Arr
         })
     );
 }
+
+export async function getHierarchyData(
+        geneticProfileId: string, percentile: number, scoreThreshold: number, pvalueThreshold: number,
+        sampleListId: string|undefined,  client:CBioPortalAPIInternal = internalClient) {
+    return await client.fetchGenesetHierarchyInfoUsingPOST({geneticProfileId, percentile, scoreThreshold,
+        pvalueThreshold, sampleListId});
+}
