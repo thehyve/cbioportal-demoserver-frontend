@@ -8,8 +8,8 @@ import MolecularProfileSelector from "./MolecularProfileSelector";
 import {observable, computed, action} from 'mobx';
 import {observer} from "mobx-react";
 import DataTypePrioritySelector from "./DataTypePrioritySelector";
+import GenesetsSelector from "./GenesetsSelector";
 import GeneSetSelector from "./GeneSetSelector";
-import GeneSelector from "./GeneSelector";
 import LabeledCheckbox from "../labeledCheckbox/LabeledCheckbox";
 import {QueryStore} from "./QueryStore";
 import {providesStoreContext} from "../../lib/ContextUtils";
@@ -79,10 +79,10 @@ export default class QueryContainer extends React.Component<QueryContainerProps,
 					<CaseSetSelector/>
 				)}
 
-				<GeneSelector/>
+				<GeneSetSelector/>
 				
 				{!! (this.store.isGenesetProfileSelected) && (
-				    <GeneSetSelector/>
+				    <GenesetsSelector/>
 				)}
 
 				
