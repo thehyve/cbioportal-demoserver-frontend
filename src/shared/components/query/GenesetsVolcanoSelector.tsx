@@ -179,7 +179,10 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 <div style={{float: "left"}} className="form-inline">
                 <label htmlFor="PercentileScoreCalculation">Percentile for score calculation:</label>
                 <span style={{display: "inline-block", verticalAlign: "middle", marginLeft: "1em"}}>
-                <ReactSelect addLabelText="Percentile for score calculation" style={ {width:"160px"} }
+                <ReactSelect
+                    addLabelText="Percentile for score calculation"
+                    style={{width:160, borderRadius: "2px"}}
+                    clearable={false}
                     name="PercentileScoreCalculation"
                     value={this.selectedPercentile}
                     options={this.percentileOptions}
@@ -214,7 +217,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 disabled={this.isLoading}
                 onClick={() => this.props.onSelect(this.map_geneSets_selected)}
                 >
-                Select
+                    Select
                 </button>
                 </div>
                 </div>
