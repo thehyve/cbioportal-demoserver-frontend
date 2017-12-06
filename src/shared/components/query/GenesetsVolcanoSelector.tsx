@@ -13,6 +13,8 @@ import {toPrecision} from "../../lib/FormatUtils";
 import { getHierarchyData } from "shared/lib/StoreUtils";
 import ReactSelect from "react-select";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
+import { VictoryChart, VictoryScatter, VictoryTheme, VictorySelectionContainer,
+    VictoryAxis, VictoryLabel, VictoryLine }from 'victory';
 
 const styles = styles_any as {
     GenesetsVolcanoSelectorWindow: string,
@@ -34,17 +36,18 @@ export interface GenesetsVolcanoSelectorProps
 @observer
 export default class GenesetsVolcanoSelector extends React.Component<GenesetsVolcanoSelectorProps, {}>
 {
-    @observable allGenesets: Geneset[];
-    @observable selectedPercentile: {label: string, value: string};
+    @observable tableData: Geneset[] = [];
+    plotData: {x: number, y: number}[];
+    maxY: number = 1;
+    mapData: {tableData: Geneset, plotData:{x:number, y:number}}[] = [];
+    @observable selectedPercentile: {label: string, value: string} = {label: '75%', value: '75'};
     @observable isLoading = true;
     @observable percentileHasChanged = false;
     readonly percentileOptions = [{label: '50%', value: '50'}, {label: '75%', value: '75'}, {label: '100%', value: '100'}];
-    private readonly map_geneSets_selected = new ObservableMap<boolean>();
+    @observable private map_geneSets_selected = new ObservableMap<boolean>();
     constructor(props:GenesetsVolcanoSelectorProps)
     {
         super(props);
-        this.allGenesets = [];
-        this.selectedPercentile = {label: '75%', value: '75'};
         this.percentileChange = this.percentileChange.bind(this);
         this.map_geneSets_selected.replace(props.initialSelection.map(geneSet => [geneSet, true]));
     }
@@ -71,12 +74,12 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     
     @computed get selectedGenesets()
     {
-        return this.allGenesets.filter(geneSet => this.map_geneSets_selected.get(geneSet.name));
+        return this.tableData.filter(geneSet => this.map_geneSets_selected.get(geneSet.name));
     }
     
     @action selectAll(selected:boolean)
     {
-        for (let geneSet of this.allGenesets)
+        for (let geneSet of this.tableData)
             this.map_geneSets_selected.set(geneSet.name, selected);
     }
     
@@ -124,7 +127,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                     {() => (
                         <LabeledCheckbox
                         checked={this.selectedGenesets.length > 0}
-                        indeterminate={this.selectedGenesets.length > 0 && this.selectedGenesets.length < this.allGenesets.length}
+                        indeterminate={this.selectedGenesets.length > 0 && this.selectedGenesets.length < this.tableData.length}
                         onChange={event => this.selectAll(event.target.checked)}
                         />
                     )}
@@ -152,24 +155,54 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     
     async getData() {
         const flatData: Geneset[] = [];
-    const hierarchyData = await getHierarchyData(
-            this.props.gsvaProfile, Number(this.selectedPercentile.value),0, 1, this.props.sampleListId);
-    for (const node of hierarchyData) {
-        if (_.has(node, 'genesets')) {
-            for (const geneSet of node.genesets) {
-                flatData.push({
-                    genesetId: geneSet.genesetId,
-                    name: geneSet.genesetId,
-                    description : geneSet.description,
-                    representativeScore : geneSet.representativeScore,
-                    representativePvalue : geneSet.representativePvalue,
-                    refLink : geneSet.refLink,
-                });
+        const hierarchyData = await getHierarchyData(
+                this.props.gsvaProfile, Number(this.selectedPercentile.value),0, 1, this.props.sampleListId);
+        for (const node of hierarchyData) {
+            if (_.has(node, 'genesets')) {
+                for (const geneSet of node.genesets) {
+                    flatData.push({
+                        genesetId: geneSet.genesetId,
+                        name: geneSet.genesetId,
+                        description : geneSet.description,
+                        representativeScore : geneSet.representativeScore,
+                        representativePvalue : geneSet.representativePvalue,
+                        refLink : geneSet.refLink,
+                    });
+                }
             }
         }
+        let plotData: {x: number, y: number}[] = [];
+        let mapData: {tableData: Geneset, plotData:{x:number, y:number}}[] = [];
+        for (let tableDatum of flatData) {
+            let xValue = tableDatum.representativeScore;
+            let yValue = -(Math.log(tableDatum.representativePvalue)/Math.log(10));
+            if (yValue > this.maxY) {
+                this.maxY = yValue;
+            }
+            mapData.push({tableData: tableDatum, plotData: {x: xValue, y: yValue}})
+            plotData.push({x: xValue, y: yValue})
+        }
+        this.tableData = flatData;
+        this.plotData = plotData;
+        this.mapData = mapData;
+        this.isLoading = false;
     }
-    this.allGenesets = flatData;
-    this.isLoading = false;
+    
+    getSelectedPoints(points: any, bounds: any) {
+        let selectedPoints = [];
+        if (points && points[0].data) {
+            for (let point of points[0].data) {
+                selectedPoints.push({x: point.x, y: point.y})
+            }
+        }
+        
+        for (let mapDatum of this.mapData) {
+            for (let selectedPoint of selectedPoints) {
+                if (selectedPoint.x === mapDatum.plotData.x && selectedPoint.y === mapDatum.plotData.y) {
+                    this.map_geneSets_selected.set(mapDatum.tableData.name, true);
+                }
+            }
+        }
     }
     
     render()
@@ -189,6 +222,66 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                     onChange={this.percentileChange}
                 />
                 </span>
+                    <LoadingIndicator isLoading={this.isLoading} />
+                {  (!this.isLoading) && (
+                <VictoryChart
+                    theme={VictoryTheme.material}
+                    width={510}
+                    containerComponent={
+                        <VictorySelectionContainer
+                            onSelection={(points: any, bounds: any) => this.getSelectedPoints(points, bounds)}/>
+                        }
+                >
+                <VictoryAxis crossAxis
+                    domain={[-1, 1.25]}
+                    tickValues={[-1, -0.5, 0, 0.5, 1]}
+                    style={{axisLabel: {padding: 35}}}
+                    label={"GSVA score"}
+                    theme={VictoryTheme.material}
+                    offsetY={50}
+                    standalone={false}
+                />
+                <VictoryAxis dependentAxis crossAxis
+                    domain={[0, this.maxY]}
+                    style={{axisLabel: {padding: 35}, stroke: "none"}}
+                    label={"-log10 p-value"}
+                    theme={VictoryTheme.material}
+                    offsetX={50}
+                    standalone={false}
+                />
+                <VictoryLabel
+                    text="significance ↑"
+                    datum={{ x:1, y: 1.3}}
+                    textAnchor="start"
+                />
+                <VictoryLine
+                    style={{
+                      data: { stroke: "black", strokeDasharray:5 },
+                      parent: { border: "dotted 1px #f00"}
+                    }}
+                    data={[
+                      { x: -1.2, y: 1.3 },
+                      { x: 1, y: 1.3 }
+                    ]}
+                />
+                <VictoryLine
+                    style={{
+                      data: { stroke: "rgb(144, 164, 174)" },
+                      parent: { border: "1px dashed solid"}
+                    }}
+                    data={[
+                      { x: 0, y: 0 },
+                      { x: 0, y: this.maxY }
+                    ]}
+                />
+                  <VictoryScatter
+                      style={{ data: { fill: (d:any, active:undefined|true) => active ? "tomato" : "#3786C2" } }}
+                      size={3}
+                      data={this.plotData}
+                  />
+                </VictoryChart>
+                      )
+                  }
                 </div>
                 <div style={{float: "right", maxHeight: "356.5px", overflowY: "scroll", width: "650px"}}>
                 <LoadingIndicator isLoading={this.isLoading} />
@@ -197,7 +290,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                     itemsName="geneSets"
                     initItemsPerPage={10}
                     columns={this.columns}
-                    rawData={this.allGenesets}
+                    rawData={this.tableData}
                     headerControlsProps={{
                         showCopyAndDownload: false,
                         showHideShowColumnButton: false,
@@ -212,13 +305,20 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 }
                 </div>
                 <div style={{clear: "both"}}>
-                <button style={{marginTop:15}} 
+                <button style={{marginTop:-20}} 
                 className="btn btn-primary btn-sm pull-right"
                 disabled={this.isLoading}
                 onClick={() => this.props.onSelect(this.map_geneSets_selected)}
                 >
                     Select
                 </button>
+                    <button style={{marginTop:-20, marginRight:15}} 
+                    className="btn btn-primary btn-sm pull-right"
+                    disabled={this.isLoading}
+                    onClick={() => this.map_geneSets_selected = new ObservableMap<boolean>()}
+                    >
+                        Clear selection
+                    </button>
                 </div>
                 </div>
         );
