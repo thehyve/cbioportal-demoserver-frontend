@@ -30,13 +30,14 @@ export interface GenesetsVolcanoSelectorProps
     initialSelection: string[];
     gsvaProfile: string;
     sampleListId: string|undefined;
-    onSelect: (map_geneSets_selected:ObservableMap<boolean>) => void;
+    onSelect: (map_genesets_selected:ObservableMap<boolean>) => void;
 }
 
 @observer
 export default class GenesetsVolcanoSelector extends React.Component<GenesetsVolcanoSelectorProps, {}>
 {
     @observable tableData: Geneset[] = [];
+    allTableData: Geneset[] = [];
     plotData: {x: number, y: number}[];
     maxY: number = 1;
     mapData: {tableData: Geneset, plotData:{x:number, y:number}}[] = [];
@@ -44,12 +45,13 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     @observable isLoading = true;
     @observable percentileHasChanged = false;
     readonly percentileOptions = [{label: '50%', value: '50'}, {label: '75%', value: '75'}, {label: '100%', value: '100'}];
-    @observable private map_geneSets_selected = new ObservableMap<boolean>();
+    @observable private map_genesets_selected = new ObservableMap<boolean>();
+    @observable private final_map_genesets_selected = new ObservableMap<boolean>();
     constructor(props:GenesetsVolcanoSelectorProps)
     {
         super(props);
         this.percentileChange = this.percentileChange.bind(this);
-        this.map_geneSets_selected.replace(props.initialSelection.map(geneSet => [geneSet, true]));
+        this.final_map_genesets_selected.replace(props.initialSelection.map(geneSet => [geneSet, true]));
     }
     
     percentileChange(val: {label: string, value: string} | null)
@@ -74,13 +76,13 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     
     @computed get selectedGenesets()
     {
-        return this.tableData.filter(geneSet => this.map_geneSets_selected.get(geneSet.name));
+        return this.tableData.filter(geneSet => this.map_genesets_selected.get(geneSet.name));
     }
     
     @action selectAll(selected:boolean)
     {
         for (let geneSet of this.tableData)
-            this.map_geneSets_selected.set(geneSet.name, selected);
+            this.map_genesets_selected.set(geneSet.name, selected);
     }
     
     private columns:IColumnDefMap = {
@@ -141,8 +143,8 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                             <Observer>
                             {() => (
                                 <LabeledCheckbox
-                                checked={!!this.map_geneSets_selected.get(geneSet.name)}
-                                onChange={event => this.map_geneSets_selected.set(geneSet.name, event.target.checked)}
+                                checked={!!this.map_genesets_selected.get(geneSet.name)}
+                                onChange={event => this.map_genesets_selected.set(geneSet.name, event.target.checked)}
                             />
                             )}
                     </Observer>
@@ -183,6 +185,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
             plotData.push({x: xValue, y: yValue})
         }
         this.tableData = flatData;
+        this.allTableData = flatData;
         this.plotData = plotData;
         this.mapData = mapData;
         this.isLoading = false;
@@ -190,6 +193,8 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     
     getSelectedPoints(points: any, bounds: any) {
         let selectedPoints = [];
+        let newTableData: Geneset[] = [];
+        this.map_genesets_selected = new ObservableMap<boolean>();
         if (points && points[0].data) {
             for (let point of points[0].data) {
                 selectedPoints.push({x: point.x, y: point.y})
@@ -199,10 +204,24 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
         for (let mapDatum of this.mapData) {
             for (let selectedPoint of selectedPoints) {
                 if (selectedPoint.x === mapDatum.plotData.x && selectedPoint.y === mapDatum.plotData.y) {
-                    this.map_geneSets_selected.set(mapDatum.tableData.name, true);
+                    this.map_genesets_selected.set(mapDatum.tableData.name, true);
+                }
+            }
+            for (let selectedGeneSet of this.map_genesets_selected.keys()) {
+                if (mapDatum.tableData.name === selectedGeneSet) {
+                    newTableData.push(mapDatum.tableData);
                 }
             }
         }
+        
+        this.tableData = newTableData;
+    }
+    
+    updateSelection() {
+        for (let geneset of this.map_genesets_selected.keys()) {
+            this.final_map_genesets_selected.set(geneset, true);
+        }
+        this.props.onSelect(this.final_map_genesets_selected);
     }
     
     render()
@@ -308,14 +327,15 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 <button style={{marginTop:-20}} 
                 className="btn btn-primary btn-sm pull-right"
                 disabled={this.isLoading}
-                onClick={() => this.props.onSelect(this.map_geneSets_selected)}
+                onClick={() => this.updateSelection()}
                 >
-                    Select
+                    Add selection to the query
                 </button>
                     <button style={{marginTop:-20, marginRight:15}} 
                     className="btn btn-primary btn-sm pull-right"
                     disabled={this.isLoading}
-                    onClick={() => this.map_geneSets_selected = new ObservableMap<boolean>()}
+                    onClick={() => (this.map_genesets_selected = new ObservableMap<boolean>(),
+                                this.tableData = this.allTableData)}
                     >
                         Clear selection
                     </button>
