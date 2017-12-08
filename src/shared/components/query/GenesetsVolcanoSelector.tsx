@@ -144,7 +144,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                             {() => (
                                 <LabeledCheckbox
                                 checked={!!this.map_genesets_selected.get(geneSet.name)}
-                                onChange={event => this.map_genesets_selected.set(geneSet.name, event.target.checked)}
+                                onChange={event => (this.map_genesets_selected.set(geneSet.name, event.target.checked), this.changeColor(geneSet))}
                             />
                             )}
                     </Observer>
@@ -222,6 +222,12 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
             this.final_map_genesets_selected.set(geneset, true);
         }
         this.props.onSelect(this.final_map_genesets_selected);
+    }
+    
+    changeColor(geneset: Geneset) {
+        //Iterate over the gene sets
+        //Locate the x, y coordinates
+        //Change the element of the plotData to {x: x, y: y, fill: "tomato"} if checked, to fill black if unchecked.
     }
     
     render()
@@ -324,21 +330,22 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 }
                 </div>
                 <div style={{clear: "both"}}>
-                <button style={{marginTop:-20}} 
+                {  (!this.isLoading) && (
+                       <button style={{marginTop:-20}} 
                 className="btn btn-primary btn-sm pull-right"
-                disabled={this.isLoading}
                 onClick={() => this.updateSelection()}
                 >
                     Add selection to the query
-                </button>
-                    <button style={{marginTop:-20, marginRight:15}} 
+                </button>) }
+                {  (!this.isLoading) && (
+                        <button style={{marginTop:-20, marginRight:15}} 
                     className="btn btn-primary btn-sm pull-right"
-                    disabled={this.isLoading}
                     onClick={() => (this.map_genesets_selected = new ObservableMap<boolean>(),
                                 this.tableData = this.allTableData)}
                     >
                         Clear selection
                     </button>
+                        )}
                 </div>
                 </div>
         );
