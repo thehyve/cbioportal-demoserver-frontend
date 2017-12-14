@@ -34,11 +34,11 @@ export interface GenesetsVolcanoSelectorProps
 }
 
 @observer
-export default class GenesetsVolcanoSelector extends React.Component<GenesetsVolcanoSelectorProps, {}>
+export default class GenesetsVolcanoSelector extends React.Component<GenesetsVolcanoSelectorProps, {plotData:{x: number, y: number, fill: string}[]}>
 {
     @observable tableData: Geneset[] = [];
     allTableData: Geneset[] = [];
-    plotData: {x: number, y: number}[];
+    plotData: {x: number, y: number, fill: string}[];
     maxY: number = 1;
     mapData: {tableData: Geneset, plotData:{x:number, y:number}}[] = [];
     @observable selectedPercentile: {label: string, value: string} = {label: '75%', value: '75'};
@@ -50,6 +50,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     constructor(props:GenesetsVolcanoSelectorProps)
     {
         super(props);
+        this.state = {plotData: this.createPlotData()};
         this.percentileChange = this.percentileChange.bind(this);
         this.final_map_genesets_selected.replace(props.initialSelection.map(geneSet => [geneSet, true]));
     }
@@ -136,15 +137,16 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                     </Observer>
                     </div>
                 ),
-                formatter: ({name, rowData: geneSet}:IColumnFormatterData<Geneset>) => (
+                formatter: ({name, rowData: geneset}:IColumnFormatterData<Geneset>) => (
                     <Td key={name} column={name}>
-                    {!!(geneSet) && (
+                    {!!(geneset) && (
                             <div className={styles.selectionColumnCell}>
                             <Observer>
                             {() => (
                                 <LabeledCheckbox
-                                checked={!!this.map_genesets_selected.get(geneSet.name)}
-                                onChange={event => (this.map_genesets_selected.set(geneSet.name, event.target.checked), this.changeColor(geneSet))}
+                                checked={!!this.map_genesets_selected.get(geneset.name)}
+                                onChange={event => (this.map_genesets_selected.set(geneset.name, event.target.checked),
+                                    this.changeColor(geneset, event.target.checked, this.state.plotData))}
                             />
                             )}
                     </Observer>
@@ -173,7 +175,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 }
             }
         }
-        let plotData: {x: number, y: number}[] = [];
+        let plotData: {x: number, y: number, fill: string}[] = [];
         let mapData: {tableData: Geneset, plotData:{x:number, y:number}}[] = [];
         for (let tableDatum of flatData) {
             let xValue = tableDatum.representativeScore;
@@ -182,11 +184,12 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 this.maxY = yValue;
             }
             mapData.push({tableData: tableDatum, plotData: {x: xValue, y: yValue}})
-            plotData.push({x: xValue, y: yValue})
+            plotData.push({x: xValue, y: yValue, fill: "#3786C2"})
         }
         this.tableData = flatData;
         this.allTableData = flatData;
         this.plotData = plotData;
+        this.setState({plotData: plotData});
         this.mapData = mapData;
         this.isLoading = false;
     }
@@ -198,7 +201,13 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
         if (points && points[0].data) {
             for (let point of points[0].data) {
                 selectedPoints.push({x: point.x, y: point.y})
+                for (let key=0; key<this.plotData.length; key++) {
+                    if(this.plotData[key].x === point.x && this.plotData[key].y === point.y) {
+                        this.plotData[key].fill = "tomato";
+                    }
+                }
             }
+        this.setState({plotData: this.plotData});
         }
         
         for (let mapDatum of this.mapData) {
@@ -223,11 +232,40 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
         }
         this.props.onSelect(this.final_map_genesets_selected);
     }
+                
+    createPlotData() {
+        return this.plotData;
+    }
     
-    changeColor(geneset: Geneset) {
-        //Iterate over the gene sets
-        //Locate the x, y coordinates
-        //Change the element of the plotData to {x: x, y: y, fill: "tomato"} if checked, to fill black if unchecked.
+    changeColor(geneset: Geneset, selected: boolean, plotData:{x: number, y: number, fill: string}[]) {
+        let color = selected ? "tomato" : "#3786C2";
+        let antiColor = selected ? "#3786C2" : "tomato";
+        let newPlotData: {x: number, y: number, fill: string}[] = [];
+        for (let mapDatum of this.mapData) {
+            if (mapDatum.tableData.name === geneset.name) {
+                for (let key=0; key<plotData.length; key++) {
+                    if(plotData[key].x === mapDatum.plotData.x && plotData[key].y === mapDatum.plotData.y) {
+                        newPlotData.push({x: plotData[key].x, y: plotData[key].y, fill: color});
+                    }
+                }
+            } else {
+                newPlotData.push({x: mapDatum.plotData.x, y: mapDatum.plotData.y, fill: antiColor});
+            }
+        }
+        this.setState({plotData: newPlotData});
+    }
+    
+    resetPlotData(plotData:{x: number, y: number, fill: string}[]) {
+        let newPlotData: {x: number, y: number, fill: string}[] = [];
+        for (let plotDatum of plotData) {
+            if (plotDatum.fill === "tomato") {
+                newPlotData.push({x: plotDatum.x, y: plotDatum.y, fill: "#3786C2"});
+            } else {
+                newPlotData.push(plotDatum);
+            }
+        }
+        this.setState({plotData: newPlotData});
+        return newPlotData;
     }
     
     render()
@@ -300,9 +338,8 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                     ]}
                 />
                   <VictoryScatter
-                      style={{ data: { fill: (d:any, active:undefined|true) => active ? "tomato" : "#3786C2" } }}
                       size={3}
-                      data={this.plotData}
+                      data={this.state.plotData}
                   />
                 </VictoryChart>
                       )
@@ -341,7 +378,8 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                         <button style={{marginTop:-20, marginRight:15}} 
                     className="btn btn-primary btn-sm pull-right"
                     onClick={() => (this.map_genesets_selected = new ObservableMap<boolean>(),
-                                this.tableData = this.allTableData)}
+                                this.tableData = this.allTableData,
+                                this.plotData = this.resetPlotData(this.plotData)) }
                     >
                         Clear selection
                     </button>
