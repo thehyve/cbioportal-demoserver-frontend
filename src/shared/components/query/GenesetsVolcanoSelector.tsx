@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as React from 'react';
 import LabeledCheckbox from "../labeledCheckbox/LabeledCheckbox";
 import * as styles_any from './styles/styles.module.scss';
-import {action, ObservableMap, expr, toJS, computed, observable} from "mobx";
+import {action, ObservableMap, expr, toJS, computed, observable, autorun} from "mobx";
 import {observer, Observer} from "mobx-react";
 import EnhancedReactTable from "../enhancedReactTable/EnhancedReactTable";
 import {Geneset} from "../../api/generated/CBioPortalAPIInternal";
@@ -15,6 +15,7 @@ import ReactSelect from "react-select";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import { VictoryChart, VictoryScatter, VictoryTheme, VictorySelectionContainer,
     VictoryAxis, VictoryLabel, VictoryLine }from 'victory';
+import { keepAlive } from "mobx-utils/lib/mobx-utils";
 
 const styles = styles_any as {
     GenesetsVolcanoSelectorWindow: string,
@@ -34,11 +35,10 @@ export interface GenesetsVolcanoSelectorProps
 }
 
 @observer
-export default class GenesetsVolcanoSelector extends React.Component<GenesetsVolcanoSelectorProps, {plotData:{x: number, y: number, fill: string}[]}>
+export default class GenesetsVolcanoSelector extends React.Component<GenesetsVolcanoSelectorProps, {}>//{plotData:{x: number, y: number, fill: string}[]}>
 {
     @observable tableData: Geneset[] = [];
     allTableData: Geneset[] = [];
-    plotData: {x: number, y: number, fill: string}[];
     maxY: number = 1;
     mapData: {tableData: Geneset, plotData:{x:number, y:number}}[] = [];
     @observable selectedPercentile: {label: string, value: string} = {label: '75%', value: '75'};
@@ -50,9 +50,12 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
     constructor(props:GenesetsVolcanoSelectorProps)
     {
         super(props);
-        this.state = {plotData: this.createPlotData()};
+        //@observable this.state = {plotData: this.plotData};
+        this.final_map_genesets_selected.replace(props.initialSelection.map(geneset => [geneset, true]));
+        const stop = keepAlive(this, "plotData");
         this.percentileChange = this.percentileChange.bind(this);
-        this.final_map_genesets_selected.replace(props.initialSelection.map(geneSet => [geneSet, true]));
+        this.submitSelection = this.submitSelection.bind(this);
+        this.updateSelectionFromPlot = this.updateSelectionFromPlot.bind(this);
     }
     
     percentileChange(val: {label: string, value: string} | null)
@@ -61,12 +64,48 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
         this.percentileHasChanged = true;
     }
     
+    submitSelection() {
+        for (let geneset of this.map_genesets_selected.keys()) {
+            this.final_map_genesets_selected.set(geneset, true);
+        }
+        this.props.onSelect(this.final_map_genesets_selected);
+    }
+    
+    updateSelectionFromPlot(points: any, bounds: any) {
+    let selectedPoints = [];
+    let newTableData: Geneset[] = [];
+    this.map_genesets_selected = new ObservableMap<boolean>();
+    for (let point of points[0].data) {
+        selectedPoints.push({x: point.x, y: point.y});
+        //        for (let key=0; key<this.plotData.length; key++) {
+        //            if(this.plotData[key].x === point.x && this.plotData[key].y === point.y) {
+        //                this.plotData[key].fill = "tomato";
+        //           }
+        //        }
+    }
+    //this.setState({plotData: this.plotData});
+    
+    for (let tableDatum of this.allTableData) {
+        const xValue = tableDatum.representativeScore;
+        const yValue = -(Math.log(tableDatum.representativePvalue)/Math.log(10));
+        for (let selectedPoint of selectedPoints) {
+            if (selectedPoint.x === xValue && selectedPoint.y === yValue) {
+                this.map_genesets_selected.set(tableDatum.name, true);
+                newTableData.push(tableDatum);
+                break;
+            }
+        }
+    }
+    this.tableData = newTableData;
+ }
+    
     componentDidMount()
     {
         this.getData();
+        (window as any).selector = this;
     }
     
-    componentDidUpdate()
+    componentDidUpdate(prevProps: GenesetsVolcanoSelectorProps, prevState: {plotData:{x: number, y: number, fill: string}[]})
     {
         if (this.percentileHasChanged) {
             this.isLoading = true;
@@ -75,15 +114,19 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
         }
     }
     
-    @computed get selectedGenesets()
-    {
-        return this.tableData.filter(geneSet => this.map_genesets_selected.get(geneSet.name));
-    }
-    
-    @action selectAll(selected:boolean)
-    {
-        for (let geneSet of this.tableData)
-            this.map_genesets_selected.set(geneSet.name, selected);
+    @computed get plotData(): {x: number, y: number, fill: string}[] {
+        let plotData: {x: number, y: number, fill: string}[] = [];
+        for (let tableDatum of this.allTableData) {
+            const xValue = tableDatum.representativeScore;
+            const yValue = -(Math.log(tableDatum.representativePvalue)/Math.log(10));
+            const fillColor = this.map_genesets_selected.get(tableDatum.name) ? "tomato" : "3786C2";
+            plotData.push({x: xValue, y: yValue, fill: fillColor});
+            //if (yValue > this.maxY) {
+            //    this.maxY = yValue;
+            //}
+        }
+        
+        return plotData;
     }
     
     private columns:IColumnDefMap = {
@@ -123,20 +166,6 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 priority: 4,
                 sortable: false,
                 filterable: false,
-                header: (
-                    <div className={styles.selectionColumnHeader}>
-                   <span>All</span>
-                   <Observer>
-                    {() => (
-                        <LabeledCheckbox
-                        checked={this.selectedGenesets.length > 0}
-                        indeterminate={this.selectedGenesets.length > 0 && this.selectedGenesets.length < this.tableData.length}
-                        onChange={event => this.selectAll(event.target.checked)}
-                        />
-                    )}
-                    </Observer>
-                    </div>
-                ),
                 formatter: ({name, rowData: geneset}:IColumnFormatterData<Geneset>) => (
                     <Td key={name} column={name}>
                     {!!(geneset) && (
@@ -145,8 +174,8 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                             {() => (
                                 <LabeledCheckbox
                                 checked={!!this.map_genesets_selected.get(geneset.name)}
-                                onChange={event => (this.map_genesets_selected.set(geneset.name, event.target.checked),
-                                    this.changeColor(geneset, event.target.checked, this.state.plotData))}
+                                onChange={event => this.map_genesets_selected.set(geneset.name, event.target.checked) }
+                                    //this.changeColor(geneset, event.target.checked, this.state.plotData))}
                             />
                             )}
                     </Observer>
@@ -188,85 +217,41 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
         }
         this.tableData = flatData;
         this.allTableData = flatData;
-        this.plotData = plotData;
-        this.setState({plotData: plotData});
-        this.mapData = mapData;
+        //this.plotData = plotData;
+        //this.setState({plotData: plotData});
+        //this.mapData = mapData;
         this.isLoading = false;
     }
     
-    getSelectedPoints(points: any, bounds: any) {
-        let selectedPoints = [];
-        let newTableData: Geneset[] = [];
-        this.map_genesets_selected = new ObservableMap<boolean>();
-        if (points && points[0].data) {
-            for (let point of points[0].data) {
-                selectedPoints.push({x: point.x, y: point.y})
-                for (let key=0; key<this.plotData.length; key++) {
-                    if(this.plotData[key].x === point.x && this.plotData[key].y === point.y) {
-                        this.plotData[key].fill = "tomato";
-                    }
-                }
-            }
-        this.setState({plotData: this.plotData});
-        }
-        
-        for (let mapDatum of this.mapData) {
-            for (let selectedPoint of selectedPoints) {
-                if (selectedPoint.x === mapDatum.plotData.x && selectedPoint.y === mapDatum.plotData.y) {
-                    this.map_genesets_selected.set(mapDatum.tableData.name, true);
-                }
-            }
-            for (let selectedGeneSet of this.map_genesets_selected.keys()) {
-                if (mapDatum.tableData.name === selectedGeneSet) {
-                    newTableData.push(mapDatum.tableData);
-                }
-            }
-        }
-        
-        this.tableData = newTableData;
-    }
+    //changeColor(geneset: Geneset, selected: boolean, plotData:{x: number, y: number, fill: string}[]) {
+    //    let color = selected ? "tomato" : "#3786C2";
+    //    let antiColor = selected ? "#3786C2" : "tomato";
+    //    let newPlotData: {x: number, y: number, fill: string}[] = [];
+    //    for (let mapDatum of this.mapData) {
+    //        if (mapDatum.tableData.name === geneset.name) {
+    //            for (let key=0; key<plotData.length; key++) {
+    //                if(plotData[key].x === mapDatum.plotData.x && plotData[key].y === mapDatum.plotData.y) {
+    //                    newPlotData.push({x: plotData[key].x, y: plotData[key].y, fill: color});
+    //                }
+    //            }
+    //        } else {
+    //            newPlotData.push({x: mapDatum.plotData.x, y: mapDatum.plotData.y, fill: antiColor});
+    //        }
+    //    }
+    //    this.setState({plotData: newPlotData});
+    //}
     
-    updateSelection() {
-        for (let geneset of this.map_genesets_selected.keys()) {
-            this.final_map_genesets_selected.set(geneset, true);
-        }
-        this.props.onSelect(this.final_map_genesets_selected);
-    }
-                
-    createPlotData() {
-        return this.plotData;
-    }
-    
-    changeColor(geneset: Geneset, selected: boolean, plotData:{x: number, y: number, fill: string}[]) {
-        let color = selected ? "tomato" : "#3786C2";
-        let antiColor = selected ? "#3786C2" : "tomato";
-        let newPlotData: {x: number, y: number, fill: string}[] = [];
-        for (let mapDatum of this.mapData) {
-            if (mapDatum.tableData.name === geneset.name) {
-                for (let key=0; key<plotData.length; key++) {
-                    if(plotData[key].x === mapDatum.plotData.x && plotData[key].y === mapDatum.plotData.y) {
-                        newPlotData.push({x: plotData[key].x, y: plotData[key].y, fill: color});
-                    }
-                }
-            } else {
-                newPlotData.push({x: mapDatum.plotData.x, y: mapDatum.plotData.y, fill: antiColor});
-            }
-        }
-        this.setState({plotData: newPlotData});
-    }
-    
-    resetPlotData(plotData:{x: number, y: number, fill: string}[]) {
-        let newPlotData: {x: number, y: number, fill: string}[] = [];
-        for (let plotDatum of plotData) {
-            if (plotDatum.fill === "tomato") {
-                newPlotData.push({x: plotDatum.x, y: plotDatum.y, fill: "#3786C2"});
-            } else {
-                newPlotData.push(plotDatum);
-            }
-        }
-        this.setState({plotData: newPlotData});
-        return newPlotData;
-    }
+    //resetPlotData(plotData:{x: number, y: number, fill: string}[]) {
+    //    let newPlotData: {x: number, y: number, fill: string}[] = [];
+    //    for (let plotDatum of plotData) {
+    //        if (plotDatum.fill === "tomato") {
+    //            newPlotData.push({x: plotDatum.x, y: plotDatum.y, fill: "#3786C2"});
+    //        } else {
+    //            newPlotData.push(plotDatum);
+    //        }
+    //    }
+    //    this.setState({plotData: newPlotData});
+    //}
     
     render()
     {
@@ -292,7 +277,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                     width={510}
                     containerComponent={
                         <VictorySelectionContainer
-                            onSelection={(points: any, bounds: any) => this.getSelectedPoints(points, bounds)}/>
+                            onSelection={this.updateSelectionFromPlot}/>
                         }
                 >
                 <VictoryAxis crossAxis
@@ -339,7 +324,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 />
                   <VictoryScatter
                       size={3}
-                      data={this.state.plotData}
+                      data={this.plotData}
                   />
                 </VictoryChart>
                       )
@@ -370,7 +355,7 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                 {  (!this.isLoading) && (
                        <button style={{marginTop:-20}} 
                 className="btn btn-primary btn-sm pull-right"
-                onClick={() => this.updateSelection()}
+                onClick={() => this.submitSelection()}
                 >
                     Add selection to the query
                 </button>) }
@@ -378,8 +363,8 @@ export default class GenesetsVolcanoSelector extends React.Component<GenesetsVol
                         <button style={{marginTop:-20, marginRight:15}} 
                     className="btn btn-primary btn-sm pull-right"
                     onClick={() => (this.map_genesets_selected = new ObservableMap<boolean>(),
-                                this.tableData = this.allTableData,
-                                this.plotData = this.resetPlotData(this.plotData)) }
+                                this.tableData = this.allTableData)}//,
+                                //this.resetPlotData(this.plotData)) }
                     >
                         Clear selection
                     </button>
