@@ -1,5 +1,5 @@
 import OncoprintJS, {RuleSetParams, TrackSortComparator} from "oncoprintjs";
-import {ClinicalTrackSpec, GeneticTrackDatum, GeneticTrackSpec, HeatmapTrackSpec} from "./Oncoprint";
+import {ClinicalTrackSpec, GeneticTrackDatum, GeneticTrackSpec, IGenesetHeatmapTrackSpec, IHeatmapTrackSpec} from "./Oncoprint";
 import {ClinicalAttribute} from "../../api/generated/CBioPortalAPI";
 import {genetic_rule_set_same_color_for_all_no_recurrence,
     genetic_rule_set_same_color_for_all_recurrence,
@@ -191,8 +191,19 @@ export function makeClinicalTracksMobxPromise(oncoprint:ResultsViewOncoprint, sa
     });
 }
 
+export function makeGenesetHeatmapTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
+    return remoteData<IGenesetHeatmapTrackSpec[]>({
+        await:()=>[
+        ],
+        invoke:async()=> {
+            return [];
+        },
+        default: []
+    });
+}
+
 export function makeHeatmapTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
-    return remoteData<HeatmapTrackSpec[]>({
+    return remoteData<IHeatmapTrackSpec[]>({
         await:()=>[
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,

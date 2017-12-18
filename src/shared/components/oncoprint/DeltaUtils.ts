@@ -1,5 +1,5 @@
 import {
-    IOncoprintProps, default as Oncoprint, GeneticTrackSpec, HeatmapTrackSpec,
+    IOncoprintProps, default as Oncoprint, GeneticTrackSpec, IHeatmapTrackSpec,
     ClinicalTrackSpec, HeatmapTrackDatum
 } from "./Oncoprint";
 import OncoprintJS, {TrackId, SortConfig} from "oncoprintjs";
@@ -475,8 +475,8 @@ function transitionClinicalTrack(
     }
 }
 function transitionHeatmapTrack(
-    nextSpec:HeatmapTrackSpec|undefined,
-    prevSpec:HeatmapTrackSpec|undefined,
+    nextSpec:IHeatmapTrackSpec|undefined,
+    prevSpec:IHeatmapTrackSpec|undefined,
     getTrackSpecKeyToTrackId:()=>{[key:string]:TrackId},
     oncoprint:OncoprintJS<any>,
     nextProps:IOncoprintProps,
