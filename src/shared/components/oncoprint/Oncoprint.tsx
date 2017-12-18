@@ -77,7 +77,7 @@ export type GeneticTrackSpec = {
     data: GeneticTrackDatum[];
 };
 
-export type HeatmapTrackSpec = {
+export interface IHeatmapTrackSpec {
     key: string; // for efficient diffing, just like in React. must be unique
     label: string;
     molecularProfileId: string; // source
@@ -86,14 +86,18 @@ export type HeatmapTrackSpec = {
     data: HeatmapTrackDatum[];
     trackGroupIndex: number;
     onRemove:()=>void;
-};
+}
+
+export interface IGenesetHeatmapTrackSpec extends IHeatmapTrackSpec {
+}
 
 export interface IOncoprintProps {
     oncoprintRef?:(oncoprint:OncoprintJS<any>)=>void;
 
     clinicalTracks: ClinicalTrackSpec[];
     geneticTracks: GeneticTrackSpec[];
-    heatmapTracks: HeatmapTrackSpec[];
+    genesetHeatmapTracks: IGenesetHeatmapTrackSpec[];
+    heatmapTracks: IHeatmapTrackSpec[];
     divId:string;
     width:number;
 
