@@ -6,7 +6,6 @@ import {
     computed, IObservableObject, IObservableValue, IReactionDisposer, observable, ObservableMap,
     reaction
 } from "mobx";
-import {ClinicalTrackSpec, GeneticTrackDatum, GeneticTrackSpec, HeatmapTrackSpec} from "./Oncoprint";
 import {remoteData} from "../../api/remoteData";
 import Oncoprint from "./Oncoprint";
 import OncoprintControls, {
@@ -17,7 +16,8 @@ import {ResultsViewPageStore} from "../../../pages/resultsView/ResultsViewPageSt
 import {ClinicalAttribute, Gene, MolecularProfile, Mutation, Sample} from "../../api/generated/CBioPortalAPI";
 import {
     percentAltered, getPercentAltered, makeGeneticTracksMobxPromise,
-    makeHeatmapTracksMobxPromise, makeClinicalTracksMobxPromise
+    makeGenesetHeatmapTracksMobxPromise, makeHeatmapTracksMobxPromise,
+    makeClinicalTracksMobxPromise
 } from "./OncoprintUtils";
 import _ from "lodash";
 import onMobxPromise from "shared/lib/onMobxPromise";
@@ -682,6 +682,12 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
         return (this.columnMode === "sample" ? this.sampleClinicalTracks : this.patientClinicalTracks);
     }
 
+    readonly sampleGenesetTracks = makeGenesetHeatmapTracksMobxPromise(this, true);
+    readonly patientGenesetTracks = makeGenesetHeatmapTracksMobxPromise(this, false);
+    @computed get genesetHeatmapTracks() {
+        return (this.columnMode === "sample" ? this.sampleGenesetTracks : this.patientGenesetTracks);
+    }
+
     readonly sampleHeatmapTracks = makeHeatmapTracksMobxPromise(this, true);
     readonly patientHeatmapTracks = makeHeatmapTracksMobxPromise(this, false);
     @computed get heatmapTracks() {
@@ -789,7 +795,12 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     public render() {
 
-        const isLoading = (this.clinicalTracks.isPending || this.geneticTracks.isPending || this.heatmapTracks.isPending);
+        const isLoading = (
+            this.clinicalTracks.isPending
+            || this.geneticTracks.isPending
+            || this.genesetHeatmapTracks.isPending
+            || this.heatmapTracks.isPending
+        );
 
         return (
             <div className="cbioportal-frontend">
@@ -808,6 +819,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                     oncoprintRef={this.oncoprintRef}
                     clinicalTracks={this.clinicalTracks.result}
                     geneticTracks={this.geneticTracks.result}
+                    genesetHeatmapTracks={this.genesetHeatmapTracks.result}
                     heatmapTracks={this.heatmapTracks.result}
                     divId={this.props.divId}
                     width={1050}
