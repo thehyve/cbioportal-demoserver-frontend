@@ -31,11 +31,44 @@ export function doWithRenderingSuppressedAndSortingOff(oncoprint:OncoprintJS<any
 export function getHeatmapTrackRuleSetParams() {
     return {
         type: 'gradient' as 'gradient',
-        legend_label: 'Heatmap',
+        legend_label: 'Gene Expression Heatmap',
         value_key: "profile_data",
         value_range: [-3,3] as [number, number],
         colors: [[0,0,255,1], [0,0,0,1], [255,0,0,1]],
         value_stop_points: [-3, 0, 3],
+        null_color: 'rgba(224,224,224,1)'
+    };
+}
+
+export function getGenesetHeatmapTrackRuleSetParams() {
+    return {
+        type: 'gradient' as 'gradient',
+        legend_label: 'Gene Set Heatmap',
+        value_key: "profile_data",
+        value_range: [-1,1] as [number, number],
+        /*
+         * The PiYG colormap is based on color specifications and designs
+         * developed by Cynthia Brewer (http://colorbrewer.org).
+         * The palette has been included under the terms
+         * of an Apache-style license.
+         */
+        colors: [
+            [ 39, 100,  25, 1],
+            [ 77, 146,  33, 1],
+            [127, 188,  65, 1],
+            [184, 225, 134, 1],
+            [230, 245, 208, 1],
+            [247, 247, 247, 1],
+            [253, 224, 239, 1],
+            [241, 182, 218, 1],
+            [222, 119, 174, 1],
+            [197,  27, 125, 1],
+            [142,   1,  82, 1]
+        ],
+        value_stop_points: [
+            -1, -0.8, -0.6, -0.4, -0.2,
+            0, 0.2, 0.4, 0.6, 0.8, 1
+        ],
         null_color: 'rgba(224,224,224,1)'
     };
 }
