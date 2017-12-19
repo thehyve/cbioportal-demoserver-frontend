@@ -149,7 +149,11 @@ function shouldNotKeepSortedForTransition(nextProps: IOncoprintProps, prevProps:
 }
 
 function allTracks(props:Partial<IOncoprintProps>) {
-    return ((props.geneticTracks || []) as any[]).concat(props.clinicalTracks || []).concat(props.heatmapTracks || []);
+    return (((props.geneticTracks || []) as any[])
+            .concat(props.genesetHeatmapTracks || [])
+            .concat(props.clinicalTracks || [])
+            .concat(props.heatmapTracks || [])
+    );
 }
 
 function shouldSuppressRenderingForTransition(nextProps: IOncoprintProps, prevProps: Partial<IOncoprintProps>) {
