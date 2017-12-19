@@ -275,6 +275,7 @@ function transitionTracks(
     // Initialize tracks for rule set sharing
     const trackIdForRuleSetSharing = {
         genetic: undefined as undefined|TrackId,
+        genesetHeatmap: undefined as undefined|TrackId,
         heatmap: undefined as undefined|TrackId
     };
     const trackSpecKeyToTrackId = getTrackSpecKeyToTrackId();
@@ -282,8 +283,12 @@ function transitionTracks(
         // set rule set to existing track if theres a track and rule set hasnt changed
         trackIdForRuleSetSharing.genetic = trackSpecKeyToTrackId[prevProps.geneticTracks[0].key];
     }
+    if (prevProps.genesetHeatmapTracks && prevProps.genesetHeatmapTracks.length) {
+        // set rule set to existing track if there is one
+        trackIdForRuleSetSharing.genesetHeatmap = trackSpecKeyToTrackId[prevProps.genesetHeatmapTracks[0].key];
+    }
     if (prevProps.heatmapTracks && prevProps.heatmapTracks.length) {
-        // set rule set to existing track if theres a track
+        // set rule set to existing track if there is one
         trackIdForRuleSetSharing.heatmap = trackSpecKeyToTrackId[prevProps.heatmapTracks[0].key];
     }
 
