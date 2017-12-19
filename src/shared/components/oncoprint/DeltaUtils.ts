@@ -325,18 +325,33 @@ function transitionTracks(
         }
     }
 
+    // Transition gene set heatmap tracks
+    const prevGenesetHeatmapTracks = _.keyBy(prevProps.genesetHeatmapTracks || [], track=>track.key);
+    for (const track of nextProps.genesetHeatmapTracks) {
+        transitionHeatmapTrack(track, prevGenesetHeatmapTracks[track.key], getTrackSpecKeyToTrackId,
+                               oncoprint, nextProps, trackIdForRuleSetSharing);
+        delete prevGenesetHeatmapTracks[track.key];
+    }
+    for (const track of (prevProps.genesetHeatmapTracks || [])) {
+        if (prevGenesetHeatmapTracks.hasOwnProperty(track.key)) {
+            // if its still there, then this track no longer exists
+            transitionHeatmapTrack(undefined, prevGenesetHeatmapTracks[track.key], getTrackSpecKeyToTrackId,
+                                   oncoprint, nextProps, trackIdForRuleSetSharing);
+        }
+    }
+
     // Transition heatmap tracks
     const prevHeatmapTracks = _.keyBy(prevProps.heatmapTracks || [], track=>track.key);
     for (const track of nextProps.heatmapTracks) {
         transitionHeatmapTrack(track, prevHeatmapTracks[track.key], getTrackSpecKeyToTrackId,
-                                oncoprint, nextProps, trackIdForRuleSetSharing);
+                               oncoprint, nextProps, trackIdForRuleSetSharing);
         delete prevHeatmapTracks[track.key];
     }
     for (const track of (prevProps.heatmapTracks || [])) {
         if (prevHeatmapTracks.hasOwnProperty(track.key)) {
             // if its still there, then this track no longer exists
             transitionHeatmapTrack(undefined, prevHeatmapTracks[track.key], getTrackSpecKeyToTrackId,
-                                oncoprint, nextProps, trackIdForRuleSetSharing);
+                                   oncoprint, nextProps, trackIdForRuleSetSharing);
         }
     }
 }
