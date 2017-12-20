@@ -283,6 +283,9 @@ function transitionTracks(
         heatmap: undefined as undefined|TrackId
     };
     const trackSpecKeyToTrackId = getTrackSpecKeyToTrackId();
+    function useExistingRuleset(trackType: string, existingTracks: TrackSpec[], ) {
+      
+    }
     if (prevProps.geneticTracks && prevProps.geneticTracks.length && !hasGeneticTrackRuleSetChanged(nextProps, prevProps)) {
         // set rule set to existing track if theres a track and rule set hasnt changed
         trackIdForRuleSetSharing.genetic = trackSpecKeyToTrackId[prevProps.geneticTracks[0].key];
@@ -296,22 +299,36 @@ function transitionTracks(
         trackIdForRuleSetSharing.heatmap = trackSpecKeyToTrackId[prevProps.heatmapTracks[0].key];
     }
 
-
-    // Transition genetic tracks
-    const prevGeneticTracks = _.keyBy(prevProps.geneticTracks || [], track=>track.key);
-    for (const track of nextProps.geneticTracks) {
-        transitionGeneticTrack(track, prevGeneticTracks[track.key], getTrackSpecKeyToTrackId,
-                                oncoprint, nextProps, prevProps, trackIdForRuleSetSharing);
-        delete prevGeneticTracks[track.key];
-    }
-    for (const track of (prevProps.geneticTracks || [])) {
-        if (prevGeneticTracks.hasOwnProperty(track.key)) {
-            // if its still there, then this track no longer exists, we need to remove it
-            transitionGeneticTrack(undefined, prevGeneticTracks[track.key], getTrackSpecKeyToTrackId,
-                                    oncoprint, nextProps, prevProps, trackIdForRuleSetSharing);
+    type TrackSpec = any;
+    type TrackTransitioner = (
+        nextSpec: TrackSpec | undefined,
+        prevSpec: TrackSpec | undefined,
+        getTrackSpecKeyToTrackId: () => {[key: string]: TrackId},
+        oncoprint: OncoprintJS<any>,
+        nextProps: IOncoprintProps,
+        prevProps: Partial<IOncoprintProps>,
+        trackIdForRuleSetSharing: { [trackType: string]: TrackId | undefined }
+    ) => void;
+    function transitionTrackType(
+        transitionFunc: TrackTransitioner,
+        oldTracks: TrackSpec[] | undefined,
+        newTracks: TrackSpec[]) {
+        const prevGeneticTracks = _.keyBy(oldTracks || [], track => track.key);
+        for (const track of nextProps.geneticTracks) {
+            transitionFunc(track, prevGeneticTracks[track.key], getTrackSpecKeyToTrackId,
+                           oncoprint, nextProps, prevProps, trackIdForRuleSetSharing);
+            delete prevGeneticTracks[track.key];
+        }
+        for (const track of (prevProps.geneticTracks || [])) {
+            if (prevGeneticTracks.hasOwnProperty(track.key)) {
+                // if its still there, then this track no longer exists, we need to remove it
+                transitionFunc(undefined, prevGeneticTracks[track.key], getTrackSpecKeyToTrackId,
+                               oncoprint, nextProps, prevProps, trackIdForRuleSetSharing);
+            }
         }
     }
-
+    transitionTrackType(transitionGeneticTrack, prevProps.geneticTracks, nextProps.geneticTracks);
+    
     // Transition clinical tracks
     const prevClinicalTracks = _.keyBy(prevProps.clinicalTracks || [], track=>track.key);
     for (const track of nextProps.clinicalTracks) {
