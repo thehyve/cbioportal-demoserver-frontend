@@ -52,24 +52,25 @@ import {AlterationTypeConstants} from "../../../pages/resultsView/ResultsViewPag
 
 // interface for communicating
 export type CancerStudyQueryUrlParams = {
-    cancer_study_id: string,
-    cancer_study_list?: string,
-    genetic_profile_ids_PROFILE_MUTATION_EXTENDED: string,
-    genetic_profile_ids_PROFILE_COPY_NUMBER_ALTERATION: string,
-    genetic_profile_ids_PROFILE_MRNA_EXPRESSION: string,
-    genetic_profile_ids_PROFILE_METHYLATION: string,
-    genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION: string,
-    genetic_profile_ids_PROFILE_GENESET_SCORE: string,
-    Z_SCORE_THRESHOLD: string,
-    RPPA_SCORE_THRESHOLD: string,
-    data_priority: '0' | '1' | '2',
-    case_set_id: string,
-    case_ids: string,
-    gene_list: string,
-    geneset_list?: string,
-    tab_index: 'tab_download' | 'tab_visualize',
-    transpose_matrix?: 'on',
-    Action: 'Submit',
+	cancer_study_id: string,
+	cancer_study_list?:string,
+	genetic_profile_ids_PROFILE_MUTATION_EXTENDED: string,
+	genetic_profile_ids_PROFILE_COPY_NUMBER_ALTERATION: string,
+	genetic_profile_ids_PROFILE_MRNA_EXPRESSION: string,
+	genetic_profile_ids_PROFILE_METHYLATION: string,
+	genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION: string,
+	genetic_profile_ids_PROFILE_GENESET_SCORE: string,
+	genetic_profile_ids_PROFILE_STRUCTURAL_VARIANT: string,
+	Z_SCORE_THRESHOLD: string,
+	RPPA_SCORE_THRESHOLD: string,
+	data_priority: '0'|'1'|'2',
+	case_set_id: string,
+	case_ids: string,
+	gene_list: string,
+	geneset_list?: string,
+	tab_index: 'tab_download'|'tab_visualize',
+	transpose_matrix?: 'on',
+	Action: 'Submit',
 };
 
 export type GeneReplacement = { alias: string, genes: Gene[] };
@@ -1456,111 +1457,114 @@ export class QueryStore {
                 }
             }
         } else {
-            if (!this.oql.query.length) {
-                return "Please enter one or more gene symbols.";
-            }
-        }
+			if (!this.oql.query.length) {
+				return "Please enter one or more gene symbols.";
+			}
+		}
+		
+		
 
-        if (this.isQueryLimitReached) {
-            return "Please limit your queries to 100 genes or fewer.";
-        }
+		if (this.genes.result.suggestions.length)
+			return "Please edit the gene symbols.";
+	}
 
-        if (this.genes.result.suggestions.length)
-            return "Please edit the gene symbols.";
-    }
+	private readonly dict_molecularAlterationType_filenameSuffix:{[K in MolecularProfile['molecularAlterationType']]?: string} = {
+		"MUTATION_EXTENDED": 'mutations',
+		"COPY_NUMBER_ALTERATION": 'cna',
+		"MRNA_EXPRESSION": 'mrna',
+		"METHYLATION": 'methylation',
+		"METHYLATION_BINARY": 'methylation',
+		"PROTEIN_LEVEL": 'rppa',
+		"STRUCTURAL_VARIANT": 'structural_variants',
+	};
 
-    private readonly dict_molecularAlterationType_filenameSuffix: {[K in MolecularProfile['molecularAlterationType']]?: string} = {
-        "MUTATION_EXTENDED": 'mutations',
-        "COPY_NUMBER_ALTERATION": 'cna',
-        "MRNA_EXPRESSION": 'mrna',
-        "METHYLATION": 'methylation',
-        "METHYLATION_BINARY": 'methylation',
-        "PROTEIN_LEVEL": 'rppa',
-    };
+	@computed get downloadDataFilename()
+	{
+		let study = (this.selectableSelectedStudyIds.length === 1 && this.treeData.map_studyId_cancerStudy.get(this.selectableSelectedStudyIds[0]));
+		let profile = this.dict_molecularProfileId_molecularProfile[this.selectedProfileIds[0] as string];
 
-    @computed get downloadDataFilename() {
-        let study = (this.selectableSelectedStudyIds.length === 1 && this.treeData.map_studyId_cancerStudy.get(this.selectableSelectedStudyIds[0]));
-        let profile = this.dict_molecularProfileId_molecularProfile[this.selectedProfileIds[0] as string];
+		if (!this.forDownloadTab || !study || !profile)
+			return 'cbioportal-data.txt';
 
-        if (!this.forDownloadTab || !study || !profile)
-            return 'cbioportal-data.txt';
+		let suffix = this.dict_molecularAlterationType_filenameSuffix[profile.molecularAlterationType] || profile.molecularAlterationType.toLowerCase();
+		return `cbioportal-${study.studyId}-${suffix}.txt`;
+	}
 
-        let suffix = this.dict_molecularAlterationType_filenameSuffix[profile.molecularAlterationType] || profile.molecularAlterationType.toLowerCase();
-        return `cbioportal-${study.studyId}-${suffix}.txt`;
-    }
+	readonly asyncUrlParams = remoteData({
+		await: () => [this.asyncCustomCaseSet],
+		invoke: async () => currentQueryParams(this)
+	});
 
-    readonly asyncUrlParams = remoteData({
-        await: () => [this.asyncCustomCaseSet],
-        invoke: async () => currentQueryParams(this)
-    });
+	////////////////////////////////////////////////////////////////////////////////
+	// ACTIONS
+	////////////////////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // ACTIONS
-    ////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * This is used to prevent selections from being cleared automatically when new data is downloaded.
-     */
-    public initiallySelected = {
-        profileIds: false,
-        sampleListId: false
-    };
+	/**
+	 * This is used to prevent selections from being cleared automatically when new data is downloaded.
+	 */
+	public initiallySelected = {
+		profileIds: false,
+		sampleListId: false
+	};
 
 
-    sanitizeQueryParams(str?: string) {
-        return str ? decodeURIComponent(str).replace(/\+/g, "\n") : "";
-    }
+	sanitizeQueryParams(str?:string){
+		return str ? decodeURIComponent(str).replace(/\+/g,"\n") : "";
+	}
 
-    @action setParamsFromUrl(url: string | { [k: string]: Partial<CancerStudyQueryUrlParams> }) {
-        let params: Partial<CancerStudyQueryUrlParams>;
-        if (typeof url === 'string') {
+	@action setParamsFromUrl(url:string|{[k:string]:Partial<CancerStudyQueryUrlParams>})
+	{
+		let params:Partial<CancerStudyQueryUrlParams>;
+		if (typeof url === 'string') {
             let urlParts = URL.parse(url, true);
             params = urlParts.query as Partial<CancerStudyQueryUrlParams>;
-        } else {
-            params = url; // already an object
-        }
+		} else {
+			params = url; // already an object
+		}
 
-        let profileIds = [
-            params.genetic_profile_ids_PROFILE_MUTATION_EXTENDED,
-            params.genetic_profile_ids_PROFILE_COPY_NUMBER_ALTERATION,
-            params.genetic_profile_ids_PROFILE_MRNA_EXPRESSION,
-            params.genetic_profile_ids_PROFILE_METHYLATION,
-            params.genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION,
-            params.genetic_profile_ids_PROFILE_GENESET_SCORE,
-        ];
+		let profileIds = [
+			params.genetic_profile_ids_PROFILE_MUTATION_EXTENDED,
+			params.genetic_profile_ids_PROFILE_COPY_NUMBER_ALTERATION,
+			params.genetic_profile_ids_PROFILE_MRNA_EXPRESSION,
+			params.genetic_profile_ids_PROFILE_METHYLATION,
+			params.genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION,
+			params.genetic_profile_ids_PROFILE_GENESET_SCORE,
+			params.genetic_profile_ids_PROFILE_STRUCTURAL_VARIANT,
+		];
 
-        let queriedStudies = params.cancer_study_list ? params.cancer_study_list.split(",") : (params.cancer_study_id ? [params.cancer_study_id] : []);
-        this.selectableSelectedStudyIds = queriedStudies;
-        this._defaultSelectedIds = observable.map(stringListToSet(queriedStudies));
+		let queriedStudies = params.cancer_study_list ? params.cancer_study_list.split(",") : (params.cancer_study_id ? [params.cancer_study_id] : []);
+		this.selectableSelectedStudyIds = queriedStudies;
+		this._defaultSelectedIds = observable.map(stringListToSet(queriedStudies));
 
-        this._selectedProfileIds = profileIds.every(id => id === undefined) ? undefined : profileIds.filter(_.identity) as string[];
-        this.zScoreThreshold = params.Z_SCORE_THRESHOLD || '2.0';
-        this.rppaScoreThreshold = params.RPPA_SCORE_THRESHOLD || '2.0';
-        this.dataTypePriorityCode = params.data_priority || '0';
-        this.selectedSampleListId = params.case_set_id ? params.case_set_id.toString() : "";  // must be a string even though it's integer
-        this.caseIds = this.sanitizeQueryParams(params.case_ids);
-        this.caseIdsMode = 'sample'; // url always contains sample IDs
-        this.geneQuery = normalizeQuery(decodeURIComponent(params.gene_list || ''));
-        this.genesetQuery = normalizeQuery(decodeURIComponent(params[QueryParameter.GENESET_LIST] || ''));
-        this.forDownloadTab = params.tab_index === 'tab_download';
-        this.initiallySelected.profileIds = true;
-        this.initiallySelected.sampleListId = true;
-    }
+		this._selectedProfileIds = profileIds.every(id => id === undefined) ? undefined : profileIds.filter(_.identity) as string[];
+		this.zScoreThreshold = params.Z_SCORE_THRESHOLD || '2.0';
+		this.rppaScoreThreshold = params.RPPA_SCORE_THRESHOLD || '2.0';
+		this.dataTypePriorityCode = params.data_priority || '0';
+		this.selectedSampleListId = params.case_set_id ? params.case_set_id.toString() : "";  // must be a string even though it's integer
+		this.caseIds = this.sanitizeQueryParams(params.case_ids);
+		this.caseIdsMode = 'sample'; // url always contains sample IDs
+        this.geneQuery = normalizeQuery(decodeURIComponent(params.gene_list||''));
+        this.genesetQuery = normalizeQuery(decodeURIComponent(params[QueryParameter.GENESET_LIST]||''));
+		this.forDownloadTab = params.tab_index === 'tab_download';
+		this.initiallySelected.profileIds = true;
+		this.initiallySelected.sampleListId = true;
+	}
 
-    // TODO: we should be able to merge this with the above since it accepts same interface
-    @action setParamsFromLocalStorage(legacySubmission: Partial<CancerStudyQueryUrlParams>) {
+	// TODO: we should be able to merge this with the above since it accepts same interface
+    @action setParamsFromLocalStorage(legacySubmission:Partial<CancerStudyQueryUrlParams>)
+    {
 
-        const caseIds = legacySubmission.case_ids;
-        if (caseIds) {
-            if (legacySubmission.case_set_id == CUSTOM_CASE_LIST_ID) {
-                this.selectedSampleListId = CUSTOM_CASE_LIST_ID;
-                this.caseIdsMode = 'sample';
-                this.caseIds = caseIds.replace(/\+/g, "\n");
-                this.initiallySelected.sampleListId = true;
-            }
-        }
+		const caseIds = legacySubmission.case_ids;
+		if (caseIds) {
+			if (legacySubmission.case_set_id == CUSTOM_CASE_LIST_ID) {
+				this.selectedSampleListId = CUSTOM_CASE_LIST_ID;
+				this.caseIdsMode = 'sample';
+				this.caseIds = caseIds.replace(/\+/g, "\n");
+				this.initiallySelected.sampleListId = true;
+			}
+		}
 
-        if (legacySubmission.cancer_study_list) {
+		if (legacySubmission.cancer_study_list) {
             for (const studyId of legacySubmission.cancer_study_list.split(",")) {
                 if (studyId !== "null") {
                     this.setStudyIdSelected(studyId, true);
