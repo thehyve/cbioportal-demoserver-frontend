@@ -44,6 +44,7 @@ import {writeTest} from "../../shared/lib/writeTest";
 import {PatientSurvival} from "../../shared/model/PatientSurvival";
 import {filterCBioPortalWebServiceDataByOQLLine, OQLLineFilterOutput} from "../../shared/lib/oql/oqlfilter";
 import GeneMolecularDataCache from "../../shared/cache/GeneMolecularDataCache";
+import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCache";
 import GeneCache from "../../shared/cache/GeneCache";
 import ClinicalDataCache from "../../shared/cache/ClinicalDataCache";
 import {IHotspotData} from "../../shared/model/CancerHotspots";
@@ -276,6 +277,9 @@ export function extendSamplesWithCancerType(samples:Sample[], clinicalDataForSam
 
 export const ONCOKB_ONCOGENIC_LOWERCASE = ["likely oncogenic", "predicted oncogenic", "oncogenic"];
 
+/* fields and methods in the class below are ordered based on roughly
+/* chronological setup concerns, rather than on encapsulation and public API */
+/* tslint:disable: member-ordering */
 export class ResultsViewPageStore {
 
     constructor() {
@@ -1748,6 +1752,19 @@ export class ResultsViewPageStore {
         invoke: ()=>{
             return Promise.resolve(
                 new GeneMolecularDataCache(
+                    this.molecularProfileIdToDataQueryFilter.result
+                )
+            );
+        }
+    });
+
+    readonly genesetMolecularDataCache = remoteData({
+        await:()=>[
+            this.molecularProfileIdToDataQueryFilter
+        ],
+        invoke: ()=>{
+            return Promise.resolve(
+                new GenesetMolecularDataCache(
                     this.molecularProfileIdToDataQueryFilter.result
                 )
             );
