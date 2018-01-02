@@ -237,6 +237,10 @@ export function makeClinicalTracksMobxPromise(oncoprint:ResultsViewOncoprint, sa
 export function makeGenesetHeatmapTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
     return remoteData<IGenesetHeatmapTrackSpec[]>({
         await:()=>[
+            oncoprint.props.store.samples,
+            oncoprint.props.store.patients,
+            oncoprint.props.store.molecularProfileIdToMolecularProfile,
+            oncoprint.props.store.genesetMolecularDataCache
         ],
         invoke:async()=> {
             return [];
