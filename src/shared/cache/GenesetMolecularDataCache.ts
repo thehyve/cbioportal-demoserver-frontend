@@ -1,33 +1,51 @@
 import LazyMobXCache, {AugmentedData} from "../lib/LazyMobXCache";
-import {GeneMolecularData, MolecularDataFilter} from "../api/generated/CBioPortalAPI";
-import client from "shared/api/cbioportalClientInstance";
+import {GenesetMolecularData, GenesetDataFilterCriteria} from "../api/generated/CBioPortalAPIInternal";
+import client from "shared/api/cbioportalInternalClientInstance";
 import _ from "lodash";
 import {IDataQueryFilter} from "../lib/StoreUtils";
 
 type Query = {
-    entrezGeneId:number;
-    molecularProfileId:string;
+    genesetId: string;
+    molecularProfileId: string;
 };
 
-function queryToKey(q:Query) {
-    return `${q.molecularProfileId}~${q.entrezGeneId}`;
+type SampleFilterByProfile = {
+    [molecularProfileId: string]: IDataQueryFilter
+};
+
+function queryToKey(q: Query) {
+    return `${q.molecularProfileId}~${q.genesetId}`;
 }
 
-function dataToKey(d:GeneMolecularData[], q:Query) {
-    return `${q.molecularProfileId}~${q.entrezGeneId}`;
+function dataToKey(d:GenesetMolecularData[], q:Query) {
+    return `${q.molecularProfileId}~${q.genesetId}`;
 }
 
-async function fetch(queries:Query[], molecularProfileIdToSampleFilter:{[molecularProfileId:string]:IDataQueryFilter}) {
-    const molecularProfileIdToEntrezGeneIds = _.mapValues(_.groupBy(queries, q=>q.molecularProfileId), profileQueries=>profileQueries.map(q=>q.entrezGeneId));
-    const params = Object.keys(molecularProfileIdToEntrezGeneIds).map(molecularProfileId=>({
-        molecularProfileId,
-        molecularDataFilter:{
-            entrezGeneIds: molecularProfileIdToEntrezGeneIds[molecularProfileId],
-            ...molecularProfileIdToSampleFilter[molecularProfileId]
-        } as MolecularDataFilter
-    }));
-    const results:GeneMolecularData[][] = await Promise.all(params.map(param=>client.fetchAllMolecularDataInMolecularProfileUsingPOST(param)));
-    const ret:{[key:string]:AugmentedData<GeneMolecularData[], Query>} = {};
+async function fetch(
+    queries:Query[],
+    sampleFilterByProfile: SampleFilterByProfile
+) {
+    const genesetIdsByProfile = _.mapValues(
+        _.groupBy(queries, q => q.molecularProfileId),
+        profileQueries => profileQueries.map(q => q.genesetId)
+    );
+    const params = Object.keys(genesetIdsByProfile)
+        .map(profileId => ({
+            geneticProfileId: profileId,
+            // the Swagger-generated type expected by the client method below
+            // incorrectly requires both samples and a sample list;
+            // use 'as' to tell TypeScript that this object really does fit.
+            // tslint:disable-next-line: no-object-literal-type-assertion
+            genesetDataFilterCriteria: {
+                genesetIds: genesetIdsByProfile[profileId],
+                ...sampleFilterByProfile[profileId]
+            } as GenesetDataFilterCriteria
+        })
+    );
+    const results: GenesetMolecularData[][] = await Promise.all(
+        params.map(param => client.fetchGeneticDataItemsUsingPOST(param))
+    );
+    const ret: {[key: string]: AugmentedData<GenesetMolecularData[], Query>} = {};
     for (const query of queries) {
         ret[queryToKey(query)] = {
             data:[[]],
@@ -42,8 +60,8 @@ async function fetch(queries:Query[], molecularProfileIdToSampleFilter:{[molecul
     return _.values(ret);
 }
 
-export default class GeneMolecularDataCache extends LazyMobXCache<GeneMolecularData[], Query, Query>{
-    constructor(private molecularProfileIdToSampleFilter:{[molecularProfileId:string]:IDataQueryFilter}) {
+export default class GenesetMolecularDataCache extends LazyMobXCache<GenesetMolecularData[], Query, Query>{
+    constructor(molecularProfileIdToSampleFilter: SampleFilterByProfile) {
         super(queryToKey, dataToKey, fetch, molecularProfileIdToSampleFilter);
     }
 }
