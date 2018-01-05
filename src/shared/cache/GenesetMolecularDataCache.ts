@@ -4,27 +4,51 @@ import client from "shared/api/cbioportalInternalClientInstance";
 import _ from "lodash";
 import {IDataQueryFilter} from "../lib/StoreUtils";
 
-type Query = {
+interface IQuery {
     genesetId: string;
     molecularProfileId: string;
-};
+}
 
 type SampleFilterByProfile = {
     [molecularProfileId: string]: IDataQueryFilter
 };
 
-function queryToKey(q: Query) {
+function queryToKey(q: IQuery) {
     return `${q.molecularProfileId}~${q.genesetId}`;
 }
 
-function dataToKey(d:GenesetMolecularData[], q:Query) {
+function dataToKey(d:GenesetMolecularData[], q:IQuery) {
     return `${q.molecularProfileId}~${q.genesetId}`;
+}
+
+/**
+/* Pairs each IQuery with an (array-wrapped) array of any matching data.
+*/
+function augmentQueryResults(queries: IQuery[], results: GenesetMolecularData[][]) {
+    const keyedAugments: {[key: string]: AugmentedData<GenesetMolecularData[], IQuery>} = {};
+    for (const query of queries) {
+        keyedAugments[queryToKey(query)] = {
+            data: [[]],
+            meta: query
+        };
+    }
+    for (const queryResult of results) {
+        for (const datum of queryResult) {
+            keyedAugments[
+                queryToKey({
+                    molecularProfileId: datum.geneticProfileId,
+                    genesetId: datum.genesetId
+                })
+            ].data[0].push(datum);
+        }
+    }
+    return _.values(keyedAugments);
 }
 
 async function fetch(
-    queries:Query[],
+    queries:IQuery[],
     sampleFilterByProfile: SampleFilterByProfile
-) {
+): Promise<AugmentedData<GenesetMolecularData[], IQuery>[]> {
     const genesetIdsByProfile = _.mapValues(
         _.groupBy(queries, q => q.molecularProfileId),
         profileQueries => profileQueries.map(q => q.genesetId)
@@ -42,25 +66,12 @@ async function fetch(
             } as GenesetDataFilterCriteria
         })
     );
-    const results: GenesetMolecularData[][] = await Promise.all(
-        params.map(param => client.fetchGeneticDataItemsUsingPOST(param))
-    );
-    const ret: {[key: string]: AugmentedData<GenesetMolecularData[], Query>} = {};
-    for (const query of queries) {
-        ret[queryToKey(query)] = {
-            data:[[]],
-            meta:query
-        };
-    }
-    for (const queryResult of results) {
-        for (const datum of queryResult) {
-            ret[queryToKey(datum)].data[0].push(datum);
-        }
-    }
-    return _.values(ret);
+    const dataPromises = params.map(param => client.fetchGeneticDataItemsUsingPOST(param));
+    const results: GenesetMolecularData[][] = await Promise.all(dataPromises);
+    return augmentQueryResults(queries, results);
 }
 
-export default class GenesetMolecularDataCache extends LazyMobXCache<GenesetMolecularData[], Query, Query>{
+export default class GenesetMolecularDataCache extends LazyMobXCache<GenesetMolecularData[], IQuery, IQuery>{
     constructor(molecularProfileIdToSampleFilter: SampleFilterByProfile) {
         super(queryToKey, dataToKey, fetch, molecularProfileIdToSampleFilter);
     }
