@@ -77,7 +77,8 @@ function initStore(){
     }
 
     resultsViewPageStore.samplesSpecification = samplesSpecification;
-    resultsViewPageStore.hugoGeneSymbols = _.map(parsedOQL,(o:any)=>o.gene); //qSession.getQueryGenes();
+    resultsViewPageStore.hugoGeneSymbols = _.map(parsedOQL, (o: any) => o.gene); //qSession.getQueryGenes();
+    resultsViewPageStore.genesetIds = serverVars.geneset_ids.split(/\s+/);
     resultsViewPageStore.selectedMolecularProfileIds = serverVars.molecularProfiles; // qSession.getGeneticProfileIds();
     resultsViewPageStore.rppaScoreThreshold = serverVars.rppaScoreThreshold; // FIX!
     resultsViewPageStore.zScoreThreshold = serverVars.zScoreThreshold;

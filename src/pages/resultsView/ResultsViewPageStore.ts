@@ -296,6 +296,7 @@ export class ResultsViewPageStore {
     @observable ajaxErrors: Error[] = [];
 
     @observable hugoGeneSymbols: string[];
+    @observable genesetIds: string[];
     @observable samplesSpecification: SamplesSpecificationElement[] = [];
 
     @observable zScoreThreshold: number;
