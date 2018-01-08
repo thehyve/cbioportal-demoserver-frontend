@@ -236,14 +236,34 @@ export function makeClinicalTracksMobxPromise(oncoprint:ResultsViewOncoprint, sa
 
 export function makeGenesetHeatmapTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
     return remoteData<IGenesetHeatmapTrackSpec[]>({
-        await:()=>[
+        await: () => [
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,
             oncoprint.props.store.molecularProfileIdToMolecularProfile,
+            oncoprint.props.store.genesetMolecularProfile,
             oncoprint.props.store.genesetMolecularDataCache
         ],
-        invoke:async()=> {
-            return [];
+        invoke: async () => {
+            const molecularProfileIdToMolecularProfile = oncoprint.props.store.molecularProfileIdToMolecularProfile.result!;
+
+            const genesetIds = oncoprint.props.store.genesetIds;
+            const molecularProfileId = oncoprint.props.store.genesetMolecularProfile.result!.molecularProfileId;
+            const cacheQueries = genesetIds.map((genesetId) => ({molecularProfileId, genesetId}));
+            const data = await oncoprint.props.store.genesetMolecularDataCache.result!.getPromise(cacheQueries, true);
+            return genesetIds.map((genesetId) => ({
+                key: genesetId,
+                label: genesetId,
+                molecularProfileId,
+                molecularAlterationType: molecularProfileIdToMolecularProfile[molecularProfileId].molecularAlterationType,
+                datatype: molecularProfileIdToMolecularProfile[molecularProfileId].datatype,
+                data: makeGenesetHeatmapTrackdata(
+                    genesetId,
+                    sampleMode ? samples : patients,
+                    data
+                ),
+                trackGroupIndex: 30,
+                onRemove: () => undefined
+            }));
         },
         default: []
     });
