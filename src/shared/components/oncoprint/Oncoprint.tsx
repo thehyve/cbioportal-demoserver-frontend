@@ -85,7 +85,7 @@ export interface IHeatmapTrackSpec {
     datatype: MolecularProfile["datatype"];
     data: HeatmapTrackDatum[];
     trackGroupIndex: number;
-    onRemove:()=>void;
+    onRemove:() => void;
 }
 
 export interface IGenesetHeatmapTrackSpec extends IHeatmapTrackSpec {
