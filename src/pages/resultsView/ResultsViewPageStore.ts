@@ -1328,6 +1328,26 @@ export class ResultsViewPageStore {
         }
     });
 
+    readonly genesetMolecularProfile = remoteData<MolecularProfile | undefined>({
+        await: () => [
+            this.molecularProfilesInStudies
+        ],
+        invoke: () => {
+            const GENESET_SCORE = "GENESET_SCORE";
+            const applicableProfiles = _.filter(
+                this.molecularProfilesInStudies.result!,
+                profile => (
+                    profile.molecularAlterationType === GENESET_SCORE
+                    && profile.showProfileInAnalysisTab
+                )
+            );
+            if (applicableProfiles.length > 1) {
+                return Promise.reject("Queried more than one gene set score profile");
+            }
+            return Promise.resolve(applicableProfiles.pop());
+        }
+    });
+
     readonly studyToDataQueryFilter = remoteData<{ [studyId: string]: IDataQueryFilter }>({
         await: () => [this.studyToSampleIds, this.studyIds],
         invoke: () => {
