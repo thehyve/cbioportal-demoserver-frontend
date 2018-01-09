@@ -1,6 +1,6 @@
 import {
     IOncoprintProps, default as Oncoprint, GeneticTrackSpec, IGenesetHeatmapTrackSpec,
-    IHeatmapTrackSpec, ClinicalTrackSpec, HeatmapTrackDatum
+    IGeneHeatmapTrackSpec, ClinicalTrackSpec, IGeneHeatmapTrackDatum
 } from "./Oncoprint";
 import OncoprintJS, {TrackId, SortConfig} from "oncoprintjs";
 import {ObservableMap} from "mobx";
@@ -184,7 +184,7 @@ function createSortConfig(props:Partial<IOncoprintProps>):SortConfig {
         config = {
             type: "cluster",
             track_group_index: props.sortConfig.clusterHeatmapTrackGroupIndex,
-            clusterValueFn: (d:HeatmapTrackDatum)=>(d.profile_data)
+            clusterValueFn: (d:IGeneHeatmapTrackDatum)=>(d.profile_data)
         };
     }
     return config;
@@ -553,8 +553,8 @@ function transitionGenesetHeatmapTrack(
     }
 }
 function transitionHeatmapTrack(
-    nextSpec:IHeatmapTrackSpec|undefined,
-    prevSpec:IHeatmapTrackSpec|undefined,
+    nextSpec:IGeneHeatmapTrackSpec|undefined,
+    prevSpec:IGeneHeatmapTrackSpec|undefined,
     getTrackSpecKeyToTrackId:()=>{[key:string]:TrackId},
     oncoprint:OncoprintJS<any>,
     nextProps:IOncoprintProps,
