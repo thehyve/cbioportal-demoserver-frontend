@@ -12,7 +12,12 @@ import {
     ResultsViewPageStore
 } from "../../../pages/resultsView/ResultsViewPageStore";
 import {remoteData} from "../../api/remoteData";
-import {makeGeneticTrackData, makeHeatmapTrackData, makeClinicalTrackData} from "./DataUtils";
+import {
+    makeClinicalTrackData,
+    makeGenesetHeatmapTrackData,
+    makeGeneticTrackData,
+    makeHeatmapTrackData,
+} from "./DataUtils";
 import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import _ from "lodash";
 import {action} from "mobx";
@@ -254,17 +259,18 @@ export function makeGenesetHeatmapTracksMobxPromise(
             const molecularProfileId = molecularProfile.molecularProfileId;
 
             const cacheQueries = genesetIds.map((genesetId) => ({molecularProfileId, genesetId}));
-            const data = await dataCache.getPromise(cacheQueries, true);
+            await dataCache.getPromise(cacheQueries, true);
+
             return genesetIds.map((genesetId) => ({
-                key: genesetId,
+                key: `GENESETHEATMAPTRACK_${molecularProfileId},${genesetId}`,
                 label: genesetId,
                 molecularProfileId,
                 molecularAlterationType: molecularProfile.molecularAlterationType,
                 datatype: molecularProfile.datatype,
-                data: makeGenesetHeatmapTrackdata(
+                data: makeGenesetHeatmapTrackData(
                     genesetId,
                     sampleMode ? samples : patients,
-                    data
+                    dataCache.get({molecularProfileId, genesetId})!.data!
                 ),
                 trackGroupIndex: 30,
                 onRemove: () => undefined
