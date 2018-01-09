@@ -232,12 +232,24 @@ export function makeGeneticTrackData(
 }
 
 export function makeGenesetHeatmapTrackData(
-    genesetId:string,
-    cases:Sample[]|Patient[],
+    genesetId: string,
+    cases: Sample[]|Patient[],
     molecularData: GenesetMolecularData[]
 ): IGenesetHeatmapTrackDatum[] {
     // TODO: implement this function
-    return [];
+    if (isSampleList(cases)) {
+        const transformedData = cases.map(
+            sample => ({
+                geneset_id: genesetId,
+                profile_data: null,
+                study: sample.studyId,
+                uid: sample.uniqueSampleKey
+            })
+        );
+        return transformedData;
+    } else {
+        return [];
+    }
 }
 
 function fillHeatmapTrackDatum(
