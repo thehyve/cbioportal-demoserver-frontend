@@ -10,7 +10,12 @@ import {
     GeneMolecularData, GenePanelData, MolecularProfile, Mutation, MutationCount, Patient,
     Sample
 } from "../../api/generated/CBioPortalAPI";
-import {ClinicalTrackDatum, GeneticTrackDatum, IGeneHeatmapTrackDatum} from "./Oncoprint";
+import {
+    ClinicalTrackDatum,
+    GeneticTrackDatum,
+    IBaseHeatmapTrackDatum,
+    IGeneHeatmapTrackDatum,
+} from "./Oncoprint";
 import {isMutationCount, isSample, isSampleList} from "../../lib/CBioPortalAPIUtils";
 import {getSimplifiedMutationType, SimplifiedMutationType} from "../../lib/oql/accessors";
 import _ from "lodash";
@@ -225,14 +230,14 @@ export function makeGeneticTrackData(
     return ret;
 }
 
-
-export function fillHeatmapTrackDatum(
-    trackDatum: Partial<IGeneHeatmapTrackDatum>,
-    hugoGeneSymbol: string,
+export function fillHeatmapTrackDatum<T extends IBaseHeatmapTrackDatum, K extends keyof T>(
+    trackDatum: Partial<T>,
+    featureKey: K,
+    featureId: string,
     case_:Sample|Patient,
-    data?:GeneMolecularData[]
+    data?: {value: string}[]
 ) {
-    trackDatum.hugo_gene_symbol = hugoGeneSymbol;
+    trackDatum[featureKey] = featureId;
     trackDatum.study = case_.studyId;
     if (!data || !data.length) {
         trackDatum.profile_data = null;
@@ -244,14 +249,16 @@ export function fillHeatmapTrackDatum(
             throw Error("Unexpectedly received multiple heatmap profile data for one sample");
         } else {
             // aggregate samples for this patient by selecting the highest absolute (Z-)score
-            trackDatum.profile_data = data.reduce((maxInAbsVal:number, next:GeneMolecularData)=>{
-                const val = parseFloat(next.value);
-                if (Math.abs(val) > Math.abs(maxInAbsVal)) {
-                    return val;
-                } else {
-                    return maxInAbsVal;
-                }
-            }, 0);
+            trackDatum.profile_data = data.reduce(
+                (maxInAbsVal: number, next) => {
+                    const val = parseFloat(next.value);
+                    if (Math.abs(val) > Math.abs(maxInAbsVal)) {
+                        return val;
+                    } else {
+                        return maxInAbsVal;
+                    }
+                },
+                0);
         }
     }
     return trackDatum;
@@ -275,7 +282,7 @@ export function makeHeatmapTrackData(
             trackDatum.sample = c.sampleId;
             trackDatum.uid = c.uniqueSampleKey;
             const data = keyToData[c.uniqueSampleKey];
-            fillHeatmapTrackDatum(trackDatum, hugoGeneSymbol, c, data);
+            fillHeatmapTrackDatum(trackDatum, 'hugo_gene_symbol', hugoGeneSymbol, c, data);
             return trackDatum as IGeneHeatmapTrackDatum;
         });
     } else {
@@ -285,7 +292,7 @@ export function makeHeatmapTrackData(
             trackDatum.patient = c.patientId;
             trackDatum.uid = c.uniquePatientKey;
             const data = keyToData[c.uniquePatientKey];
-            fillHeatmapTrackDatum(trackDatum, hugoGeneSymbol, c, data);
+            fillHeatmapTrackDatum(trackDatum, 'hugo_gene_symbol', hugoGeneSymbol, c, data);
             return trackDatum as IGeneHeatmapTrackDatum;
         });
     }

@@ -42,7 +42,7 @@ export type ClinicalTrackSpec = {
     datatype: "string";
 });
 
-interface IBaseHeatmapTrackDatum {
+export interface IBaseHeatmapTrackDatum {
     profile_data: number|null;
     sample?: string;
     patient?: string;
