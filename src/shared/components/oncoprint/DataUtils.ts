@@ -10,11 +10,20 @@ import {
     GeneMolecularData, GenePanelData, MolecularProfile, Mutation, MutationCount, Patient,
     Sample
 } from "../../api/generated/CBioPortalAPI";
-import {ClinicalTrackDatum, GeneticTrackDatum, IGeneHeatmapTrackDatum} from "./Oncoprint";
+import {
+    ClinicalTrackDatum,
+    GeneticTrackDatum,
+    IGeneHeatmapTrackDatum,
+    IGenesetHeatmapTrackDatum
+} from "./Oncoprint";
 import {isMutationCount, isSample, isSampleList} from "../../lib/CBioPortalAPIUtils";
 import {getSimplifiedMutationType, SimplifiedMutationType} from "../../lib/oql/accessors";
 import _ from "lodash";
-import {FractionGenomeAltered, MutationSpectrum} from "../../api/generated/CBioPortalAPIInternal";
+import {
+    FractionGenomeAltered,
+    GenesetMolecularData,
+    MutationSpectrum
+} from "../../api/generated/CBioPortalAPIInternal";
 import {SpecialAttribute} from "../../cache/ClinicalDataCache";
 
 const cnaDataToString:{[integerCNA:string]:string|undefined} = {
@@ -222,6 +231,14 @@ export function makeGeneticTrackData(
     return ret;
 }
 
+export function makeGenesetHeatmapTrackData(
+    genesetId:string,
+    cases:Sample[]|Patient[],
+    molecularData: GenesetMolecularData[]
+): IGenesetHeatmapTrackDatum[] {
+    // TODO: implement this function
+    return [];
+}
 
 function fillHeatmapTrackDatum(
     trackDatum: Partial<IGeneHeatmapTrackDatum>,
