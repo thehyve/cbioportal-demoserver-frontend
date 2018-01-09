@@ -10,7 +10,7 @@ import {
     GeneMolecularData, GenePanelData, MolecularProfile, Mutation, MutationCount, Patient,
     Sample
 } from "../../api/generated/CBioPortalAPI";
-import {ClinicalTrackDatum, GeneticTrackDatum, HeatmapTrackDatum} from "./Oncoprint";
+import {ClinicalTrackDatum, GeneticTrackDatum, IGeneHeatmapTrackDatum} from "./Oncoprint";
 import {isMutationCount, isSample, isSampleList} from "../../lib/CBioPortalAPIUtils";
 import {getSimplifiedMutationType, SimplifiedMutationType} from "../../lib/oql/accessors";
 import _ from "lodash";
@@ -224,7 +224,7 @@ export function makeGeneticTrackData(
 
 
 function fillHeatmapTrackDatum(
-    trackDatum: Partial<HeatmapTrackDatum>,
+    trackDatum: Partial<IGeneHeatmapTrackDatum>,
     hugoGeneSymbol: string,
     case_:Sample|Patient,
     data?:GeneMolecularData[]
@@ -258,32 +258,32 @@ export function makeHeatmapTrackData(
     hugoGeneSymbol: string,
     cases:Sample[]|Patient[],
     data: GeneMolecularData[]
-):HeatmapTrackDatum[] {
+): IGeneHeatmapTrackDatum[] {
     if (!cases.length) {
         return [];
     }
     const sampleData = isSampleList(cases);
     let keyToData:{[uniqueKey:string]:GeneMolecularData[]};
-    let ret:HeatmapTrackDatum[];
+    let ret: IGeneHeatmapTrackDatum[];
     if (isSampleList(cases)) {
         keyToData = _.groupBy(data, d=>d.uniqueSampleKey);
         ret = cases.map(c=>{
-            const trackDatum:Partial<HeatmapTrackDatum> = {};
+            const trackDatum: Partial<IGeneHeatmapTrackDatum> = {};
             trackDatum.sample = c.sampleId;
             trackDatum.uid = c.uniqueSampleKey;
             const data = keyToData[c.uniqueSampleKey];
             fillHeatmapTrackDatum(trackDatum, hugoGeneSymbol, c, data);
-            return trackDatum as HeatmapTrackDatum;
+            return trackDatum as IGeneHeatmapTrackDatum;
         });
     } else {
         keyToData = _.groupBy(data, d=>d.uniquePatientKey);
         ret = cases.map(c=>{
-            const trackDatum:Partial<HeatmapTrackDatum> = {};
+            const trackDatum: Partial<IGeneHeatmapTrackDatum> = {};
             trackDatum.patient = c.patientId;
             trackDatum.uid = c.uniquePatientKey;
             const data = keyToData[c.uniquePatientKey];
             fillHeatmapTrackDatum(trackDatum, hugoGeneSymbol, c, data);
-            return trackDatum as HeatmapTrackDatum;
+            return trackDatum as IGeneHeatmapTrackDatum;
         });
     }
     return ret;
