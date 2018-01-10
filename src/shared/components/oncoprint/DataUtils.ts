@@ -264,36 +264,37 @@ export function fillHeatmapTrackDatum<T extends IBaseHeatmapTrackDatum, K extend
     return trackDatum;
 }
 
-export function makeHeatmapTrackData(
-    hugoGeneSymbol: string,
+export function makeHeatmapTrackData<T extends IBaseHeatmapTrackDatum, K extends keyof T>(
+    featureKey: K,
+    featureId: string,
     cases:Sample[]|Patient[],
-    data: GeneMolecularData[]
-): IGeneHeatmapTrackDatum[] {
+    data: {value: string, uniquePatientKey: string, uniqueSampleKey: string}[]
+): T[] {
     if (!cases.length) {
         return [];
     }
     const sampleData = isSampleList(cases);
-    let keyToData:{[uniqueKey:string]:GeneMolecularData[]};
-    let ret: IGeneHeatmapTrackDatum[];
+    let keyToData:{[uniqueKey:string]:{value: string}[]};
+    let ret: T[];
     if (isSampleList(cases)) {
         keyToData = _.groupBy(data, d=>d.uniqueSampleKey);
         ret = cases.map(c=>{
-            const trackDatum: Partial<IGeneHeatmapTrackDatum> = {};
+            const trackDatum: Partial<T> = {};
             trackDatum.sample = c.sampleId;
             trackDatum.uid = c.uniqueSampleKey;
-            const data = keyToData[c.uniqueSampleKey];
-            fillHeatmapTrackDatum(trackDatum, 'hugo_gene_symbol', hugoGeneSymbol, c, data);
-            return trackDatum as IGeneHeatmapTrackDatum;
+            const caseData = keyToData[c.uniqueSampleKey];
+            fillHeatmapTrackDatum(trackDatum, featureKey, featureId, c, data);
+            return trackDatum as T;
         });
     } else {
         keyToData = _.groupBy(data, d=>d.uniquePatientKey);
         ret = cases.map(c=>{
-            const trackDatum: Partial<IGeneHeatmapTrackDatum> = {};
+            const trackDatum: Partial<T> = {};
             trackDatum.patient = c.patientId;
             trackDatum.uid = c.uniquePatientKey;
-            const data = keyToData[c.uniquePatientKey];
-            fillHeatmapTrackDatum(trackDatum, 'hugo_gene_symbol', hugoGeneSymbol, c, data);
-            return trackDatum as IGeneHeatmapTrackDatum;
+            const caseData = keyToData[c.uniquePatientKey];
+            fillHeatmapTrackDatum(trackDatum, featureKey, featureId, c, data);
+            return trackDatum as T;
         });
     }
     return ret;

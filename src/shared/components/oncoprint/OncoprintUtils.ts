@@ -1,5 +1,12 @@
 import OncoprintJS, {RuleSetParams, TrackSortComparator} from "oncoprintjs";
-import {ClinicalTrackSpec, GeneticTrackDatum, GeneticTrackSpec, IGenesetHeatmapTrackSpec, IGeneHeatmapTrackSpec} from "./Oncoprint";
+import {
+    ClinicalTrackSpec,
+    GeneticTrackSpec,
+    IGeneHeatmapTrackDatum,
+    IGeneHeatmapTrackSpec,
+    IGenesetHeatmapTrackDatum,
+    IGenesetHeatmapTrackSpec
+} from "./Oncoprint";
 import {ClinicalAttribute} from "../../api/generated/CBioPortalAPI";
 import {genetic_rule_set_same_color_for_all_no_recurrence,
     genetic_rule_set_same_color_for_all_recurrence,
@@ -14,9 +21,8 @@ import {
 import {remoteData} from "../../api/remoteData";
 import {
     makeClinicalTrackData,
-    makeGenesetHeatmapTrackData,
     makeGeneticTrackData,
-    makeHeatmapTrackData,
+    makeHeatmapTrackData
 } from "./DataUtils";
 import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import _ from "lodash";
@@ -257,7 +263,8 @@ export function makeGenesetHeatmapTracksMobxPromise(
                 molecularProfileId,
                 molecularAlterationType: molecularProfile.molecularAlterationType,
                 datatype: molecularProfile.datatype,
-                data: makeGenesetHeatmapTrackData(
+                data: makeHeatmapTrackData<IGenesetHeatmapTrackDatum, 'geneset_id'>(
+                    'geneset_id',
                     genesetId,
                     sampleMode ? samples : patients,
                     dataCache.get({molecularProfileId, genesetId})!.data!
@@ -307,7 +314,12 @@ export function makeHeatmapTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
                     molecularProfileId: molecularProfileId,
                     molecularAlterationType: molecularProfileIdToMolecularProfile[molecularProfileId].molecularAlterationType,
                     datatype: molecularProfileIdToMolecularProfile[molecularProfileId].datatype,
-                    data: makeHeatmapTrackData(gene, sampleMode? samples : patients, data),
+                    data: makeHeatmapTrackData<IGeneHeatmapTrackDatum, 'hugo_gene_symbol'>(
+                        'hugo_gene_symbol',
+                        gene,
+                        sampleMode? samples : patients,
+                        data
+                    ),
                     trackGroupIndex: molecularProfileIdToHeatmapTracks.get(molecularProfileId)!.trackGroupIndex,
                     onRemove:action(()=>{
                         const trackGroup = molecularProfileIdToHeatmapTracks.get(molecularProfileId);
