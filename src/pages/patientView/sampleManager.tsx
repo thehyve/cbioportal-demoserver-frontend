@@ -24,7 +24,7 @@ export function sortSamples(samples: Array<ClinicalDataBySampleId>,
     // based on sample collection data (timeline event)
     let collectionDayMap: {[s:string]:number} = {};
     if (events) {
-        let specimenEvents = events.filter((e: ClinicalEvent) => (e.eventType === 'SPECIMEN'));
+        let specimenEvents = events.filter((e: ClinicalEvent) => (e.eventType === 'PASSAGE'));
 
         collectionDayMap = specimenEvents.reduce((map:{[s:string]:number}, specimenEvent: ClinicalEvent) => {
             let sampleAttr = _.find(specimenEvent.attributes, (attr: ClinicalEventData) => {

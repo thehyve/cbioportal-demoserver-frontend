@@ -138,9 +138,9 @@ export class PatientViewPageStore {
 
     @computed get pageTitle(): string {
             if (this.pageMode === 'patient') {
-                return `Patient: ${this.patientId}`
+                return `Model: ${this.patientId}`
             } else {
-                return `Sample: ${this.sampleId}`
+                return `Passage: ${this.sampleId}`
             }
     }
 

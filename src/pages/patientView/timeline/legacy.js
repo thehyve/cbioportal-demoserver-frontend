@@ -63,7 +63,7 @@ export function buildTimeline(params, caseIds, patientInfo, clinicalDataMap, cas
     if (timeData.length === 0) return;
 
     // order specimens by svg label number
-    var specimen = _.find(timeData, (item) => item.label === 'Specimen');
+    var specimen = _.find(timeData, (item) => item.label === 'Passage');
     if (specimen) {
         specimen.times = _.sortBy(specimen.times, function (x) {
             var sortOrder = Infinity;
@@ -137,7 +137,7 @@ export function buildTimeline(params, caseIds, patientInfo, clinicalDataMap, cas
         .data(timeData)
         .divId("#timeline")
         .setTimepointsDisplay("Imaging", "square")
-        .orderTracks(["Specimen", "Surgery", "Status", "Diagnostics", "Diagnostic", "Imaging", "Lab_test", "Treatment"])
+        .orderTracks(["Passage", "Tumor_growth", "Drug_response", "Surgery", "Status", "Diagnostics", "Diagnostic", "Imaging", "Lab_test", "Treatment"])
         .splitByClinicalAttributes("Lab_test", "TEST")
     var splitData = window.pvTimeline.data();
     // Get TEST names that have a RESULT field in their clinical
@@ -165,10 +165,10 @@ export function buildTimeline(params, caseIds, patientInfo, clinicalDataMap, cas
     })
     window.pvTimeline =
         window.pvTimeline
-            .splitByClinicalAttributes("Treatment", ["SUBTYPE", "AGENT"])
-            .splitByClinicalAttributes("Treatment", ["TREATMENT_TYPE", "AGENT"])
+            .splitByClinicalAttributes("Drug_response", ["SUBTYPE", "AGENT"])
+            .splitByClinicalAttributes("Drug_response", ["TREATMENT_TYPE", "AGENT"])
             .collapseAll()
-            .toggleTrackCollapse("Specimen")
+            .toggleTrackCollapse("Passage")
             .enableTrackTooltips(false)
             .plugins([{obj: new clinicalTimelineExports.trimClinicalTimeline("Trim Timeline"), enabled: true}])
             .addPostTimelineHook(plotCaseLabelsInTimeline.bind(this, caseIds, clinicalDataMap, caseMetaData));

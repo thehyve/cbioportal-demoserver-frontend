@@ -22,9 +22,12 @@ interface IPatientRow {
 
 export default class ClinicalInformationPatientTable extends React.Component<IClinicalInformationPatientTableProps, {}> {
 
-    private getDisplayValue(data:{attribute:string, value:string}):string {
-        let ret:string;
+    private getDisplayValue(data:{attribute:string, value:string}):any {
+        let ret:any;
         switch (data.attribute) {
+            case "Other models for this Donor":
+                ret = <a href={data.value}>{data.value.split("caseId=")[1]}</a>;
+                break;
             case "Overall Survival (Months)":
                 ret = parseInt(data.value, 10).toFixed(0);
                 break;

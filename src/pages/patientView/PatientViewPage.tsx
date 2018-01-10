@@ -234,7 +234,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                     showItemsPerPageSelector={false}
                     showFirstPage={true}
                     showLastPage={true}
-                    textBetweenButtons={` of ${patientViewPageStore.patientIdsInCohort.length} patients`}
+                    textBetweenButtons={` of ${patientViewPageStore.patientIdsInCohort.length} models`}
                     firstPageDisabled={indexInCohort === 0}
                     previousPageDisabled={indexInCohort === 0}
                     nextPageDisabled={indexInCohort === patientViewPageStore.patientIdsInCohort.length-1}
@@ -272,7 +272,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                         <div className="patientDataTable">
                         <table>
                             <tr>
-                                <td>Patient:</td>
+                                <td>Model:</td>
                                 <td><PatientHeader
                                     handlePatientClick={(id: string)=>this.handlePatientClick(id)}
                                     patient={patientViewPageStore.patientViewData.result.patient}
@@ -280,7 +280,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                     sampleManager={sampleManager}/></td>
                             </tr>
                             <tr>
-                                <td>Samples:</td>
+                                <td>Passages:</td>
                                 <td>
                                     <div className="patientSamples">{sampleHeader}</div>
                                 </td>
@@ -402,7 +402,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                         <MSKTab key={2} id="clinicalDataTab" linkText="Clinical Data">
 
                                     <div className="clearfix">
-                                        <FeatureTitle title="Patient"
+                                        <FeatureTitle title="Model"
                                                       isLoading={ patientViewPageStore.clinicalDataPatient.isPending }
                                                       className="pull-left"/>
                                         { (patientViewPageStore.clinicalDataPatient.isComplete) && (
@@ -416,7 +416,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                             <br />
 
                             <div className="clearfix">
-                                <FeatureTitle title="Samples" isLoading={ patientViewPageStore.clinicalDataGroupedBySample.isPending } className="pull-left" />
+                                <FeatureTitle title="Passages" isLoading={ patientViewPageStore.clinicalDataGroupedBySample.isPending } className="pull-left" />
                                 {  (patientViewPageStore.clinicalDataGroupedBySample.isComplete) && (
                                     <ClinicalInformationSamples
                                         samples={patientViewPageStore.clinicalDataGroupedBySample.result!}/>
@@ -438,7 +438,6 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                         </div>
                     </MSKTab>
 
-
                     <MSKTab key={4} id="heatMapReportTab" linkText="Heatmap"
                              hide={(patientViewPageStore.MDAndersonHeatMapAvailable.isComplete && !patientViewPageStore.MDAndersonHeatMapAvailable.result)}
                             loading={patientViewPageStore.MDAndersonHeatMapAvailable.isPending}
@@ -455,7 +454,9 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                             <IFrameLoader height={700} url={  `http://cancer.digitalslidearchive.net/index_mskcc.php?slide_name=${patientViewPageStore.patientId}` } />
                         </div>
                     </MSKTab>
+                                
 
+                                            
                     </MSKTabs>
 
                     </Then>
