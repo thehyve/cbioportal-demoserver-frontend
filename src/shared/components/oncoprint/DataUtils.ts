@@ -283,7 +283,7 @@ export function makeHeatmapTrackData<T extends IBaseHeatmapTrackDatum, K extends
             trackDatum.sample = c.sampleId;
             trackDatum.uid = c.uniqueSampleKey;
             const caseData = keyToData[c.uniqueSampleKey];
-            fillHeatmapTrackDatum(trackDatum, featureKey, featureId, c, data);
+            fillHeatmapTrackDatum(trackDatum, featureKey, featureId, c, caseData);
             return trackDatum as T;
         });
     } else {
@@ -293,7 +293,7 @@ export function makeHeatmapTrackData<T extends IBaseHeatmapTrackDatum, K extends
             trackDatum.patient = c.patientId;
             trackDatum.uid = c.uniquePatientKey;
             const caseData = keyToData[c.uniquePatientKey];
-            fillHeatmapTrackDatum(trackDatum, featureKey, featureId, c, data);
+            fillHeatmapTrackDatum(trackDatum, featureKey, featureId, c, caseData);
             return trackDatum as T;
         });
     }
