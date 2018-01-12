@@ -97,6 +97,7 @@ export interface IGeneHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
 }
 export interface IGenesetHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
     data: IGenesetHeatmapTrackDatum[];
+    expansionCallback: () => void;
 }
 
 export const GENETIC_TRACK_GROUP_INDEX = 1;

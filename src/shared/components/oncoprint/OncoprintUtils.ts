@@ -31,6 +31,14 @@ import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 import Spec = Mocha.reporters.Spec;
 import {OQLLineFilterOutput} from "../../lib/oql/oqlfilter";
 
+function makeGenesetHeatmapExpandHandler(
+    genesetProfileId: string,
+    genesetId: string
+) {
+    // TODO: call callback to append to the expanx tracks in RultVueOng*Print
+    return () => [];
+}
+
 export function doWithRenderingSuppressedAndSortingOff(oncoprint:OncoprintJS<any>, task:()=>void) {
     oncoprint.suppressRendering();
     oncoprint.keepSorted(false);
@@ -244,6 +252,7 @@ export function makeGenesetHeatmapTracksMobxPromise(
             oncoprint.props.store.patients,
             oncoprint.props.store.genesetMolecularProfile,
             oncoprint.props.store.genesetMolecularDataCache
+            // TODO: wait for expansion specs to include
         ],
         invoke: async () => {
             const samples = oncoprint.props.store.samples.result!;
@@ -272,7 +281,11 @@ export function makeGenesetHeatmapTracksMobxPromise(
                     sampleMode ? samples : patients,
                     dataCache.get({molecularProfileId, genesetId})!.data!
                 ),
-                trackGroupIndex: 30
+                trackGroupIndex: 30,
+                onRemove: () => undefined,
+                expansionCallback: makeGenesetHeatmapExpandHandler(
+                    molecularProfileId, genesetId
+                )
             }));
         },
         default: []
