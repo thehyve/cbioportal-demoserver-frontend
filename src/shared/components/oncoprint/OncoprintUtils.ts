@@ -285,7 +285,8 @@ export function makeGenesetHeatmapTracksMobxPromise(
                 onRemove: () => undefined,
                 expansionCallback: makeGenesetHeatmapExpandHandler(
                     molecularProfileId, genesetId
-                )
+                ),
+                expansionTrackList: []
             }));
         },
         default: []

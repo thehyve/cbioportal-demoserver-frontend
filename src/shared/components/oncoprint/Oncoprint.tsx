@@ -97,6 +97,7 @@ export interface IGeneHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
 }
 export interface IGenesetHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
     data: IGenesetHeatmapTrackDatum[];
+    expansionTrackList: IGeneHeatmapTrackSpec[];
     expansionCallback: () => void;
 }
 
