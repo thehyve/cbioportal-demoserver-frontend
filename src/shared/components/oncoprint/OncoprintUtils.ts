@@ -26,17 +26,32 @@ import {
 } from "./DataUtils";
 import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import _ from "lodash";
-import {action} from "mobx";
+import {action, runInAction} from "mobx";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 import Spec = Mocha.reporters.Spec;
 import {OQLLineFilterOutput} from "../../lib/oql/oqlfilter";
 
 function makeGenesetHeatmapExpandHandler(
-    genesetProfileId: string,
+    oncoprint: ResultsViewOncoprint,
+    track_key: string,
     genesetId: string
 ) {
-    // TODO: call callback to append to the expanx tracks in RultVueOng*Print
-    return () => [];
+    return (async () => {
+        // TODO: fetch 5 of the gene set's real expansion gene symbols from a web API cache
+        const new_genes = await Promise.resolve([
+            {hugoGeneSymbol:'TP53', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
+            {hugoGeneSymbol:'BRCA2', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
+        ]);
+        runInAction(() => {
+            const list = (
+                oncoprint.genesetHeatmapTrackExpansionGenes.get(track_key)
+                || []
+            );
+            oncoprint.genesetHeatmapTrackExpansionGenes.set(
+                track_key, list.concat(new_genes)
+            );
+        });
+    });
 }
 
 export function doWithRenderingSuppressedAndSortingOff(oncoprint:OncoprintJS<any>, task:()=>void) {
@@ -251,14 +266,21 @@ export function makeGenesetHeatmapTracksMobxPromise(
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,
             oncoprint.props.store.genesetMolecularProfile,
-            oncoprint.props.store.genesetMolecularDataCache
-            // TODO: wait for expansion specs to include
+            oncoprint.props.store.genesetMolecularDataCache,
+            oncoprint.sampleGenesetHeatmapExpansionTracks,
+            oncoprint.patientGenesetHeatmapExpansionTracks
         ],
         invoke: async () => {
             const samples = oncoprint.props.store.samples.result!;
             const patients = oncoprint.props.store.patients.result!;
             const molecularProfile = oncoprint.props.store.genesetMolecularProfile.result!;
             const dataCache = oncoprint.props.store.genesetMolecularDataCache.result!;
+
+            const expansions: {[parentKey: string]: IGeneHeatmapTrackSpec[]} = (
+                sampleMode
+                ? oncoprint.sampleGenesetHeatmapExpansionTracks.result!
+                : oncoprint.patientGenesetHeatmapExpansionTracks.result!
+            );
 
             if (!molecularProfile.isApplicable) {
                 return [];
@@ -269,25 +291,30 @@ export function makeGenesetHeatmapTracksMobxPromise(
             const cacheQueries = genesetIds.map((genesetId) => ({molecularProfileId, genesetId}));
             await dataCache.getPromise(cacheQueries, true);
 
-            return genesetIds.map((genesetId) => ({
-                key: `GENESETHEATMAPTRACK_${molecularProfileId},${genesetId}`,
-                label: genesetId,
-                molecularProfileId,
-                molecularAlterationType: molecularProfile.value.molecularAlterationType,
-                datatype: molecularProfile.value.datatype,
-                data: makeHeatmapTrackData<IGenesetHeatmapTrackDatum, 'geneset_id'>(
-                    'geneset_id',
-                    genesetId,
-                    sampleMode ? samples : patients,
-                    dataCache.get({molecularProfileId, genesetId})!.data!
-                ),
-                trackGroupIndex: 30,
-                onRemove: () => undefined,
-                expansionCallback: makeGenesetHeatmapExpandHandler(
-                    molecularProfileId, genesetId
-                ),
-                expansionTrackList: []
-            }));
+            return genesetIds.map((genesetId) => {
+                const track_key = `GENESETHEATMAPTRACK_${molecularProfileId},${genesetId}`;
+                return {
+                    key: track_key,
+                    label: genesetId,
+                    molecularProfileId,
+                    molecularAlterationType: molecularProfile.value.molecularAlterationType,
+                    datatype: molecularProfile.value.datatype,
+                    data: makeHeatmapTrackData<IGenesetHeatmapTrackDatum, 'geneset_id'>(
+                        'geneset_id',
+                        genesetId,
+                        sampleMode ? samples : patients,
+                        dataCache.get({molecularProfileId, genesetId})!.data!
+                    ),
+                    trackGroupIndex: 30,
+                    expansionCallback: makeGenesetHeatmapExpandHandler(
+                        oncoprint,
+                        track_key,
+                        genesetId
+                    ),
+                    expansionTrackList: expansions[track_key]
+                };
+            }
+        );
         },
         default: []
     });

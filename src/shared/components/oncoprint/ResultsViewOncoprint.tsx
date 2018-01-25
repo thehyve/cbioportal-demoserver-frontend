@@ -16,8 +16,8 @@ import {ResultsViewPageStore} from "../../../pages/resultsView/ResultsViewPageSt
 import {ClinicalAttribute, Gene, MolecularProfile, Mutation, Sample} from "../../api/generated/CBioPortalAPI";
 import {
     percentAltered, makeGeneticTracksMobxPromise,
-    makeGenesetHeatmapTracksMobxPromise, makeHeatmapTracksMobxPromise,
-    makeClinicalTracksMobxPromise
+    makeGenesetHeatmapExpansionsMobxPromise, makeGenesetHeatmapTracksMobxPromise,
+    makeHeatmapTracksMobxPromise, makeClinicalTracksMobxPromise
 } from "./OncoprintUtils";
 import _ from "lodash";
 import onMobxPromise from "shared/lib/onMobxPromise";
@@ -48,6 +48,12 @@ export type OncoprintClinicalAttribute =
     };
 
 export type SortMode = {type:"data"|"alphabetical"|"caseList"|"heatmap", clusteredHeatmapProfile?:string};
+
+export interface IGenesetExpansionRecord {
+    hugoGeneSymbol: string;
+    molecularProfileId: string;
+    correlationValue: string;
+}
 
 const specialClinicalAttributes:OncoprintClinicalAttribute[] = [
     {
@@ -120,7 +126,8 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
     private heatmapGeneInputValueUpdater:IReactionDisposer;
 
     public selectedClinicalAttributeIds = observable.shallowMap<boolean>();
-    public genesetHeatmapTrackExpansionGenes = observable.map<string[]>();
+    public genesetHeatmapTrackExpansionGenes =
+        observable.map<IGenesetExpansionRecord[]>();
     public molecularProfileIdToHeatmapTracks =
         observable.map<HeatmapTrackGroupRecord>();
 
@@ -730,7 +737,9 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
         return (this.columnMode === "sample" ? this.sampleClinicalTracks : this.patientClinicalTracks);
     }
 
+    readonly sampleGenesetHeatmapExpansionTracks = makeGenesetHeatmapExpansionsMobxPromise(this, true);
     readonly sampleGenesetHeatmapTracks = makeGenesetHeatmapTracksMobxPromise(this, true);
+    readonly patientGenesetHeatmapExpansionTracks = makeGenesetHeatmapExpansionsMobxPromise(this, false);
     readonly patientGenesetHeatmapTracks = makeGenesetHeatmapTracksMobxPromise(this, false);
     @computed get genesetHeatmapTracks() {
         return (this.columnMode === "sample" ? this.sampleGenesetHeatmapTracks : this.patientGenesetHeatmapTracks);
