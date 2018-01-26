@@ -51,6 +51,7 @@ export type SortMode = {type:"data"|"alphabetical"|"caseList"|"heatmap", cluster
 
 export interface IGenesetExpansionRecord {
     entrezGeneId: number;
+    hugoGeneSymbol: string;
     molecularProfileId: string;
     correlationValue: string;
 }

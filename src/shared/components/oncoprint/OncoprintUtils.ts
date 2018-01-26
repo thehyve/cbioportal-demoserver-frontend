@@ -39,8 +39,8 @@ function makeGenesetHeatmapExpandHandler(
     return (async () => {
         // TODO: fetch 5 of the gene set's real expansion gene symbols from a web API cache
         const new_genes = await Promise.resolve([
-            {entrezGeneId: 26097, molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
-            {entrezGeneId: 51520, molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
+            {entrezGeneId: 26097, hugoGeneSymbol: 'FOO1B', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
+            {entrezGeneId: 51520, hugoGeneSymbol: 'BAR33', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
         ]);
         runInAction(() => {
             const list = (
@@ -284,26 +284,25 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
             expansionsByGenesetTrack.entries().forEach(
                 ([gsTrack, genes]) => {
                     tracksByGenesetTrack[gsTrack] = genes.map(
-                        ({entrezGeneId, molecularProfileId, correlationValue}) => {
+                        ({entrezGeneId, hugoGeneSymbol, molecularProfileId, correlationValue}) => {
                             const data = dataCache.get({entrezGeneId, molecularProfileId})!.data!;
-                            const symbol = data[0].gene.hugoGeneSymbol;
                             const profile = molecularProfileIdToMolecularProfile[molecularProfileId];
                             return {
-                                key: `EXPANSIONTRACK_${gsTrack},${molecularProfileId},${symbol}`,
-                                label: symbol,
+                                key: `EXPANSIONTRACK_${gsTrack},${molecularProfileId},${hugoGeneSymbol}`,
+                                label: hugoGeneSymbol,
                                 molecularProfileId: molecularProfileId,
                                 molecularAlterationType: profile.molecularAlterationType,
                                 datatype: profile.datatype,
                                 data: makeHeatmapTrackData<IGeneHeatmapTrackDatum, 'hugo_gene_symbol'>(
                                     'hugo_gene_symbol',
-                                    symbol,
+                                    hugoGeneSymbol,
                                     sampleMode ? samples : patients,
                                     data
                                 ),
                                 trackGroupIndex: 30,
                                 onRemove: action(() => {
                                     // TODO: remove from oncoprint.genesetHeatmapTrackExpansionGenes
-                                    console.log(`Clean all the ${symbol}s!!1`);
+                                    console.log(`Clean all the ${hugoGeneSymbol}s!!1`);
                                 })
                             };
                         }
