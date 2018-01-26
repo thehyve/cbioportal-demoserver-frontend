@@ -50,7 +50,7 @@ export type OncoprintClinicalAttribute =
 export type SortMode = {type:"data"|"alphabetical"|"caseList"|"heatmap", clusteredHeatmapProfile?:string};
 
 export interface IGenesetExpansionRecord {
-    hugoGeneSymbol: string;
+    entrezGeneId: number;
     molecularProfileId: string;
     correlationValue: string;
 }

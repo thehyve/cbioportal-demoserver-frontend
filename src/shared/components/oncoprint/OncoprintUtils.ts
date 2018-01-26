@@ -39,8 +39,8 @@ function makeGenesetHeatmapExpandHandler(
     return (async () => {
         // TODO: fetch 5 of the gene set's real expansion gene symbols from a web API cache
         const new_genes = await Promise.resolve([
-            {hugoGeneSymbol:'TP53', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
-            {hugoGeneSymbol:'BRCA2', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
+            {entrezGeneId: 26097, molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
+            {entrezGeneId: 51520, molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
         ]);
         runInAction(() => {
             const list = (
