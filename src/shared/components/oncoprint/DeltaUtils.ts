@@ -555,7 +555,10 @@ function transitionGenesetHeatmapTrack(
             init_sort_direction: 0 as 0,
             description: `${nextSpec.label} data from ${nextSpec.molecularProfileId}`,
             tooltipFn: makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true),
-            onSortDirectionChange: nextProps.onTrackSortDirectionChange
+            onSortDirectionChange: nextProps.onTrackSortDirectionChange,
+            expandCallback: nextSpec.expansionCallback,
+            expandButtonTextGetter: (is_expanded: boolean) =>
+                `${is_expanded ? 'More' : 'Show'}  genes`
         };
         const newTrackId = oncoprint.addTracks([heatmapTrackParams])[0];
         trackSpecKeyToTrackId[nextSpec.key] = newTrackId;
