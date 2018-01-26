@@ -259,7 +259,7 @@ export function makeClinicalTracksMobxPromise(oncoprint:ResultsViewOncoprint, sa
 }
 
 export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
-    return remoteData<any>({ //{[genesetTrackKey: string]: IGeneHeatmapTrackSpec[]}>({
+    return remoteData<{[genesetTrackKey: string]: IGeneHeatmapTrackSpec[]}>({
         await: () => [
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,
@@ -310,7 +310,7 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
             );
             return tracksByGenesetTrack;
         },
-        default: []
+        default: {}
     });
 }
 
