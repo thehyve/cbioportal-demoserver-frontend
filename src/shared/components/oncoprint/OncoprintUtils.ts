@@ -275,7 +275,8 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
             const expansionsByGenesetTrack = oncoprint.genesetHeatmapTrackExpansionGenes;
 
             const cacheQueries: ({entrezGeneId: number, molecularProfileId: string})[] =
-                _.flatten(expansionsByGenesetTrack.values());
+                _.flatten(expansionsByGenesetTrack.values())
+                .map(({entrezGeneId, molecularProfileId}) => ({entrezGeneId, molecularProfileId}));
             await dataCache.getPromise(cacheQueries, true);
 
             const tracksByGenesetTrack: {[genesetTrackKey: string]: IGeneHeatmapTrackSpec[]} = {};
