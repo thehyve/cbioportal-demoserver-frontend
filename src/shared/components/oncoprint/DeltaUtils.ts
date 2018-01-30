@@ -636,7 +636,6 @@ function transitionHeatmapTrack(
         };
         const newTrackId = oncoprint.addTracks([heatmapTrackParams])[0];
         trackSpecKeyToTrackId[nextSpec.key] = newTrackId;
-        // TODO: sort track underneath its parent's last expansion
 
         if (typeof trackIdForRuleSetSharing.heatmap !== "undefined") {
             oncoprint.shareRuleSet(trackIdForRuleSetSharing.heatmap, newTrackId);
