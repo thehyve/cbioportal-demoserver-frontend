@@ -42,7 +42,7 @@ function makeGenesetHeatmapExpandHandler(
             {entrezGeneId: 26097, hugoGeneSymbol: 'FOO1B', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
             {entrezGeneId: 51520, hugoGeneSymbol: 'BAR33', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
         ]);
-        runInAction(() => {
+        runInAction('genesetHeatmapExpansion', () => {
             const list = (
                 oncoprint.genesetHeatmapTrackExpansionGenes.get(track_key)
                 || []
@@ -51,6 +51,24 @@ function makeGenesetHeatmapExpandHandler(
                 track_key, list.concat(new_genes)
             );
         });
+    });
+}
+
+function makeGenesetHeatmapUnexpandHandler(
+    oncoprint: ResultsViewOncoprint,
+    parentKey: string,
+    expansionEntrezGeneId: number
+) {
+    return action('genesetHeatmapUnexpansion', () => {
+        const list = oncoprint.genesetHeatmapTrackExpansionGenes.get(parentKey);
+        if (list) {
+            const indexToRemove = list.findIndex(
+                ({entrezGeneId}) => entrezGeneId === expansionEntrezGeneId
+            );
+            list.splice(indexToRemove, 1);
+        } else {
+            throw new Error(`Track '${parentKey}' has no expansions to remove.`);
+        }
     });
 }
 
@@ -300,10 +318,9 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
                                     data
                                 ),
                                 trackGroupIndex: 30,
-                                onRemove: action(() => {
-                                    // TODO: remove from oncoprint.genesetHeatmapTrackExpansionGenes
-                                    console.log(`Clean all the ${hugoGeneSymbol}s!!1`);
-                                })
+                                onRemove: makeGenesetHeatmapUnexpandHandler(
+                                    oncoprint, gsTrack, entrezGeneId
+                                )
                             };
                         }
                     );
