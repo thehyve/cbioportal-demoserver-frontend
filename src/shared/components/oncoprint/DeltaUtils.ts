@@ -660,6 +660,6 @@ function transitionHeatmapTrack(
             oncoprint.setTrackData(trackId, nextSpec.data, "uid");
         }
         // set tooltip, its cheap
-        oncoprint.setTrackTooltipFn(trackId, makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true))
+        oncoprint.setTrackTooltipFn(trackId, makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true));
     }
 }
