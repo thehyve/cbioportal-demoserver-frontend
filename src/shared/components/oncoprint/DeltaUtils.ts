@@ -324,6 +324,15 @@ function transitionTracks(
     if (prevProps.heatmapTracks && prevProps.heatmapTracks.length) {
         // set rule set to existing track if there is one
         trackIdForRuleSetSharing.heatmap = trackSpecKeyToTrackId[prevProps.heatmapTracks[0].key];
+    } else if (prevProps.genesetHeatmapTracks) {
+        for (const gsTrack of prevProps.genesetHeatmapTracks) {
+            if (gsTrack.expansionTrackList && gsTrack.expansionTrackList.length) {
+                trackIdForRuleSetSharing.heatmap = trackSpecKeyToTrackId[
+                    gsTrack.expansionTrackList[0].key
+                ];
+                break;
+            }
+        }
     }
 
 
