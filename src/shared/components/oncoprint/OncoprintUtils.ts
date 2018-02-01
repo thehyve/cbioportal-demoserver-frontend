@@ -28,14 +28,18 @@ import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import _ from "lodash";
 import {action, runInAction} from "mobx";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
+import {default as GenesetCorrelatedGeneCache, SampleFilterByProfile} from "shared/cache/GenesetCorrelatedGeneCache";
 import Spec = Mocha.reporters.Spec;
 import {OQLLineFilterOutput} from "../../lib/oql/oqlfilter";
 
 function makeGenesetHeatmapExpandHandler(
     oncoprint: ResultsViewOncoprint,
     track_key: string,
-    genesetId: string
+    genesetId: string,
+    sampleFilterByProfile: SampleFilterByProfile
 ) {
+    // TODO: give the expansion tracks access to the cache's reset method
+    const correlatedGeneCache = new GenesetCorrelatedGeneCache(genesetId, sampleFilterByProfile);
     return (async () => {
         // TODO: fetch 5 of the gene set's real expansion gene symbols from a web API cache
         const new_genes = await Promise.resolve([
@@ -66,6 +70,7 @@ function makeGenesetHeatmapUnexpandHandler(
                 ({entrezGeneId}) => entrezGeneId === expansionEntrezGeneId
             );
             list.splice(indexToRemove, 1);
+            // TODO: reset cache if this leaves the list empty
         } else {
             throw new Error(`Track '${parentKey}' has no expansions to remove.`);
         }
@@ -341,6 +346,7 @@ export function makeGenesetHeatmapTracksMobxPromise(
             oncoprint.props.store.patients,
             oncoprint.props.store.genesetMolecularProfile,
             oncoprint.props.store.genesetMolecularDataCache,
+            oncoprint.props.store.molecularProfileIdToDataQueryFilter,
             oncoprint.sampleGenesetHeatmapExpansionTracks,
             oncoprint.patientGenesetHeatmapExpansionTracks
         ],
@@ -349,6 +355,7 @@ export function makeGenesetHeatmapTracksMobxPromise(
             const patients = oncoprint.props.store.patients.result!;
             const molecularProfile = oncoprint.props.store.genesetMolecularProfile.result!;
             const dataCache = oncoprint.props.store.genesetMolecularDataCache.result!;
+            const sampleFilterByProfile = oncoprint.props.store.molecularProfileIdToDataQueryFilter.result!;
 
             const expansions: {[parentKey: string]: IGeneHeatmapTrackSpec[]} = (
                 sampleMode
@@ -383,7 +390,8 @@ export function makeGenesetHeatmapTracksMobxPromise(
                     expansionCallback: makeGenesetHeatmapExpandHandler(
                         oncoprint,
                         track_key,
-                        genesetId
+                        genesetId,
+                        sampleFilterByProfile
                     ),
                     expansionTrackList: expansions[track_key]
                 };
