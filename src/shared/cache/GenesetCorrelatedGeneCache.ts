@@ -8,37 +8,81 @@ interface IQuery {
     molecularProfileId: string;
 }
 
-export type SampleFilterByProfile = {
+type SampleFilterByProfile = {
     [molecularProfileId: string]: IDataQueryFilter
 };
 
+async function fetch(
+    {genesetId, molecularProfileId}: IQuery,
+    sampleFilterByProfile: SampleFilterByProfile
+): Promise<GenesetCorrelation[]> {
+    const param = {
+        genesetId,
+        geneticProfileId: molecularProfileId,
+        ...sampleFilterByProfile[molecularProfileId]
+    };
+    return client.fetchCorrelatedGenesUsingPOST(param);
+}
+
+class GenesetCorrelatedGeneIteration {
+    private query: IQuery;
+    private sampleFilterByProfile: SampleFilterByProfile;
+    private nextGeneIndex = 0;
+    private data: undefined | GenesetCorrelation[] = undefined;
+
+    constructor(query: IQuery, sampleFilterByProfile: SampleFilterByProfile) {
+        this.query = query;
+        this.sampleFilterByProfile = sampleFilterByProfile;
+    }
+
+    async next(maxNumber: number) {
+        if (this.data === undefined) {
+            this.data = await fetch(this.query, this.sampleFilterByProfile);
+        }
+        // select the first 5 genes starting from the index,
+        // up to the end of the array
+        const nextGenes = this.data.slice(
+            this.nextGeneIndex,
+            this.nextGeneIndex + maxNumber
+        );
+        this.nextGeneIndex += nextGenes.length;
+        return nextGenes;
+    }
+
+    /**
+     * Resets the iteration so that next() will start from the beginning.
+     */
+    reset(): void {
+        this.nextGeneIndex = 0;
+    }
+}
+
 export default class GenesetCorrelatedGeneCache  {
     
-    private nextGeneIndex: 0;
+    private sampleFilterByProfile: SampleFilterByProfile;
+    private iterations: {
+        [iterationKey: string]: GenesetCorrelatedGeneIteration
+    } = {};
     
-    private async (
-        query: IQuery,
-        sampleFilterByProfile: SampleFilterByProfile
+    constructor(sampleFilterByProfile: SampleFilterByProfile) {
+        this.sampleFilterByProfile = sampleFilterByProfile;
+    }
+    
+    initIteration(iterationKey: string, query: IQuery) {
+        this.iterations[iterationKey] = new GenesetCorrelatedGeneIteration(
+            query, this.sampleFilterByProfile
+        );
+    }
+    
+    async next(
+        iterationKey: string,
+        maxNumber: number
     ): Promise<GenesetCorrelation[]> {
-        const genesetIdsByProfile = _.mapValues(
-            _.groupBy(queries, q => q.molecularProfileId),
-            profileQueries => profileQueries.map(q => q.genesetId)
-        );
-        const params = Object.keys(genesetIdsByProfile)
-            .map(profileId => ({
-                geneticProfileId: profileId,
-                // the Swagger-generated type expected by the client method below
-                // incorrectly requires both samples and a sample list;
-                // use 'as' to tell TypeScript that this object really does fit.
-                // tslint:disable-next-line: no-object-literal-type-assertion
-                genesetDataFilterCriteria: {
-                    genesetIds: genesetIdsByProfile[profileId],
-                    ...sampleFilterByProfile[profileId]
-                } as GenesetDataFilterCriteria
-            })
-        );
-        const dataPromises = params.map(param => client.fetchCorrelatedGenesUsingPOST(param));
-        const results: Gee[][] = await Promise.all(dataPromises);
-        return augmentQueryResults(queries, results);
-}
+        return this.iterations[iterationKey].next(maxNumber);
+    }
+    
+    reset(iterationKey: string): void {
+        this.iterations[iterationKey].reset();
+    }
+
 }

@@ -45,6 +45,7 @@ import {PatientSurvival} from "../../shared/model/PatientSurvival";
 import {filterCBioPortalWebServiceDataByOQLLine, OQLLineFilterOutput} from "../../shared/lib/oql/oqlfilter";
 import GeneMolecularDataCache from "../../shared/cache/GeneMolecularDataCache";
 import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCache";
+import GenesetCorrelatedGeneCache from "../../shared/cache/GenesetCorrelatedGeneCache";
 import GeneCache from "../../shared/cache/GeneCache";
 import ClinicalDataCache from "../../shared/cache/ClinicalDataCache";
 import {IHotspotData} from "../../shared/model/CancerHotspots";
@@ -1769,6 +1770,17 @@ export class ResultsViewPageStore {
         ],
         invoke: () => Promise.resolve(
             new GenesetMolecularDataCache(
+                this.molecularProfileIdToDataQueryFilter.result!
+            )
+        )
+    });
+
+    readonly genesetCorrelatedGeneCache = remoteData({
+        await:() => [
+            this.molecularProfileIdToDataQueryFilter
+        ],
+        invoke: () => Promise.resolve(
+            new GenesetCorrelatedGeneCache(
                 this.molecularProfileIdToDataQueryFilter.result!
             )
         )

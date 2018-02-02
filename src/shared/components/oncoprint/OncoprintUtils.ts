@@ -28,24 +28,27 @@ import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import _ from "lodash";
 import {action, runInAction} from "mobx";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
-import {default as GenesetCorrelatedGeneCache, SampleFilterByProfile} from "shared/cache/GenesetCorrelatedGeneCache";
+import GenesetCorrelatedGeneCache from "shared/cache/GenesetCorrelatedGeneCache";
 import Spec = Mocha.reporters.Spec;
 import {OQLLineFilterOutput} from "../../lib/oql/oqlfilter";
 
 function makeGenesetHeatmapExpandHandler(
     oncoprint: ResultsViewOncoprint,
     track_key: string,
-    genesetId: string,
-    sampleFilterByProfile: SampleFilterByProfile
+    query: {molecularProfileId: string, genesetId: string},
+    cache: GenesetCorrelatedGeneCache,
 ) {
-    // TODO: give the expansion tracks access to the cache's reset method
-    const correlatedGeneCache = new GenesetCorrelatedGeneCache(genesetId, sampleFilterByProfile);
+    cache.initIteration(track_key, query);
     return (async () => {
-        // TODO: fetch 5 of the gene set's real expansion gene symbols from a web API cache
-        const new_genes = await Promise.resolve([
-            {entrezGeneId: 26097, hugoGeneSymbol: 'FOO1B', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.5'},
-            {entrezGeneId: 51520, hugoGeneSymbol: 'BAR33', molecularProfileId: 'gbm_tcga_mrna_U133_Zscores', correlationValue: '0.6'}
-        ]);
+        const new_genes = (await cache.next(track_key, 5)).map(
+            ({
+                entrezGeneId, hugoGeneSymbol, correlationValue,
+                zScoreGeneticProfileId
+            }) => ({
+                entrezGeneId, hugoGeneSymbol, correlationValue,
+                molecularProfileId: zScoreGeneticProfileId
+            })
+        );
         runInAction('genesetHeatmapExpansion', () => {
             const list = (
                 oncoprint.genesetHeatmapTrackExpansionGenes.get(track_key)
@@ -61,7 +64,8 @@ function makeGenesetHeatmapExpandHandler(
 function makeGenesetHeatmapUnexpandHandler(
     oncoprint: ResultsViewOncoprint,
     parentKey: string,
-    expansionEntrezGeneId: number
+    expansionEntrezGeneId: number,
+    onRemoveLast: () => void
 ) {
     return action('genesetHeatmapUnexpansion', () => {
         const list = oncoprint.genesetHeatmapTrackExpansionGenes.get(parentKey);
@@ -70,7 +74,9 @@ function makeGenesetHeatmapUnexpandHandler(
                 ({entrezGeneId}) => entrezGeneId === expansionEntrezGeneId
             );
             list.splice(indexToRemove, 1);
-            // TODO: reset cache if this leaves the list empty
+            if (!list.length) {
+                onRemoveLast();
+            }
         } else {
             throw new Error(`Track '${parentKey}' has no expansions to remove.`);
         }
@@ -287,13 +293,15 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,
             oncoprint.props.store.molecularProfileIdToMolecularProfile,
-            oncoprint.props.store.geneMolecularDataCache
+            oncoprint.props.store.geneMolecularDataCache,
+            oncoprint.props.store.genesetCorrelatedGeneCache
         ],
         invoke: async () => {
             const samples = oncoprint.props.store.samples.result!;
             const patients = oncoprint.props.store.patients.result!;
             const molecularProfileIdToMolecularProfile = oncoprint.props.store.molecularProfileIdToMolecularProfile.result!;
             const dataCache = oncoprint.props.store.geneMolecularDataCache.result!;
+            const genesetGeneCache = oncoprint.props.store.genesetCorrelatedGeneCache.result!;
 
             const expansionsByGenesetTrack = oncoprint.genesetHeatmapTrackExpansionGenes;
 
@@ -324,7 +332,10 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
                                 ),
                                 trackGroupIndex: 30,
                                 onRemove: makeGenesetHeatmapUnexpandHandler(
-                                    oncoprint, gsTrack, entrezGeneId
+                                    oncoprint, gsTrack, entrezGeneId,
+                                    genesetGeneCache.reset.bind(
+                                        genesetGeneCache, gsTrack
+                                    )
                                 )
                             };
                         }
@@ -346,7 +357,7 @@ export function makeGenesetHeatmapTracksMobxPromise(
             oncoprint.props.store.patients,
             oncoprint.props.store.genesetMolecularProfile,
             oncoprint.props.store.genesetMolecularDataCache,
-            oncoprint.props.store.molecularProfileIdToDataQueryFilter,
+            oncoprint.props.store.genesetCorrelatedGeneCache,
             oncoprint.sampleGenesetHeatmapExpansionTracks,
             oncoprint.patientGenesetHeatmapExpansionTracks
         ],
@@ -355,7 +366,7 @@ export function makeGenesetHeatmapTracksMobxPromise(
             const patients = oncoprint.props.store.patients.result!;
             const molecularProfile = oncoprint.props.store.genesetMolecularProfile.result!;
             const dataCache = oncoprint.props.store.genesetMolecularDataCache.result!;
-            const sampleFilterByProfile = oncoprint.props.store.molecularProfileIdToDataQueryFilter.result!;
+            const correlatedGeneCache = oncoprint.props.store.genesetCorrelatedGeneCache.result!;
 
             const expansions: {[parentKey: string]: IGeneHeatmapTrackSpec[]} = (
                 sampleMode
@@ -390,8 +401,8 @@ export function makeGenesetHeatmapTracksMobxPromise(
                     expansionCallback: makeGenesetHeatmapExpandHandler(
                         oncoprint,
                         track_key,
-                        genesetId,
-                        sampleFilterByProfile
+                        {molecularProfileId, genesetId},
+                        correlatedGeneCache
                     ),
                     expansionTrackList: expansions[track_key]
                 };

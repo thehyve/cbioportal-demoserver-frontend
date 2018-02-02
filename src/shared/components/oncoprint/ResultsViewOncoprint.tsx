@@ -53,7 +53,7 @@ export interface IGenesetExpansionRecord {
     entrezGeneId: number;
     hugoGeneSymbol: string;
     molecularProfileId: string;
-    correlationValue: string;
+    correlationValue: number;
 }
 
 const specialClinicalAttributes:OncoprintClinicalAttribute[] = [
