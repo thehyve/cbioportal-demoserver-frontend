@@ -69,9 +69,11 @@ export default class GenesetCorrelatedGeneCache  {
     }
     
     initIteration(iterationKey: string, query: IQuery) {
-        this.iterations[iterationKey] = new GenesetCorrelatedGeneIteration(
-            query, this.sampleFilterByProfile
-        );
+        if (!Object.prototype.hasOwnProperty.call(this.iterations, iterationKey)) {
+            this.iterations[iterationKey] = new GenesetCorrelatedGeneIteration(
+                query, this.sampleFilterByProfile
+            );
+        }
     }
     
     async next(
