@@ -638,6 +638,7 @@ function transitionHeatmapTrack(
             init_sort_direction: 0 as 0,
             description: `${nextSpec.label} data from ${nextSpec.molecularProfileId}`,
             tooltipFn: makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true),
+            track_info: nextSpec.info || "",
             onSortDirectionChange: nextProps.onTrackSortDirectionChange,
             expansion_of: (
                 expansionParentKey
@@ -658,6 +659,9 @@ function transitionHeatmapTrack(
         if (nextSpec.data !== prevSpec.data) {
             // shallow equality check
             oncoprint.setTrackData(trackId, nextSpec.data, "uid");
+        }
+        if (nextSpec.info !== prevSpec.info && nextSpec.info !== undefined) {
+            oncoprint.setTrackInfo(trackId, nextSpec.info);
         }
         // set tooltip, its cheap
         oncoprint.setTrackTooltipFn(trackId, makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true));

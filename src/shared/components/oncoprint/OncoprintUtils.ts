@@ -321,6 +321,7 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
                             return {
                                 key: `EXPANSIONTRACK_${gsTrack},${molecularProfileId},${hugoGeneSymbol}`,
                                 label: hugoGeneSymbol,
+                                info: correlationValue.toFixed(2),
                                 molecularProfileId: molecularProfileId,
                                 molecularAlterationType: profile.molecularAlterationType,
                                 datatype: profile.datatype,

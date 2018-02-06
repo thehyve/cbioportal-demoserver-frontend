@@ -94,6 +94,7 @@ interface IBaseHeatmapTrackSpec {
 export interface IGeneHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
     data: IGeneHeatmapTrackDatum[];
     onRemove: () => void;
+    info?: string;
 }
 export interface IGenesetHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
     data: IGenesetHeatmapTrackDatum[];
