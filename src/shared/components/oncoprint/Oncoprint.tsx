@@ -104,6 +104,7 @@ export interface IGenesetHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
 
 export const GENETIC_TRACK_GROUP_INDEX = 1;
 export const CLINICAL_TRACK_GROUP_INDEX = 0;
+export const GENESET_HEATMAP_TRACK_GROUP_INDEX = 30;
 
 export interface IOncoprintProps {
     oncoprintRef?:(oncoprint:OncoprintJS<any>)=>void;

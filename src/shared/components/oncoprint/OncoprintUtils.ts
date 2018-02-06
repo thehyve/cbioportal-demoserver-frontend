@@ -5,7 +5,8 @@ import {
     IGeneHeatmapTrackDatum,
     IGeneHeatmapTrackSpec,
     IGenesetHeatmapTrackDatum,
-    IGenesetHeatmapTrackSpec
+    IGenesetHeatmapTrackSpec,
+    GENESET_HEATMAP_TRACK_GROUP_INDEX
 } from "./Oncoprint";
 import {ClinicalAttribute} from "../../api/generated/CBioPortalAPI";
 import {genetic_rule_set_same_color_for_all_no_recurrence,
@@ -332,7 +333,7 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
                                     sampleMode ? samples : patients,
                                     data
                                 ),
-                                trackGroupIndex: 30,
+                                trackGroupIndex: GENESET_HEATMAP_TRACK_GROUP_INDEX,
                                 onRemove: makeGenesetHeatmapUnexpandHandler(
                                     oncoprint, gsTrack, entrezGeneId,
                                     genesetGeneCache.reset.bind(
@@ -399,7 +400,7 @@ export function makeGenesetHeatmapTracksMobxPromise(
                         sampleMode ? samples : patients,
                         dataCache.get({molecularProfileId, genesetId})!.data!
                     ),
-                    trackGroupIndex: 30,
+                    trackGroupIndex: GENESET_HEATMAP_TRACK_GROUP_INDEX,
                     expansionCallback: makeGenesetHeatmapExpandHandler(
                         oncoprint,
                         track_key,
