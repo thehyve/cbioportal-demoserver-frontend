@@ -402,7 +402,7 @@ function tryRemoveTrack(
     oncoprint:OncoprintJS<any>
 ) {
     if (!nextSpec && prevSpec) {
-        // remove track, if OncoprintJS hasn't already signalled a
+        // remove track, if OncoprintJS hasn't already removed it and told a
         // removeCallback to forget its track ID
         const trackId = trackSpecKeyToTrackId[prevSpec.key];
         if (typeof trackId !== "undefined") {

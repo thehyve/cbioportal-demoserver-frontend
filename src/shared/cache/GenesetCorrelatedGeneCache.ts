@@ -58,16 +58,16 @@ class GenesetCorrelatedGeneIteration {
 }
 
 export default class GenesetCorrelatedGeneCache  {
-    
+
     private sampleFilterByProfile: SampleFilterByProfile;
     private iterations: {
         [iterationKey: string]: GenesetCorrelatedGeneIteration
     } = {};
-    
+
     constructor(sampleFilterByProfile: SampleFilterByProfile) {
         this.sampleFilterByProfile = sampleFilterByProfile;
     }
-    
+
     initIteration(iterationKey: string, query: IQuery) {
         if (!Object.prototype.hasOwnProperty.call(this.iterations, iterationKey)) {
             this.iterations[iterationKey] = new GenesetCorrelatedGeneIteration(
@@ -75,14 +75,14 @@ export default class GenesetCorrelatedGeneCache  {
             );
         }
     }
-    
+
     async next(
         iterationKey: string,
         maxNumber: number
     ): Promise<GenesetCorrelation[]> {
         return this.iterations[iterationKey].next(maxNumber);
     }
-    
+
     reset(iterationKey: string): void {
         this.iterations[iterationKey].reset();
     }

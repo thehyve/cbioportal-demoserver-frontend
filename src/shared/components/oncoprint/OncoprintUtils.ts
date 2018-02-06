@@ -305,7 +305,8 @@ export function makeGenesetHeatmapExpansionsMobxPromise(oncoprint:ResultsViewOnc
 
             const expansionsByGenesetTrack = oncoprint.genesetHeatmapTrackExpansionGenes;
 
-            // list all the genes in an array of plain, non-observable objects
+            // list all the genes in an array of plain, non-observable objects,
+            // as observable arrays cannot be safely passed to external libs
             const cacheQueries: ({entrezGeneId: number, molecularProfileId: string})[] =
                 _.flatten(expansionsByGenesetTrack.values().map(mobxArray => mobxArray.slice()))
                 .map(({entrezGeneId, molecularProfileId}) => ({entrezGeneId, molecularProfileId}));
