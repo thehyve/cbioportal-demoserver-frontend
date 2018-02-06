@@ -66,6 +66,11 @@ import {
     initializeCustomDriverAnnotationSettings
 } from "./ResultsViewPageStoreUtils";
 
+type Optional<T> = (
+    {isApplicable: true, value: T}
+    | {isApplicable: false, value?: undefined}
+);
+
 export type SamplesSpecificationElement = {studyId: string, sampleId: string, sampleListId: undefined} |
     {studyId: string, sampleId: undefined, sampleListId: string};
 
@@ -1325,7 +1330,7 @@ export class ResultsViewPageStore {
         }
     });
 
-    readonly genesetMolecularProfile = remoteData<MolecularProfile | undefined>({
+    readonly genesetMolecularProfile = remoteData<Optional<MolecularProfile>>({
         await: () => [
             this.selectedMolecularProfiles
         ],
@@ -1338,9 +1343,15 @@ export class ResultsViewPageStore {
                 )
             );
             if (applicableProfiles.length > 1) {
-                return Promise.reject("Queried more than one gene set score profile");
+                return Promise.reject(new Error("Queried more than one gene set score profile"));
             }
-            return Promise.resolve(applicableProfiles.pop());
+            const genesetProfile = applicableProfiles.pop();
+            const value: Optional<MolecularProfile> = (
+                genesetProfile
+                ? {isApplicable: true, value: genesetProfile}
+                : {isApplicable: false}
+            );
+            return Promise.resolve(value);
         }
     });
 
