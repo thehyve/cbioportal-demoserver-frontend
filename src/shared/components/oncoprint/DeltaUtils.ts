@@ -11,7 +11,10 @@ import {
     getGenesetHeatmapTrackRuleSetParams, getHeatmapTrackRuleSetParams
 } from "./OncoprintUtils";
 import {getClinicalTrackSortComparator, getGeneticTrackSortComparator, heatmapTrackSortComparator} from "./SortUtils";
-import {makeClinicalTrackTooltip, makeGeneticTrackTooltip, makeHeatmapTrackTooltip} from "./TooltipUtils";
+import {
+    makeClinicalTrackTooltip, makeGeneticTrackTooltip, makeHeatmapTrackTooltip,
+    linebreakGenesetId
+} from "./TooltipUtils";
 import {MolecularProfile} from "../../api/generated/CBioPortalAPI";
 
 export function transition(
@@ -560,12 +563,13 @@ function transitionGenesetHeatmapTrack(
             data_id_key: "uid",
             has_column_spacing: false,
             track_padding: 0,
-            label: nextSpec.label,
+            // it's a String object, interchangeable with a string in this case
+            label: linebreakGenesetId(nextSpec.label) as any,
             target_group: nextSpec.trackGroupIndex,
             sort_direction_changeable: true,
             sortCmpFn: heatmapTrackSortComparator,
             init_sort_direction: 0 as 0,
-            description: `${nextSpec.label} data from ${nextSpec.molecularProfileId}`,
+            description: `gene set scores from ${nextSpec.molecularProfileId}`,
             link_url: nextSpec.trackLinkUrl,
             tooltipFn: makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true),
             onSortDirectionChange: nextProps.onTrackSortDirectionChange

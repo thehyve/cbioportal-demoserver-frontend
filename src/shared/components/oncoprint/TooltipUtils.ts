@@ -39,6 +39,27 @@ function makeGenePanelPopupLink(gene_panel_id:string) {
     });
     return anchor;
 }
+
+// This function caters a part of the OncoprintJS API in which a label is
+// treated both as a string and as an object, requiring a non-primitive String
+// object.
+// tslint:disable-next-line ban-types
+type OncoprintHtmlTrackLabel = String & {html_content: string};
+export function linebreakGenesetId(
+    genesetId: string
+): OncoprintHtmlTrackLabel {
+    const trackLabelObject: Partial<OncoprintHtmlTrackLabel> = new String(genesetId);
+    trackLabelObject.html_content = (
+        // encode the string as the textual contents of an HTML element
+        $('<div>').text(genesetId).html()
+        // Include zero-width spaces to allow line breaks after punctuation in
+        // (typically long) gs names
+        .replace(/_/g, '_&#8203;')
+        .replace(/\./g, '.&#8203;')
+    );
+    return trackLabelObject as OncoprintHtmlTrackLabel;
+}
+
 export function makeClinicalTrackTooltip(track:ClinicalTrackSpec, link_id?:boolean) {
     return function(d:any) {
         let ret = '';
