@@ -110,8 +110,9 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
     @observable showClinicalTrackLegends:boolean = true;
     @observable showMinimap:boolean = false;
 
-    @observable selectedHeatmapProfile:string = "";
-    @observable heatmapGeneInputValue:string = "";
+    @observable selectedHeatmapProfile = "";
+    @observable heatmapIsDynamicallyQueried = true;
+    @observable heatmapGeneInputValue = "";
 
     @observable horzZoom:number = 0.5;
 
@@ -157,6 +158,9 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             // select first initially
             if (profiles.length) {
                 this.selectedHeatmapProfile = profiles[0].molecularProfileId;
+                this.heatmapIsDynamicallyQueried = (
+                    profiles[0].molecularAlterationType !== 'GENESET_SCORE'
+                );
             }
         });
 
@@ -262,6 +266,9 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             },
             get selectedHeatmapProfile() {
                 return self.selectedHeatmapProfile;
+            },
+            get heatmapIsDynamicallyQueried () {
+                return self.heatmapIsDynamicallyQueried;
             },
             get clusterHeatmapButtonDisabled() {
                 return (self.sortMode.type === "heatmap" &&
@@ -431,7 +438,15 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 this.heatmapGeneInputValue = s;
                 this.heatmapGeneInputValueUpdater(); // stop updating heatmap input if user has typed
             }),
-            onSelectHeatmapProfile:(id:string)=>{this.selectedHeatmapProfile = id;},
+            onSelectHeatmapProfile:(id:string)=>onMobxPromise(
+                this.props.store.molecularProfileIdToMolecularProfile,
+                profileMap => {
+                    this.selectedHeatmapProfile = id;
+                    this.heatmapIsDynamicallyQueried = (
+                        profileMap[id].molecularAlterationType !== 'GENESET_SCORE'
+                    );
+                }
+            ),
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
             },
