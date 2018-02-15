@@ -275,7 +275,16 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                     self.selectedHeatmapProfile === self.sortMode.clusteredHeatmapProfile);
             },
             get hideClusterHeatmapButton() {
-                return !self.molecularProfileIdToHeatmapTracks.get(self.selectedHeatmapProfile);
+                let genesetHeatmapProfile: string | undefined;
+                if (self.props.store.genesetMolecularProfile.isComplete &&
+                    self.props.store.genesetMolecularProfile.result.isApplicable
+                ) {
+                    genesetHeatmapProfile = self.props.store.genesetMolecularProfile.result.value.molecularProfileId;
+                }
+                return !(
+                    self.molecularProfileIdToHeatmapTracks.get(self.selectedHeatmapProfile) ||
+                    self.selectedHeatmapProfile === genesetHeatmapProfile
+                );
             },
             get heatmapGeneInputValue() {
                 return self.heatmapGeneInputValue;
