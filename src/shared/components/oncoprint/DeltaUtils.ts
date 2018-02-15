@@ -242,7 +242,11 @@ export function transitionSortConfig(
         nextSortConfig.type === "order" &&
         (prevSortConfig.order !== nextSortConfig.order))
         ||
-        !_.isEqual(prevSortConfig, nextSortConfig)) {
+        !_.isEqual(prevSortConfig, nextSortConfig)
+    ) {
+        if (nextSortConfig.type === "cluster") {
+            oncoprint.removeAllExpansionTracksInGroup(nextSortConfig.track_group_index);
+        }
         oncoprint.setSortConfig(nextSortConfig);
     }
 }
