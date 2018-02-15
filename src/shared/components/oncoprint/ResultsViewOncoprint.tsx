@@ -47,7 +47,10 @@ export type OncoprintClinicalAttribute =
         clinicalAttributeId: string|SpecialAttribute;
     };
 
-export type SortMode = {type:"data"|"alphabetical"|"caseList"|"heatmap", clusteredHeatmapProfile?:string};
+export type SortMode = (
+    {type:"data"|"alphabetical"|"caseList", clusteredHeatmapProfile?:undefined} |
+    {type:"heatmap", clusteredHeatmapProfile:string}
+);
 
 const specialClinicalAttributes:OncoprintClinicalAttribute[] = [
     {
@@ -776,10 +779,20 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     @computed get clusterHeatmapTrackGroupIndex() {
         if (this.sortMode.type === "heatmap") {
-            return this.molecularProfileIdToHeatmapTracks.get(this.sortMode.clusteredHeatmapProfile!)!.trackGroupIndex;
-        } else {
-            return undefined;
+            const clusteredHeatmapProfile: string = this.sortMode.clusteredHeatmapProfile;
+            const genesetHeatmapProfile: string | undefined = (
+                this.props.store.genesetMolecularProfile.result &&
+                this.props.store.genesetMolecularProfile.result.value &&
+                this.props.store.genesetMolecularProfile.result.value.molecularProfileId
+            );
+            if (clusteredHeatmapProfile === genesetHeatmapProfile) {
+                return this.genesetHeatmapTrackGroup.result;
+            } else {
+                const heatmapGroup = this.molecularProfileIdToHeatmapTracks.get(clusteredHeatmapProfile);
+                return (heatmapGroup && heatmapGroup.trackGroupIndex);
+            }
         }
+        return undefined;
     }
 
     @computed get sortConfig() {
