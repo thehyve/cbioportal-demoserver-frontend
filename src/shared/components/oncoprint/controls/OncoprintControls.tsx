@@ -429,6 +429,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                         />
                         {this.props.state.heatmapIsDynamicallyQueried && [
                             <textarea
+                                key="heatmapGeneInputArea"
                                 placeholder="Type space- or comma-separated genes here, then click 'Add Genes to Heatmap'"
                                 name={EVENT_KEY.heatmapGeneInput}
                                 onChange={this.onType}
@@ -436,12 +437,15 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                             >
                             </textarea>,
 
-                            <button className="btn btn-sm btn-default"
-                                 name={EVENT_KEY.addGenesToHeatmap}
-                                 onClick={this.onButtonClick}
+                            <button
+                                key="addGenesToHeatmapButton"
+                                className="btn btn-sm btn-default"
+                                name={EVENT_KEY.addGenesToHeatmap}
+                                onClick={this.onButtonClick}
                              >Add Genes to Heatmap</button>,
 
                             <button
+                                key="removeHeatmapButton"
                                 className="btn btn-sm btn-default"
                                 name={EVENT_KEY.removeHeatmap}
                                 onClick={this.onButtonClick}
