@@ -230,7 +230,7 @@ function createSortConfig(props:Partial<Pick<IOncoprintProps, "sortConfig">>):So
 }
 export function transitionSortConfig(
     nextProps: Pick<IOncoprintProps, "sortConfig">,
-    prevProps: Partial<Pick<IOncoprintProps, "sortConfig">>,
+    prevProps: Pick<Partial<IOncoprintProps>, "sortConfig">,
     oncoprint: OncoprintJS<any>
 ) {
     const prevSortConfig = createSortConfig(prevProps);
