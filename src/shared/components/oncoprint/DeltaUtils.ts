@@ -563,8 +563,8 @@ function transitionGenesetHeatmapTrack(
             data_id_key: "uid",
             has_column_spacing: false,
             track_padding: 0,
-            // it's a String object, interchangeable with a string in this case
-            label: linebreakGenesetId(nextSpec.label) as any,
+            label: nextSpec.label,
+            html_label: linebreakGenesetId(nextSpec.label),
             target_group: nextSpec.trackGroupIndex,
             sort_direction_changeable: true,
             sortCmpFn: heatmapTrackSortComparator,
