@@ -125,13 +125,14 @@ describe("Oncoprint DeltaUtils", ()=>{
     });
 
     describe("transitionSortConfig", ()=>{
-        let oncoprint:any;
+        let oncoprint: any;
         beforeEach(()=>{
-            oncoprint = { setSortConfig:spy(()=>{}) };
+            oncoprint = {setSortConfig: spy(), removeAllExpansionTracksInGroup: spy()};
         });
         it("should not do anything if no sortConfig specified", ()=>{
             transitionSortConfig({}, {}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 0);
+            assert(oncoprint.setSortConfig.notCalled);
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
         it("should not do anything if the given sort configs have no order or cluster heatmap group specified, regardless of changes", ()=>{
             transitionSortConfig({sortConfig:{}}, {sortConfig:{}}, oncoprint);
@@ -141,60 +142,76 @@ describe("Oncoprint DeltaUtils", ()=>{
             transitionSortConfig({sortConfig:{}}, {sortConfig:{sortByMutationType:false}}, oncoprint);
             transitionSortConfig({}, {sortConfig:{sortByMutationType:false}}, oncoprint);
             transitionSortConfig({sortConfig:{sortByMutationType:false}}, {}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 0);
+            assert(oncoprint.setSortConfig.notCalled);
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
         it("should set the config to new order if order is specified, no sort config specified before", ()=>{
             transitionSortConfig({sortConfig:{order:["5","3","2"]}},{}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"order", order:["5","3","2"]}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
         it("should set the config to new order if order is specified, no order specified before", ()=>{
             transitionSortConfig({sortConfig:{order:["5","3","2"]}},{sortConfig:{}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"order", order:["5","3","2"]}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
         it("should set the config to new order if order is specified, different order specified before", ()=>{
             transitionSortConfig({sortConfig:{order:["6","4","0","2"]}},{sortConfig:{order:["1"]}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"order", order:["6","4","0","2"]}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
         it("should not do anything if same order given (same object, shallow equality)", ()=>{
             const order = "0,1,2,3,4".split(",");
             transitionSortConfig({sortConfig:{order}},{sortConfig:{order}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 0);
+            assert(oncoprint.setSortConfig.notCalled);
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
         it("should set the config to order, if order and cluster heatmap group specified", ()=>{
             const order = "0,1,2,3,4".split(",");
-            transitionSortConfig({sortConfig:{order, clusterHeatmapTrackGroupIndex:1}},{sortConfig:{order}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 0, "no change registered bc order overrides heatmap");
+            transitionSortConfig({sortConfig:{order, clusterHeatmapTrackGroupIndex:1}}, {sortConfig:{order}}, oncoprint);
+            assert(oncoprint.setSortConfig.notCalled, "no change registered bc order overrides heatmap");
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
 
             transitionSortConfig({sortConfig:{order, clusterHeatmapTrackGroupIndex:1}}, {}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], { type: "order", order}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled, "expansions unaffected");
         });
-        it("should set the config to heatmap if heatmap index specified, no sort config specified before", ()=>{
+        it("should set the config to cluster if heatmap index specified, no sort config specified before", ()=>{
             transitionSortConfig({sortConfig:{clusterHeatmapTrackGroupIndex:1}}, {}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"cluster", track_group_index:1, clusterValueFn: heatmapClusterValueFn}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledBefore(oncoprint.setSortConfig), "expansions removed before clustering");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledWith(1), "expansions removed in the right group");
         });
-        it("should set the config to heatmap if heatmap index specified, no heatmap index or order specified before", ()=>{
+        it("should set the config to cluster if heatmap index specified, no heatmap index or order specified before", ()=>{
             transitionSortConfig({sortConfig:{clusterHeatmapTrackGroupIndex:1}}, {sortConfig:{}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"cluster", track_group_index:1, clusterValueFn: heatmapClusterValueFn}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledBefore(oncoprint.setSortConfig), "expansions removed before clustering");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledWith(1), "expansions removed in the right group");
         });
-        it("should set the config to heatmap if heatmap index specified, no heatmap index specified before, order specified before", ()=>{
+        it("should set the config to cluster if heatmap index specified, no heatmap index specified before, order specified before", ()=>{
             transitionSortConfig({sortConfig:{clusterHeatmapTrackGroupIndex:1}}, {sortConfig:{order:["1"]}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"cluster", track_group_index:1, clusterValueFn: heatmapClusterValueFn}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledBefore(oncoprint.setSortConfig), "expansions removed before clustering");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledWith(1), "expansions removed in the right group");
         });
-        it("should set the config to heatmap if heatmap index specified, different heatmap index specified before", ()=>{
+        it("should set the config to cluster if heatmap index specified, different heatmap index specified before", ()=>{
             transitionSortConfig({sortConfig:{clusterHeatmapTrackGroupIndex:5}}, {sortConfig:{clusterHeatmapTrackGroupIndex:2}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 1, "called once");
+            assert(oncoprint.setSortConfig.calledOnce);
             assert.deepEqual(oncoprint.setSortConfig.args[0][0], {type:"cluster", track_group_index:5, clusterValueFn: heatmapClusterValueFn}, "correct sort config used");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledBefore(oncoprint.setSortConfig), "expansions removed before clustering");
+            assert(oncoprint.removeAllExpansionTracksInGroup.calledWith(5), "expansions removed in the right group");
         });
         it("should not do anything if heatmap index specified, same heatmap index specified before", ()=>{
             transitionSortConfig({sortConfig:{clusterHeatmapTrackGroupIndex:2}}, {sortConfig:{clusterHeatmapTrackGroupIndex:2}}, oncoprint);
-            assert.equal(oncoprint.setSortConfig.callCount, 0);
+            assert(oncoprint.setSortConfig.notCalled);
+            assert(oncoprint.removeAllExpansionTracksInGroup.notCalled);
         });
     });
 });
