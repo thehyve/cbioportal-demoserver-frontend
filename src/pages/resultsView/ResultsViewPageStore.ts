@@ -1365,6 +1365,23 @@ export class ResultsViewPageStore {
         }
     });
 
+    readonly genesetLinkMap = remoteData<{[genesetId: string]: string}>({
+        invoke: async () => {
+            if (this.genesetIds && this.genesetIds.length) {
+                return (await internalClient.fetchGenesetsUsingPOST(
+                    {genesetIds: this.genesetIds.slice()}
+                )).reduce(
+                    (linkMap, {genesetId, refLink}) => (
+                        _.assign(linkMap, {[genesetId]: refLink})
+                    ),
+                    {}
+                );
+            } else {
+                return {};
+            }
+        }
+    });
+
     readonly customDriverAnnotationReport = remoteData<{ hasBinary:boolean, tiers:string[] }>({
         await:()=>[
             this.mutations
