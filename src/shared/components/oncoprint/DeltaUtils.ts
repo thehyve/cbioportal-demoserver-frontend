@@ -233,7 +233,7 @@ function createSortConfig(props:Partial<Pick<IOncoprintProps, "sortConfig">>):So
 }
 export function transitionSortConfig(
     nextProps: Pick<IOncoprintProps, "sortConfig">,
-    prevProps: Pick<Partial<IOncoprintProps>, "sortConfig">,
+    prevProps: Partial<Pick<IOncoprintProps, "sortConfig">>,
     oncoprint: OncoprintJS<any>
 ) {
     const prevSortConfig = createSortConfig(prevProps);
@@ -245,11 +245,7 @@ export function transitionSortConfig(
         nextSortConfig.type === "order" &&
         (prevSortConfig.order !== nextSortConfig.order))
         ||
-        !_.isEqual(prevSortConfig, nextSortConfig)
-    ) {
-        if (nextSortConfig.type === "cluster") {
-            oncoprint.removeAllExpansionTracksInGroup(nextSortConfig.track_group_index);
-        }
+        !_.isEqual(prevSortConfig, nextSortConfig)) {
         oncoprint.setSortConfig(nextSortConfig);
     }
 }
