@@ -114,7 +114,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
     @observable showMinimap:boolean = false;
 
     @observable selectedHeatmapProfile = "";
-    @observable heatmapIsDynamicallyQueried = true;
     @observable heatmapGeneInputValue = "";
 
     @observable horzZoom:number = 0.5;
@@ -161,9 +160,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             // select first initially
             if (profiles.length) {
                 this.selectedHeatmapProfile = profiles[0].molecularProfileId;
-                this.heatmapIsDynamicallyQueried = (
-                    profiles[0].molecularAlterationType !== 'GENESET_SCORE'
-                );
             }
         });
 
@@ -449,15 +445,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 this.heatmapGeneInputValue = s;
                 this.heatmapGeneInputValueUpdater(); // stop updating heatmap input if user has typed
             }),
-            onSelectHeatmapProfile:(id:string)=>onMobxPromise(
-                this.props.store.molecularProfileIdToMolecularProfile,
-                profileMap => {
-                    this.selectedHeatmapProfile = id;
-                    this.heatmapIsDynamicallyQueried = (
-                        profileMap[id].molecularAlterationType !== 'GENESET_SCORE'
-                    );
-                }
-            ),
+            onSelectHeatmapProfile:(id:string)=>{this.selectedHeatmapProfile = id;},
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
             },
@@ -550,7 +538,21 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             }
         };
     }
-    
+
+    /**
+     * Indicates whether dynamic heatmap querying controls are relevant.
+     *
+     * They are if a non-geneset heatmap profile is currently selected; gene set
+     * heatmaps are queried from the query page.
+     */
+    @computed get heatmapIsDynamicallyQueried(): boolean {
+        const profileMap = this.props.store.molecularProfileIdToMolecularProfile.result;
+        return (
+            profileMap.hasOwnProperty(this.selectedHeatmapProfile) &&
+            profileMap[this.selectedHeatmapProfile].molecularAlterationType !== 'GENESET_SCORE'
+        );
+    }
+
     @action private initFromUrlParams(paramsMap:any) {
         if (paramsMap[SAMPLE_MODE_URL_PARAM]) {
             this.columnMode = (paramsMap[SAMPLE_MODE_URL_PARAM] && paramsMap[SAMPLE_MODE_URL_PARAM]==="true") ? "sample" : "patient";
