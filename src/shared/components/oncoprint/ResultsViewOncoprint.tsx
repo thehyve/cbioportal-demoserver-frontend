@@ -461,11 +461,8 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
             },
-            onClickRemoveHeatmap:action(()=>{
+            onClickRemoveHeatmap:action(() => {
                 this.molecularProfileIdToHeatmapTracks.clear();
-                if (this.sortMode.type === "heatmap") {
-                    this.sortByData();
-                }
             }),
             onClickClusterHeatmap:()=>{
                 this.sortMode = {type: "heatmap", clusteredHeatmapProfile: this.selectedHeatmapProfile};
