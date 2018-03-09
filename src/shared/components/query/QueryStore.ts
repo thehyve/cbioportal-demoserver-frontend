@@ -1,3 +1,4 @@
+/* tslint:disable: indent linebreak-style */
 import * as _ from 'lodash';
 import client from "../../api/cbioportalClientInstance";
 import {ObservableMap, toJS, observable, reaction, action, computed, whyRun, expr, isObservableMap} from "mobx";
@@ -10,15 +11,15 @@ import CancerStudyTreeData from "./CancerStudyTreeData";
 import {remoteData} from "../../api/remoteData";
 import {labelMobxPromises, cached, debounceAsync} from "mobxpromise";
 import internalClient from "../../api/cbioportalInternalClientInstance";
-import oql_parser, {MUTCommand} from "../../lib/oql/oql-parser";
+import {SingleGeneQuery, OQLGenesetQuery, MUTCommand} from "../../lib/oql/oql-parser";
+import {SyntaxError} from "../../lib/oql/oql-parser";
+import {parseOQLQuery} from "../../lib/oql/oqlfilter";
 import memoize from "memoize-weak-decorator";
 import AppConfig from 'appConfig';
 import {gsUploadByGet} from "../../api/gsuploadwindow";
-import {OQLQuery, OQLGenesetQuery} from "../../lib/oql/oql-parser";
 import {ComponentGetsStoreContext} from "../../lib/ContextUtils";
 import URL from 'url';
 import {buildCBioPortalUrl, BuildUrlParams, getHost, openStudySummaryFormSubmit} from "../../api/urls";
-import {SyntaxError} from "../../lib/oql/oql-parser";
 import StudyListLogic from "./StudyListLogic";
 import {QuerySession} from "../../lib/QuerySession";
 import {stringListToIndexSet, stringListToSet} from "../../lib/StringUtils";
@@ -1018,12 +1019,15 @@ export class QueryStore
 
 	// GENES
 
-	@computed get oql():{ query: OQLQuery, error?: { start: number, end: number, message: string } }
+	@computed get oql(): {
+		query: SingleGeneQuery[],
+		error?: { start: number, end: number, message: string }
+	}
 	{
 		try
 		{
 			return {
-				query: this.geneQuery && oql_parser.parse(this.geneQuery.trim().toUpperCase()) || [],
+				query: this.geneQuery ? parseOQLQuery(this.geneQuery.trim().toUpperCase()) : [],
 				error: undefined
 			};
 		}
@@ -1051,11 +1055,11 @@ export class QueryStore
 		}
 	}
 
-	@computed get geneIds():string[]
+	@computed get geneIds(): string[]
 	{
 		try
 		{
-			return this.oql.query.map(line => line.gene).filter(gene => gene && gene !== 'DATATYPES');
+			return this.oql.query.map(line => line.gene);
 		}
 		catch (e)
 		{
