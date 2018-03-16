@@ -18,56 +18,44 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     }
 
     /* In:
-     *     - array_of_functions:
-     *         ((datatypes_alterations: Alterations) => {
-     *             next_datatypes_alterations: Alterations
-     *             query_line: [SingleGeneLine|MergedTrackLine] | []
-     *         })[]
-     *     - initial_dt: Alterations
+     *     - functionSoFar:
+     *         (datatypes_alterations: Alterations) => {
+     *             next_dt: Alterations
+     *             query: (SingleGeneLine|MergedTrackLine)[]
+     *         }
+     *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
      * Out:
-     *     (SingleGeneLine|MergedTrackLine)[]
+     *     (initial_dt: Alterations) => {
+     *         next_dt: Alterations
+     *         query: (SingleGeneLine|MergedTrackLine)[]
+     *     }
      */
-    function sequence(array_of_functions, initial_dt) {
-        let current_dt = initial_dt;
-        const array_of_short_arrays = array_of_functions.map(
-            (func) => {
-                const { next_datatypes_alterations, query_line } = func(current_dt);
-                current_dt = next_datatypes_alterations;
-                return query_line;
-            }
-        );
-        return _.flatten(array_of_short_arrays);
-    }
-
-    /* In:
-     *     line: DatatypeStatement | MergedTrackLine | SingleGeneLine
-     * Out:
-     *    (datatypes_alterations: Alterations) => {
-     *        next_datatypes_alterations: Alterations,
-     *        query_line: [SingleGeneLine | MergedTrackLine] | []
-     *    }
-     */
-    function applyDatatypes(line) {
-        return (datatypes_alterations) => {
+    function addIntoFunction(function_so_far, line) {
+        return (initial_dt) => {
+            const { next_dt: current_dt, query: query_so_far } = function_so_far(initial_dt);
             if (isDatatypeStatement(line)) {
                 return {
-                    next_datatypes_alterations: line.alterations,
-                    query_line: []
+                    next_dt: line.alterations,
+                    query: query_so_far
                 };
             } else if (isMergedTrackLine(line)) {
-                const applied_list = sequence(line.list.map(applyDatatypes), datatypes_alterations);
+                const applied_list = line.list.reduce(
+                    addIntoFunction,
+                    dt => ({ next_dt: dt, query: [] })
+                )(current_dt);
                 return {
-                    next_datatypes_alterations: datatypes_alterations,
-                    query_line: [_.assign({}, line,
+                    next_dt: current_dt,
+                    // TODO: see if this is prettier w/ _ or immutable
+                    query: query_so_far.concat(_.assign({}, line,
                         { list: applied_list }
-                    )]
+                    ))
                 };
             } else {
                 return {
-                    next_datatypes_alterations: datatypes_alterations,
-                    query_line: [_.assign({}, line,
-                        { alterations: line.alterations || datatypes_alterations }
-                    )]
+                    next_dt: current_dt,
+                    query: query_so_far.concat(_.assign({}, line,
+                        { alterations: line.alterations || current_dt }
+                    ))
                 };
             }
         };
@@ -84,7 +72,11 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     }
 
     const parsed = oql_parser.parse(oql_query);
-    const parsed_with_datatypes = sequence(parsed.map(applyDatatypes), false);
+    // TODO: move reduce and pure monad into function
+    const parsed_with_datatypes = parsed.reduce(
+        addIntoFunction,
+        dt => ({ next_dt: dt, query: [] })
+    )(false);
     const parsed_by_gene = _.flatMap(parsed_with_datatypes, extractGeneLines);
     if (opt_default_oql.length > 0) {
         for (var i = 0; i < parsed_by_gene.length; i++) {
