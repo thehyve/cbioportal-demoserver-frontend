@@ -3,19 +3,20 @@
 import * as _ from 'lodash';
 import oql_parser from './oql-parser';
 
-export function parseOQLQuery(oql_query, opt_default_oql = '') {
+function isDatatypeStatement(line) {
+    return line.gene !== undefined && line.gene.toUpperCase() === 'DATATYPES';
+}
+function isMergedTrackLine(line) {
+    return line.list !== undefined;
+}
+
+function parseMergedTrackOQLQuery(oql_query, opt_default_oql = '') {
     /* In: - oql_query, a string, an OQL query
      - opt_default_oql, a string, default OQL to add to any empty line
-     Out: An array, with each element being a parsed single-gene OQL line,
-     with all 'DATATYPES' lines applied to subsequent lines and removed.
+     Out: An array, with each element being a parsed single-gene or
+     merged-track OQL line, with all 'DATATYPES' lines applied to subsequent
+     lines and removed.
      */
-
-    function isDatatypeStatement(line) {
-        return line.gene !== undefined && line.gene.toUpperCase() === 'DATATYPES';
-    }
-    function isMergedTrackLine(line) {
-        return line.list !== undefined;
-    }
 
     /* In:
     *     - oql_lines:
@@ -82,6 +83,22 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
         ).query;
     }
 
+    const parsed = oql_parser.parse(oql_query);
+    let parsed_with_datatypes = applyDatatypes(parsed, false);
+    if (opt_default_oql.length > 0) {
+        const default_alterations = oql_parser.parse(`DUMMYGENE:${opt_default_oql};`)[0].alterations;
+        parsed_with_datatypes = applyDatatypes(parsed_with_datatypes, default_alterations);
+    }
+    return parsed_with_datatypes;
+}
+
+export function parseOQLQuery(oql_query, opt_default_oql = '') {
+    /* In: - oql_query, a string, an OQL query
+     - opt_default_oql, a string, default OQL to add to any empty line
+     Out: An array, with each element being a parsed single-gene OQL line,
+     with all 'DATATYPES' lines applied to subsequent lines and removed.
+     */
+
     /* In: SingleGeneLine | MergedTrackLine
      * Out: SingleGeneLine[]
      */
@@ -92,17 +109,8 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
         );
     }
 
-    const parsed = oql_parser.parse(oql_query);
-    const parsed_with_datatypes = applyDatatypes(parsed, false)
-    const parsed_by_gene = _.flatMap(parsed_with_datatypes, extractGeneLines);
-    if (opt_default_oql.length > 0) {
-        for (var i = 0; i < parsed_by_gene.length; i++) {
-            if (!parsed_by_gene[i].alterations) {
-                parsed_by_gene[i].alterations = oql_parser.parse("DUMMYGENE:" + opt_default_oql + ";")[0].alterations;
-            }
-        }
-    }
-    return parsed_by_gene;
+    const parsed_with_datatypes = parseMergedTrackOQLQuery(oql_query, opt_default_oql);
+    return _.flatMap(parsed_with_datatypes, extractGeneLines);
 }
 
 var parsedOQLAlterationToSourceOQL = function(alteration) {
