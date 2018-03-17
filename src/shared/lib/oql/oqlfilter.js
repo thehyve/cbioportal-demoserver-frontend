@@ -26,49 +26,42 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     */
     function applyDatatypes(oql_lines, initial_dt) {
         /* In:
-        *     - stateChain:
-        *         (_initial_dt: Alterations) => {
-        *             next_dt: Alterations
+        *     - current_state:
+        *         {
+        *             dt_state: Alterations
         *             query: (SingleGeneLine|MergedTrackLine)[]
         *         }
         *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
         * Out:
-        *     (_initial_dt: Alterations) => {
-        *         next_dt: Alterations
+        *     {
+        *         dt_state: Alterations
         *         query: (SingleGeneLine|MergedTrackLine)[]
         *     }
         */
-        function chainDtState(stateChain, line) {
-            return (_initial_dt) => {
-                const { next_dt: current_dt, query: query_so_far } = stateChain(_initial_dt);
-                if (isDatatypeStatement(line)) {
-                    return {
-                        next_dt: line.alterations,
-                        query: query_so_far
-                    };
-                } else if (isMergedTrackLine(line)) {
-                    const applied_list = applyDatatypes(line.list, current_dt);
-                    return {
-                        next_dt: current_dt,
-                        // TODO: destract to mutable closure
-                        query: query_so_far.concat(_.assign({}, line,
-                            { list: applied_list }
-                        ))
-                    };
-                } else {
-                    return {
-                        next_dt: current_dt,
-                        query: query_so_far.concat(_.assign({}, line,
-                            { alterations: line.alterations || current_dt }
-                        ))
-                    };
-                }
-            };
+        function evalDtState({ dt_state, query }, line) {
+            if (isDatatypeStatement(line)) {
+                return {
+                    dt_state: line.alterations,
+                    query
+                };
+            } else if (isMergedTrackLine(line)) {
+                const applied_list = applyDatatypes(line.list, dt_state);
+                return {
+                    dt_state,
+                    query: query.concat(_.assign({}, line, { list: applied_list }))
+                };
+            } else {
+                const applied_alterations = line.alterations || dt_state;
+                return {
+                    dt_state,
+                    query: query.concat(_.assign({}, line, { alterations: applied_alterations }))
+                };
+            }
         }
         return oql_lines.reduce(
-            chainDtState,
-            _initial_dt => ({ next_dt: _initial_dt, query: [] })
-        )(initial_dt).query;
+            evalDtState,
+            { dt_state: initial_dt, query: [] }
+        ).query;
     }
 
     /* In: SingleGeneLine | MergedTrackLine
