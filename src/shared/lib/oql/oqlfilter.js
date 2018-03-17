@@ -25,43 +25,28 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     *     (SingleGeneLine|MergedTrackLine)[]
     */
     function applyDatatypes(oql_lines, initial_dt) {
+        const query = [];
         /* In:
-        *     - current_state:
-        *         {
-        *             dt_state: Alterations
-        *             query: (SingleGeneLine|MergedTrackLine)[]
-        *         }
+        *     - dt_state: Alterations
         *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
         * Out:
-        *     {
-        *         dt_state: Alterations
-        *         query: (SingleGeneLine|MergedTrackLine)[]
-        *     }
+        *     Alterations
         */
-        function evalDtState({ dt_state, query }, line) {
+        function evalDtState(dt_state, line) {
             if (isDatatypeStatement(line)) {
-                return {
-                    dt_state: line.alterations,
-                    query
-                };
+                return line.alterations;
             } else if (isMergedTrackLine(line)) {
                 const applied_list = applyDatatypes(line.list, dt_state);
-                return {
-                    dt_state,
-                    query: query.concat(_.assign({}, line, { list: applied_list }))
-                };
+                query.push(_.assign({}, line, { list: applied_list }));
+                return dt_state;
             } else {
                 const applied_alterations = line.alterations || dt_state;
-                return {
-                    dt_state,
-                    query: query.concat(_.assign({}, line, { alterations: applied_alterations }))
-                };
+                query.push(_.assign({}, line, { alterations: applied_alterations }));
+                return dt_state;
             }
         }
-        return oql_lines.reduce(
-            evalDtState,
-            { dt_state: initial_dt, query: [] }
-        ).query;
+        oql_lines.reduce(evalDtState, initial_dt);
+        return query;
     }
 
     /* In: SingleGeneLine | MergedTrackLine
@@ -75,7 +60,7 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     }
 
     const parsed = oql_parser.parse(oql_query);
-    const parsed_with_datatypes = applyDatatypes(parsed, false)
+    const parsed_with_datatypes = applyDatatypes(parsed, false);
     const parsed_by_gene = _.flatMap(parsed_with_datatypes, extractGeneLines);
     if (opt_default_oql.length > 0) {
         for (var i = 0; i < parsed_by_gene.length; i++) {
