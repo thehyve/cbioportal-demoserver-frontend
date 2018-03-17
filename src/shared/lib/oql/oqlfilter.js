@@ -18,47 +18,57 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     }
 
     /* In:
-     *     - functionSoFar:
-     *         (datatypes_alterations: Alterations) => {
-     *             next_dt: Alterations
-     *             query: (SingleGeneLine|MergedTrackLine)[]
-     *         }
-     *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
-     * Out:
-     *     (initial_dt: Alterations) => {
-     *         next_dt: Alterations
-     *         query: (SingleGeneLine|MergedTrackLine)[]
-     *     }
-     */
-    function addIntoFunction(function_so_far, line) {
-        return (initial_dt) => {
-            const { next_dt: current_dt, query: query_so_far } = function_so_far(initial_dt);
-            if (isDatatypeStatement(line)) {
-                return {
-                    next_dt: line.alterations,
-                    query: query_so_far
-                };
-            } else if (isMergedTrackLine(line)) {
-                const applied_list = line.list.reduce(
-                    addIntoFunction,
-                    dt => ({ next_dt: dt, query: [] })
-                )(current_dt);
-                return {
-                    next_dt: current_dt,
-                    // TODO: see if this is prettier w/ _ or immutable
-                    query: query_so_far.concat(_.assign({}, line,
-                        { list: applied_list }
-                    ))
-                };
-            } else {
-                return {
-                    next_dt: current_dt,
-                    query: query_so_far.concat(_.assign({}, line,
-                        { alterations: line.alterations || current_dt }
-                    ))
-                };
-            }
-        };
+    *     - oql_lines:
+    *         (DatatypeStatement | MergedTrackLine | SingleGeneLine)[]
+    *     - intial_dt: Alterations
+    * Out:
+    *     (SingleGeneLine|MergedTrackLine)[]
+    */
+    function applyDatatypes(oql_lines, initial_dt) {
+        /* In:
+        *     - stateChain:
+        *         (_initial_dt: Alterations) => {
+        *             next_dt: Alterations
+        *             query: (SingleGeneLine|MergedTrackLine)[]
+        *         }
+        *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
+        * Out:
+        *     (_initial_dt: Alterations) => {
+        *         next_dt: Alterations
+        *         query: (SingleGeneLine|MergedTrackLine)[]
+        *     }
+        */
+        function chainDtState(stateChain, line) {
+            return (_initial_dt) => {
+                const { next_dt: current_dt, query: query_so_far } = stateChain(_initial_dt);
+                if (isDatatypeStatement(line)) {
+                    return {
+                        next_dt: line.alterations,
+                        query: query_so_far
+                    };
+                } else if (isMergedTrackLine(line)) {
+                    const applied_list = applyDatatypes(line.list, current_dt);
+                    return {
+                        next_dt: current_dt,
+                        // TODO: destract to mutable closure
+                        query: query_so_far.concat(_.assign({}, line,
+                            { list: applied_list }
+                        ))
+                    };
+                } else {
+                    return {
+                        next_dt: current_dt,
+                        query: query_so_far.concat(_.assign({}, line,
+                            { alterations: line.alterations || current_dt }
+                        ))
+                    };
+                }
+            };
+        }
+        return oql_lines.reduce(
+            chainDtState,
+            _initial_dt => ({ next_dt: _initial_dt, query: [] })
+        )(initial_dt).query;
     }
 
     /* In: SingleGeneLine | MergedTrackLine
@@ -72,11 +82,7 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     }
 
     const parsed = oql_parser.parse(oql_query);
-    // TODO: move reduce and pure monad into function
-    const parsed_with_datatypes = parsed.reduce(
-        addIntoFunction,
-        dt => ({ next_dt: dt, query: [] })
-    )(false);
+    const parsed_with_datatypes = applyDatatypes(parsed, false)
     const parsed_by_gene = _.flatMap(parsed_with_datatypes, extractGeneLines);
     if (opt_default_oql.length > 0) {
         for (var i = 0; i < parsed_by_gene.length; i++) {
