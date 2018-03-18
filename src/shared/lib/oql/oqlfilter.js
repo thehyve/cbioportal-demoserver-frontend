@@ -26,40 +26,58 @@ export function parseOQLQuery(oql_query, opt_default_oql = '') {
     */
     function applyDatatypes(oql_lines, initial_dt) {
         /* In:
-        *     - current_state:
-        *         {
-        *             dt_state: Alterations
-        *             query: (SingleGeneLine|MergedTrackLine)[]
-        *         }
-        *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
-        * Out:
-        *     {
-        *         dt_state: Alterations
-        *         query: (SingleGeneLine|MergedTrackLine)[]
-        *     }
-        */
-        function evalDtState({ dt_state, query }, line) {
+         *     - dt_state: Alterations
+         *     - line: DatatypeStatement | MergedTrackLine | SingleGeneLine
+         * Out:
+         *     {
+         *         dt_state: Alterations,
+         *         query_line: [SingleGeneLine|MergedTrackLine] | []
+         *     }
+         */
+        function evaluateDt(dt_state, line) {
             if (isDatatypeStatement(line)) {
                 return {
                     dt_state: line.alterations,
-                    query
+                    query_line: []
                 };
             } else if (isMergedTrackLine(line)) {
                 const applied_list = applyDatatypes(line.list, dt_state);
                 return {
                     dt_state,
-                    query: query.concat(_.assign({}, line, { list: applied_list }))
+                    query_line: [_.assign({}, line, { list: applied_list })]
                 };
             } else {
                 const applied_alterations = line.alterations || dt_state;
                 return {
                     dt_state,
-                    query: query.concat(_.assign({}, line, { alterations: applied_alterations }))
+                    query_line: [_.assign({}, line, { alterations: applied_alterations })]
                 };
             }
         }
+
+        /* In:
+        *     - current_result:
+        *         {
+        *             dt_state: Alterations,
+        *             query: (SingleGeneLine|MergedTrackLine)[]
+        *         }
+        *     - line: OQLQueryLine
+        * Out:
+        *     {
+        *         dt_state: Alterations,
+        *         query: (SingleGeneLine|MergedTrackLine)[]
+        *     }
+        */
+        function appendDtResult({ dt_state, query }, line) {
+            const { dt_state: new_dt_state, query_line } = evaluateDt(dt_state, line);
+            return {
+                dt_state: new_dt_state,
+                query: query.concat(query_line)
+            };
+        }
+
         return oql_lines.reduce(
-            evalDtState,
+            appendDtResult,
             { dt_state: initial_dt, query: [] }
         ).query;
     }
