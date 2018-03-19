@@ -15,6 +15,7 @@ import {stringListToSet} from "../../shared/lib/StringUtils";
 import MutualExclusivityTab from "./mutualExclusivity/MutualExclusivityTab";
 import SurvivalTab from "./survival/SurvivalTab";
 import DownloadTab from "./download/DownloadTab";
+import ExternalTab from "./externalTab/ExternalTab";
 import Chart from 'chart.js';
 import {CancerStudy, Sample} from "../../shared/api/generated/CBioPortalAPI";
 import AppConfig from 'appConfig';
@@ -310,6 +311,12 @@ export default class ResultsViewPage extends React.Component<IResultsViewPagePro
                 </div>
             );
         });
+        
+        exposeComponentRenderer('renderExternalTab',
+                ()=>{
+                    return <ExternalTab store={this.resultsViewPageStore}/>
+                }
+            );
     }
 
     public render() {
