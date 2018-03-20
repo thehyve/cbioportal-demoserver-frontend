@@ -5,7 +5,15 @@ import {
 } from "../../shared/api/generated/CBioPortalAPI";
 import {action} from "mobx";
 import {getSimplifiedMutationType} from "../../shared/lib/oql/accessors";
-import {AnnotatedNumericGeneMolecularData, AnnotatedMutation, GenePanelInformation} from "./ResultsViewPageStore";
+import {UnflattenedOQLLineFilterOutput, isMergedTrackFilter} from "../../shared/lib/oql/oqlfilter";
+import {groupBy} from "../../shared/lib/StoreUtils";
+import {
+    AnnotatedExtendedAlteration,
+    AnnotatedNumericGeneMolecularData,
+    AnnotatedMutation,
+    CaseAggregatedData,
+    GenePanelInformation
+} from "./ResultsViewPageStore";
 import {IndicatorQueryResp} from "../../shared/api/generated/OncoKbAPI";
 import _ from "lodash";
 import sessionServiceClient from "shared/api//sessionServiceInstance";
@@ -193,4 +201,20 @@ export async function getQueriedStudies(
         })
     });
     return queriedStudies.concat(otherVirtualStudies);
+}
+
+export function groupDataByCase(
+    oqlFilter: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>,
+    samples: {uniqueSampleKey: string}[],
+    patients: {uniquePatientKey: string}[]
+): CaseAggregatedData<AnnotatedExtendedAlteration> {
+    const data: AnnotatedExtendedAlteration[] = (
+        isMergedTrackFilter(oqlFilter)
+        ? _.flatMap(oqlFilter.list, (geneLine) => geneLine.data)
+        : oqlFilter.data
+    );
+    return {
+        samples: groupBy(data, datum=>datum.uniqueSampleKey, samples.map(sample=>sample.uniqueSampleKey)),
+        patients: groupBy(data, datum=>datum.uniquePatientKey, patients.map(sample=>sample.uniquePatientKey))
+    };
 }
