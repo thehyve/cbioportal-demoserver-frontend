@@ -14,7 +14,7 @@ type OQLAlterationFilterString = string;
 
 export type OQLLineFilterOutput<T> = {
     gene: string;
-    parsed_oql_line: SingleGeneQuery[];
+    parsed_oql_line: SingleGeneQuery;
     oql_line: string;
     data: T[];
 };
@@ -27,6 +27,7 @@ export type UnflattenedOQLLineFilterOutput<T> = (
     OQLLineFilterOutput<T> | MergedTrackLineFilterOutput<T>
 );
 
+/* Interprets datatypes statements and flattens out merged track queries. */
 export declare function parseOQLQuery(
     oql_query: string,
     opt_default_oql?: OQLAlterationFilterString
