@@ -77,17 +77,6 @@ export function getOncoKbApiUrl() {
     }
 
 }
-
-export function getExternalTabUrl() {
-    let url = AppConfig.externalTabURL;
-
-    if (typeof url === 'string') {
-        return cbioUrl(`{url}`)
-    } else {
-        return undefined;
-    }
-}
-
 export function getGenomeNexusApiUrl() {
     let url = AppConfig.genomeNexusApiUrl;
     if (typeof url === 'string') {
