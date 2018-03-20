@@ -33,7 +33,6 @@ import {stringListToIndexSet, stringListToSet} from "../../shared/lib/StringUtil
 import {toSampleUuid} from "../../shared/lib/UuidUtils";
 import MutationDataCache from "../../shared/cache/MutationDataCache";
 import accessors, {getSimplifiedMutationType, SimplifiedMutationType} from "../../shared/lib/oql/accessors";
-import {filterCBioPortalWebServiceData} from "../../shared/lib/oql/oqlfilter.js";
 import {keepAlive} from "mobx-utils";
 import MutationMapper from "./mutation/MutationMapper";
 import {CacheData} from "../../shared/lib/LazyMobXCache";
@@ -43,7 +42,14 @@ import {
 } from "./cancerSummary/CancerSummaryContent";
 import {writeTest} from "../../shared/lib/writeTest";
 import {PatientSurvival} from "../../shared/model/PatientSurvival";
-import {filterCBioPortalWebServiceDataByOQLLine, OQLLineFilterOutput} from "../../shared/lib/oql/oqlfilter";
+import {
+    filterCBioPortalWebServiceData,
+    filterCBioPortalWebServiceDataByOQLLine,
+    filterCBioPortalWebServiceDataByUnflattenedOQLLine,
+    OQLLineFilterOutput,
+    UnflattenedOQLLineFilterOutput,
+    MergedTrackLineFilterOutput
+} from "../../shared/lib/oql/oqlfilter";
 import GeneMolecularDataCache from "../../shared/cache/GeneMolecularDataCache";
 import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCache";
 import GenesetCorrelatedGeneCache from "../../shared/cache/GenesetCorrelatedGeneCache";
@@ -126,6 +132,12 @@ export type GenePanelInformation = {
             wholeExomeSequenced: boolean
         }};
 };
+
+function isMergedTrackFilter<T>(
+    oqlFilter: UnflattenedOQLLineFilterOutput<T>
+): oqlFilter is MergedTrackLineFilterOutput<T> {
+    return (oqlFilter as MergedTrackLineFilterOutput<T>).list !== undefined;
+}
 
 export function buildDefaultOQLProfile(profilesTypes: string[], zScoreThreshold: number, rppaScoreThreshold: number) {
 
@@ -421,6 +433,50 @@ export class ResultsViewPageStore {
                 patients:
                     groupBy(this.unfilteredExtendedAlterations.result!, alteration=>alteration.uniquePatientKey, this.patients.result!.map(sample=>sample.uniquePatientKey))
             });
+        }
+    });
+
+    // FIXME: extract common functionality of flattened version below
+    readonly putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine = remoteData<{
+        cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+        oql: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>
+    }[]>({
+        await: () => [
+            this.putativeDriverAnnotatedMutations,
+            this.annotatedMolecularData,
+            this.selectedMolecularProfiles,
+            this.defaultOQLQuery,
+            this.samples,
+            this.patients
+        ],
+        invoke: () => {
+            let unfilteredAlterations: (AnnotatedMutation|AnnotatedGeneMolecularData)[] = [];
+            unfilteredAlterations = unfilteredAlterations.concat(this.putativeDriverAnnotatedMutations.result!);
+            unfilteredAlterations = unfilteredAlterations.concat(this.annotatedMolecularData.result!);
+
+            const filteredAlterationsByOQLLine: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>[] = (
+                filterCBioPortalWebServiceDataByUnflattenedOQLLine(
+                    this.oqlQuery,
+                    unfilteredAlterations,
+                    (new accessors(this.selectedMolecularProfiles.result!)),
+                    this.defaultOQLQuery.result!
+                )
+            );
+
+            return Promise.resolve(filteredAlterationsByOQLLine.map(oql => {
+                const data: AnnotatedExtendedAlteration[] = (
+                    isMergedTrackFilter(oql)
+                    ? _.flatMap(oql.list, (geneLine) => geneLine.data)
+                    : oql.data
+                );
+                const cases: CaseAggregatedData<AnnotatedExtendedAlteration> = {
+                    samples:
+                        groupBy(data, datum=>datum.uniqueSampleKey, this.samples.result!.map(sample=>sample.uniqueSampleKey)),
+                    patients:
+                        groupBy(data, datum=>datum.uniquePatientKey, this.patients.result!.map(sample=>sample.uniquePatientKey))
+                };
+                return {cases, oql};
+            }));
         }
     });
 
