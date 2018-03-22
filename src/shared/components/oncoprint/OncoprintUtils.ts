@@ -7,7 +7,11 @@ import {
     IGenesetHeatmapTrackDatum,
     IGenesetHeatmapTrackSpec,
 } from "./Oncoprint";
-import {ClinicalAttribute} from "../../api/generated/CBioPortalAPI";
+import {
+    ClinicalAttribute,
+    Patient,
+    Sample
+} from "../../api/generated/CBioPortalAPI";
 import {genetic_rule_set_same_color_for_all_no_recurrence,
     genetic_rule_set_same_color_for_all_recurrence,
     genetic_rule_set_different_colors_no_recurrence,
@@ -16,6 +20,7 @@ import {OncoprintPatientGeneticTrackData, OncoprintSampleGeneticTrackData} from 
 import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation, CaseAggregatedData, ExtendedAlteration,
+    isMergedTrackFilter,
     ResultsViewPageStore
 } from "../../../pages/resultsView/ResultsViewPageStore";
 import {remoteData} from "../../api/remoteData";
@@ -207,8 +212,8 @@ export function percentAltered(altered:number, sequenced:number) {
 export function alterationInfoForCaseAggregatedDataByOQLLine(
     sampleMode: boolean,
     data: {
-        cases:CaseAggregatedData<AnnotatedExtendedAlteration>,
-        oql:OQLLineFilterOutput<AnnotatedExtendedAlteration>
+        cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+        oql: {gene: string}
     },
     sequencedSampleKeysByGene: {[hugoGeneSymbol:string]:string[]},
     sequencedPatientKeysByGene: {[hugoGeneSymbol:string]:string[]})
@@ -229,42 +234,66 @@ export function alterationInfoForCaseAggregatedDataByOQLLine(
     };
 }
 
+function makeGeneticTrackWith(
+    sampleMode: boolean,
+    samples: Sample[],
+    patients: Patient[],
+    genePanelInformation: any,
+    sequencedSampleKeysByGene: any,
+    sequencedPatientKeysByGene: any
+) {
+    return (
+        {cases: dataByCase, oql}: {
+            cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+            oql: OQLLineFilterOutput<object>
+        },
+        index: number
+    ) => {
+        const data = makeGeneticTrackData(
+            sampleMode ? dataByCase.samples : dataByCase.patients,
+            oql.gene,
+            sampleMode ? samples : patients,
+            genePanelInformation
+        );
+
+        const info = alterationInfoForCaseAggregatedDataByOQLLine(
+            sampleMode,
+            {cases: dataByCase, oql},
+            sequencedSampleKeysByGene,
+            sequencedPatientKeysByGene
+        ).percent;
+
+        return {
+            key: `GENETICTRACK_${index}`,
+            label: oql.gene,
+            oql: oql.oql_line,
+            info,
+            data
+        };
+    };
+}
+
 export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
     return remoteData<GeneticTrackSpec[]>({
         await:()=>[
-            oncoprint.props.store.genes,
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,
             oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByOQLLine,
-            oncoprint.props.store.molecularProfileIdToMolecularProfile,
             oncoprint.props.store.genePanelInformation,
-            oncoprint.props.store.alteredSampleKeys,
             oncoprint.props.store.sequencedSampleKeysByGene,
-            oncoprint.props.store.alteredPatientKeys,
             oncoprint.props.store.sequencedPatientKeysByGene
         ],
-        invoke: async()=>{
+        invoke: async () => {
             return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByOQLLine.result!.map(
-                (x:{cases:CaseAggregatedData<AnnotatedExtendedAlteration>, oql:OQLLineFilterOutput<AnnotatedExtendedAlteration>}, index:number)=>{
-                const data = makeGeneticTrackData(
-                    sampleMode ? x.cases.samples : x.cases.patients,
-                    x.oql.gene,
-                    sampleMode ? oncoprint.props.store.samples.result! : oncoprint.props.store.patients.result!,
-                    oncoprint.props.store.genePanelInformation.result!
-                );
-
-                const info = alterationInfoForCaseAggregatedDataByOQLLine(sampleMode, x,
+                makeGeneticTrackWith(
+                    sampleMode,
+                    oncoprint.props.store.samples.result!,
+                    oncoprint.props.store.patients.result!,
+                    oncoprint.props.store.genePanelInformation.result!,
                     oncoprint.props.store.sequencedSampleKeysByGene.result!,
-                    oncoprint.props.store.sequencedPatientKeysByGene.result!).percent;
-
-                return {
-                    key: `GENETICTRACK_${index}`,
-                    label: x.oql.gene,
-                    oql: x.oql.oql_line,
-                    info,
-                    data
-                };
-            });
+                    oncoprint.props.store.sequencedPatientKeysByGene.result!,
+                )
+            );
         },
         default: [],
     });   
