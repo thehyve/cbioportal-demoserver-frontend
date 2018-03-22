@@ -6,7 +6,7 @@
 
 //var filterData = function (oql_query, data, _accessors, opt_default_oql, opt_by_oql_line, opt_mark_oql_regulation_direction)
 
-import {SingleGeneQuery} from "./oql-parser";
+import {SingleGeneQuery, MergedGeneQuery} from "./oql-parser";
 import {AnnotatedMutation, ExtendedAlteration} from "../../../pages/resultsView/ResultsViewPageStore";
 import {GeneMolecularData, Mutation} from "../../api/generated/CBioPortalAPI";
 
@@ -19,6 +19,14 @@ export type OQLLineFilterOutput<T> = {
     data: T[];
 };
 
+export type MergedTrackLineFilterOutput<T> = {
+    list: OQLLineFilterOutput<T>[],
+    label?: string
+};
+export type UnflattenedOQLLineFilterOutput<T> = (
+    OQLLineFilterOutput<T> | MergedTrackLineFilterOutput<T>
+);
+
 export declare function parseOQLQuery(
     oql_query: string,
     opt_default_oql?: OQLAlterationFilterString
@@ -28,3 +36,10 @@ export declare function filterCBioPortalWebServiceData(oql_query:string, data:(M
 
 export declare function filterCBioPortalWebServiceDataByOQLLine(oql_query:string, data:(AnnotatedMutation | GeneMolecularData)[], accessors:any, default_oql:string): OQLLineFilterOutput<ExtendedAlteration&AnnotatedMutation>[];
 export declare function filterCBioPortalWebServiceDataByOQLLine(oql_query:string, data:(Mutation | GeneMolecularData)[], accessors:any, default_oql:string): OQLLineFilterOutput<ExtendedAlteration>[];
+
+export declare function filterCBioPortalWebServiceDataByUnflattenedOQLLine(
+    oql_query: string,
+    data: (AnnotatedMutation|GeneMolecularData)[],
+    accessors:any,
+    default_oql:string
+): UnflattenedOQLLineFilterOutput<ExtendedAlteration&AnnotatedMutation>[];
