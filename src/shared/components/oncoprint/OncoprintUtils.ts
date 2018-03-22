@@ -36,7 +36,7 @@ import {MobxPromise} from "mobxpromise";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 import GenesetCorrelatedGeneCache from "shared/cache/GenesetCorrelatedGeneCache";
 import Spec = Mocha.reporters.Spec;
-import {OQLLineFilterOutput} from "../../lib/oql/oqlfilter";
+import {UnflattenedOQLLineFilterOutput} from "../../lib/oql/oqlfilter";
 
 interface IGenesetExpansionMap {
         [genesetTrackKey: string]: IGeneHeatmapTrackSpec[];
@@ -245,31 +245,47 @@ function makeGeneticTrackWith(
     return (
         {cases: dataByCase, oql}: {
             cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
-            oql: OQLLineFilterOutput<object>
+            oql: UnflattenedOQLLineFilterOutput<object>
         },
         index: number
     ) => {
-        const data = makeGeneticTrackData(
-            sampleMode ? dataByCase.samples : dataByCase.patients,
-            oql.gene,
-            sampleMode ? samples : patients,
-            genePanelInformation
-        );
+        if (isMergedTrackFilter(oql)) {
+            const label: string = oql.label || (
+                oql.list.map(geneLine => geneLine.gene).join('/')
+            );
+            const oqlLine = `[${
+                oql.list.map(geneLine => geneLine.oql_line).join('; ')
+            }]`;
+            return {
+                key: `GENETICTRACK_${index}`,
+                label,
+                oql: oqlLine,
+                info: '',
+                data: []
+            };
+        } else {
+            const data = makeGeneticTrackData(
+                sampleMode ? dataByCase.samples : dataByCase.patients,
+                oql.gene,
+                sampleMode ? samples : patients,
+                genePanelInformation
+            );
 
-        const info = alterationInfoForCaseAggregatedDataByOQLLine(
-            sampleMode,
-            {cases: dataByCase, oql},
-            sequencedSampleKeysByGene,
-            sequencedPatientKeysByGene
-        ).percent;
+            const info = alterationInfoForCaseAggregatedDataByOQLLine(
+                sampleMode,
+                {cases: dataByCase, oql},
+                sequencedSampleKeysByGene,
+                sequencedPatientKeysByGene
+            ).percent;
 
-        return {
-            key: `GENETICTRACK_${index}`,
-            label: oql.gene,
-            oql: oql.oql_line,
-            info,
-            data
-        };
+            return {
+                key: `GENETICTRACK_${index}`,
+                label: oql.gene,
+                oql: oql.oql_line,
+                info,
+                data
+            };
+        }
     };
 }
 
@@ -278,13 +294,13 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
         await:()=>[
             oncoprint.props.store.samples,
             oncoprint.props.store.patients,
-            oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByOQLLine,
+            oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine,
             oncoprint.props.store.genePanelInformation,
             oncoprint.props.store.sequencedSampleKeysByGene,
             oncoprint.props.store.sequencedPatientKeysByGene
         ],
         invoke: async () => {
-            return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByOQLLine.result!.map(
+            return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine.result!.map(
                 makeGeneticTrackWith(
                     sampleMode,
                     oncoprint.props.store.samples.result!,
