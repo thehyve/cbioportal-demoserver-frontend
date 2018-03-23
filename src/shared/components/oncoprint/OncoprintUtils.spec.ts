@@ -4,6 +4,7 @@ import {
 } from "./OncoprintUtils";
 import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import * as _ from 'lodash';
+import {when} from 'mobx';
 import {MobxPromise} from 'mobxpromise';
 import {assert} from 'chai';
 import sinon from 'sinon';
@@ -45,14 +46,13 @@ describe('OncoprintUtils', () => {
             // when the track promise is computed with this query
             const trackPromise = makeGeneticTracksMobxPromise(oncoprintComponent, false);
             // then it resolves with a single track
-            const resultingPromise = new MobxPromise({
-                await: () => [trackPromise],
-                invoke: () => {
-                    assert.lengthOf(trackPromise.result!, 1);
-                    done();
-                    return Promise.resolve();
+            when(
+                () => !trackPromise.isPending,
+                () => {
+                    assert.lengthOf(trackPromise.result, 1);
+                    done(trackPromise.error);
                 }
-            });
+            );
         });
     });
 
