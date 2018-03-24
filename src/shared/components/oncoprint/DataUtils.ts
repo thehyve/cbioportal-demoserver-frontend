@@ -171,7 +171,7 @@ export function makeGeneticTrackData(
 export function makeGeneticTrackData(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["patients"],
     hugoGeneSymbol:string,
-    patients:Patient[],
+    patients:Pick<Patient, 'patientId'|'studyId'|'uniquePatientKey'>[],
     genePanelInformation:GenePanelInformation
 ):GeneticTrackDatum[];
 

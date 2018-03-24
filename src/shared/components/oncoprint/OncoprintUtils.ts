@@ -242,7 +242,7 @@ export function alterationInfoForCaseAggregatedDataByOQLLine(
 interface IGeneticTrackAppState {
     sampleMode: boolean;
     samples: Sample[];
-    patients: Patient[];
+    patients: Pick<Patient, 'patientId'|'studyId'|'uniquePatientKey'>[];
     genePanelInformation: any;
     sequencedSampleKeysByGene: any;
     sequencedPatientKeysByGene: any;
