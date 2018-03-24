@@ -239,14 +239,22 @@ export function alterationInfoForCaseAggregatedDataByOQLLine(
     };
 }
 
-function makeGeneticTrackWith(
-    sampleMode: boolean,
-    samples: Sample[],
-    patients: Patient[],
-    genePanelInformation: any,
-    sequencedSampleKeysByGene: any,
-    sequencedPatientKeysByGene: any
-) {
+interface IGeneticTrackAppState {
+    sampleMode: boolean;
+    samples: Sample[];
+    patients: Patient[];
+    genePanelInformation: any;
+    sequencedSampleKeysByGene: any;
+    sequencedPatientKeysByGene: any;
+}
+export function makeGeneticTrackWith({
+    sampleMode,
+    samples,
+    patients,
+    genePanelInformation,
+    sequencedSampleKeysByGene,
+    sequencedPatientKeysByGene
+}: IGeneticTrackAppState) {
     return (
         {cases: dataByCase, oql}: {
             cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
@@ -290,18 +298,18 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
         ],
         invoke: async () => {
             return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByOQLLine.result!.map(
-                makeGeneticTrackWith(
+                makeGeneticTrackWith({
                     sampleMode,
-                    oncoprint.props.store.samples.result!,
-                    oncoprint.props.store.patients.result!,
-                    oncoprint.props.store.genePanelInformation.result!,
-                    oncoprint.props.store.sequencedSampleKeysByGene.result!,
-                    oncoprint.props.store.sequencedPatientKeysByGene.result!,
-                )
+                    samples: oncoprint.props.store.samples.result!,
+                    patients: oncoprint.props.store.patients.result!,
+                    genePanelInformation: oncoprint.props.store.genePanelInformation.result!,
+                    sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
+                    sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
+                })
             );
         },
         default: [],
-    });   
+    });
 }
 
 export function makeClinicalTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
