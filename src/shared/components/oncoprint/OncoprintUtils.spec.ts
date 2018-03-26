@@ -58,6 +58,28 @@ describe('OncoprintUtils', () => {
                 assert.equal(track.label, 'TP53');
                 assert.equal(track.oql, 'TP53;');
             });
+
+            it('if queried for a merged track without a label, bases the track on the genes inside', () => {
+                // given store properties for three patients and query data
+                // for a two-gene merged track
+                const storeProperties = makeMinimal3Patient3GeneStoreProperties();
+                const queryData = {
+                    cases: makeMinimal3Patient3GeneCaseData(),
+                    oql: {list: [
+                        {gene: 'BRCA1', oql_line: 'BRCA1;', parsed_oql_line: {gene: 'BRCA1', alterations: []}, data: []},
+                        {gene: 'PTEN', oql_line: 'PTEN;', parsed_oql_line: {gene: 'PTEN', alterations: []}, data: []}
+                    ]}
+                };
+                // when the track formatting function is called with this query
+                const trackFunction = makeGeneticTrackWith({
+                    sampleMode: false,
+                    ...storeProperties
+                });
+                const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+                // then it returns a track for that gene query
+                assert.equal(track.label, 'BRCA1/PTEN');
+                assert.equal(track.oql, '[BRCA1; PTEN;]');
+            });
         });
     });
 
