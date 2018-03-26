@@ -77,7 +77,7 @@ describe('OncoprintUtils', () => {
                 });
                 const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
                 // then it returns a track for that gene query
-                assert.equal(track.label, 'BRCA1/PTEN');
+                assert.equal(track.label, 'BRCA1 / PTEN');
                 assert.equal(track.oql, '[BRCA1; PTEN;]');
             });
         });

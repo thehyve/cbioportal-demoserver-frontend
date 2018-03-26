@@ -264,7 +264,7 @@ export function makeGeneticTrackWith({
     ) => {
         if (isMergedTrackFilter(oql)) {
             const label: string = oql.label || (
-                oql.list.map(geneLine => geneLine.gene).join('/')
+                oql.list.map(geneLine => geneLine.gene).join(' / ')
             );
             const oqlLine = `[${oql.list.map(geneLine => geneLine.oql_line).join(' ')}]`;
             return {
