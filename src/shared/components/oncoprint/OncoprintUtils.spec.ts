@@ -1,8 +1,75 @@
-import {assert} from 'chai';
-import {percentAltered} from "./OncoprintUtils";
+import {
+    makeGeneticTrackWith,
+    percentAltered
+} from "./OncoprintUtils";
+import ResultsViewOncoprint from "./ResultsViewOncoprint";
+import {
+    Patient,
+} from "../../api/generated/CBioPortalAPI";
 
-describe('OncoprintUtils', ()=>{
-    describe('percentAltered',()=>{
+import * as _ from 'lodash';
+import {when} from 'mobx';
+import {MobxPromise} from 'mobxpromise';
+import {assert} from 'chai';
+import sinon from 'sinon';
+
+describe('OncoprintUtils', () => {
+    describe('makeGeneticTrackWith', () => {
+        describe('three patients with CNA data for three genes', () => {
+            const makeMinimal3Patient3GeneStoreProperties = () => ({
+                samples: [],
+                patients: [
+                    { 'patientId': 'TCGA-02-0001', 'studyId': 'gbm_tcga', 'uniquePatientKey': 'VENHQS0wMi0wMDAxOmdibV90Y2dh' },
+                    { 'patientId': 'TCGA-02-0003', 'studyId': 'gbm_tcga', 'uniquePatientKey': 'VENHQS0wMi0wMDAzOmdibV90Y2dh' },
+                    { 'patientId': 'TCGA-02-0006', 'studyId': 'gbm_tcga', 'uniquePatientKey': 'VENHQS0wMi0wMDA2OmdibV90Y2dh' }
+                ],
+                genePanelInformation: {
+                    patients: {
+                        'VENHQS0wMi0wMDAxOmdibV90Y2dh': {sequencedGenes: {}, wholeExomeSequenced: false},
+                        'VENHQS0wMi0wMDAzOmdibV90Y2dh': {sequencedGenes: {}, wholeExomeSequenced: false},
+                        'VENHQS0wMi0wMDA2OmdibV90Y2dh': {sequencedGenes: {}, wholeExomeSequenced: false}
+                    }
+                },
+                sequencedSampleKeysByGene: {},
+                sequencedPatientKeysByGene: {'BRCA1': [], 'PTEN': [], 'TP53': []}
+            });
+            const makeMinimal3Patient3GeneCaseData = () => ({
+                samples: {},
+                patients: {
+                    'VENHQS0wMi0wMDAxOmdibV90Y2dh': [],
+                    'VENHQS0wMi0wMDAzOmdibV90Y2dh': [],
+                    'VENHQS0wMi0wMDA2OmdibV90Y2dh': []
+                }
+            });
+            const MINIMAL_TRACK_INDEX = 0;
+
+            it('returns a gene track if queried for a plain gene', () => {
+                // given store properties for three patients and query data for
+                // a single gene
+                const storeProperties = makeMinimal3Patient3GeneStoreProperties();
+                const queryData = {
+                    cases: makeMinimal3Patient3GeneCaseData(),
+                    oql: {
+                        gene: 'TP53',
+                        oql_line: 'TP53;',
+                        parsed_oql_line: {gene: 'TP53', alterations: []},
+                        data: []
+                    }
+                };
+                // when the track formatting function is called with this query
+                const trackFunction = makeGeneticTrackWith({
+                    sampleMode: false,
+                    ...storeProperties
+                });
+                const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+                // then it returns a track for that gene query
+                assert.include(track.label, 'TP53');
+                assert.equal(track.oql, 'TP53;');
+            });
+        });
+    });
+
+    describe('percentAltered', () => {
         it("returns the percentage with no decimal digits, for percentages >= 3", ()=>{
             assert.equal(percentAltered(3,100), "3%");
             assert.equal(percentAltered(20,100), "20%");

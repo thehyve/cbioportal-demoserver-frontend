@@ -133,7 +133,7 @@ export type GenePanelInformation = {
         }};
 };
 
-function isMergedTrackFilter<T>(
+export function isMergedTrackFilter<T>(
     oqlFilter: UnflattenedOQLLineFilterOutput<T>
 ): oqlFilter is MergedTrackLineFilterOutput<T> {
     return (oqlFilter as MergedTrackLineFilterOutput<T>).list !== undefined;
