@@ -35,7 +35,7 @@ describe('OncoprintUtils', () => {
             });
             const MINIMAL_TRACK_INDEX = 0;
 
-            it('returns a gene track if queried for a plain gene', () => {
+            it('if queried for a plain gene, returns a track for that gene query', () => {
                 // given store properties for three patients and query data for
                 // a single gene
                 const storeProperties = makeMinimal3Patient3GeneStoreProperties();
@@ -55,7 +55,7 @@ describe('OncoprintUtils', () => {
                 });
                 const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
                 // then it returns a track for that gene query
-                assert.include(track.label, 'TP53');
+                assert.equal(track.label, 'TP53');
                 assert.equal(track.oql, 'TP53;');
             });
         });
