@@ -20,7 +20,6 @@ import {OncoprintPatientGeneticTrackData, OncoprintSampleGeneticTrackData} from 
 import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation, CaseAggregatedData, ExtendedAlteration,
-    isMergedTrackFilter,
     ResultsViewPageStore
 } from "../../../pages/resultsView/ResultsViewPageStore";
 import {remoteData} from "../../api/remoteData";
@@ -36,7 +35,7 @@ import {MobxPromise} from "mobxpromise";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 import GenesetCorrelatedGeneCache from "shared/cache/GenesetCorrelatedGeneCache";
 import Spec = Mocha.reporters.Spec;
-import {UnflattenedOQLLineFilterOutput} from "../../lib/oql/oqlfilter";
+import {UnflattenedOQLLineFilterOutput, isMergedTrackFilter} from "../../lib/oql/oqlfilter";
 
 interface IGenesetExpansionMap {
         [genesetTrackKey: string]: IGeneHeatmapTrackSpec[];

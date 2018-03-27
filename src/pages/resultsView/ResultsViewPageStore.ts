@@ -48,7 +48,7 @@ import {
     filterCBioPortalWebServiceDataByUnflattenedOQLLine,
     OQLLineFilterOutput,
     UnflattenedOQLLineFilterOutput,
-    MergedTrackLineFilterOutput
+    isMergedTrackFilter
 } from "../../shared/lib/oql/oqlfilter";
 import GeneMolecularDataCache from "../../shared/cache/GeneMolecularDataCache";
 import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCache";
@@ -132,12 +132,6 @@ export type GenePanelInformation = {
             wholeExomeSequenced: boolean
         }};
 };
-
-export function isMergedTrackFilter<T>(
-    oqlFilter: UnflattenedOQLLineFilterOutput<T>
-): oqlFilter is MergedTrackLineFilterOutput<T> {
-    return (oqlFilter as MergedTrackLineFilterOutput<T>).list !== undefined;
-}
 
 export function buildDefaultOQLProfile(profilesTypes: string[], zScoreThreshold: number, rppaScoreThreshold: number) {
 
