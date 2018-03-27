@@ -35,7 +35,7 @@ describe('OncoprintUtils', () => {
             });
             const MINIMAL_TRACK_INDEX = 0;
 
-            it('if queried for a plain gene, returns a track for that gene query', () => {
+            it('if queried for a plain gene, labels the track based on that query', () => {
                 // given store properties for three patients and query data for
                 // a single gene
                 const storeProperties = makeMinimal3Patient3GeneStoreProperties();
@@ -54,12 +54,12 @@ describe('OncoprintUtils', () => {
                     ...storeProperties
                 });
                 const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
-                // then it returns a track for that gene query
+                // then it returns a track with the same label and OQL
                 assert.equal(track.label, 'TP53');
                 assert.equal(track.oql, 'TP53;');
             });
 
-            it('if queried for a merged track without a label, bases the track on the genes inside', () => {
+            it('if queried for a merged track without a label, labels the track based on the genes inside', () => {
                 // given store properties for three patients and query data
                 // for a two-gene merged track
                 const storeProperties = makeMinimal3Patient3GeneStoreProperties();
@@ -76,8 +76,33 @@ describe('OncoprintUtils', () => {
                     ...storeProperties
                 });
                 const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
-                // then it returns a track for that gene query
+                // then it returns a track with the genes' OQL and labels
                 assert.equal(track.label, 'BRCA1 / PTEN');
+                assert.equal(track.oql, '[BRCA1; PTEN;]');
+            });
+
+            it('if queried for a merged track with a label, uses that to label the track', () => {
+                // given store properties for three patients and query data
+                // for a two-gene merged track with a label
+                const storeProperties = makeMinimal3Patient3GeneStoreProperties();
+                const queryData = {
+                    cases: makeMinimal3Patient3GeneCaseData(),
+                    oql: {
+                        list: [
+                            {gene: 'BRCA1', oql_line: 'BRCA1;', parsed_oql_line: {gene: 'BRCA1', alterations: []}, data: []},
+                            {gene: 'PTEN', oql_line: 'PTEN;', parsed_oql_line: {gene: 'PTEN', alterations: []}, data: []}
+                        ],
+                        label: 'HELLO'
+                    }
+                };
+                // when the track formatting function is called with this query
+                const trackFunction = makeGeneticTrackWith({
+                    sampleMode: false,
+                    ...storeProperties
+                });
+                const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+                // then it returns a track with that label and the genes' OQL
+                assert.equal(track.label, 'HELLO');
                 assert.equal(track.oql, '[BRCA1; PTEN;]');
             });
         });
