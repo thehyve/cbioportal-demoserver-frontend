@@ -2,16 +2,8 @@ import {
     makeGeneticTrackWith,
     percentAltered
 } from "./OncoprintUtils";
-import ResultsViewOncoprint from "./ResultsViewOncoprint";
-import {
-    Patient,
-} from "../../api/generated/CBioPortalAPI";
-
 import * as _ from 'lodash';
-import {when} from 'mobx';
-import {MobxPromise} from 'mobxpromise';
 import {assert} from 'chai';
-import sinon from 'sinon';
 
 describe('OncoprintUtils', () => {
     describe('makeGeneticTrackWith', () => {
