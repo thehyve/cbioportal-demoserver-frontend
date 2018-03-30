@@ -55,17 +55,15 @@ describe("DataUtils", ()=>{
    });
 
    describe("makeGeneticTrackData", () => {
-      const makeMinimalGenePanelData = (patientKey: string, geneId: number) => ({
-         entrezGeneId: geneId,
+      const makeMinimalGenePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
-         sequenced: true, genePanelId: "GENEPANEL1",
+         genePanelId: "GENEPANEL1",
       } as GenePanelData);
-      const makeMinimalWholeExomePanelData = (patientKey: string, geneId: number) => ({
-         entrezGeneId: geneId,
+      const makeMinimalWholeExomePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
-         sequenced: true, wholeExomeSequenced: true
+         wholeExomeSequenced: true
       } as GenePanelData);
 
       it('returns one cell for each listed case', () => {
@@ -77,7 +75,7 @@ describe("DataUtils", ()=>{
          ];
          const makeMinimalPatientGenePanel = (patientKey: string) => ({
             wholeExomeSequenced: true,
-            sequencedGenes: {'PTEN': [makeMinimalWholeExomePanelData(patientKey, 0)]}
+            sequencedGenes: {'PTEN': [makeMinimalWholeExomePanelData(patientKey)]}
          });
          const genePanelByCase = {
             samples: {},
@@ -111,7 +109,7 @@ describe("DataUtils", ()=>{
             samples: {},
             patients: {'PATIENT1': {
                wholeExomeSequenced: false,
-               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1', 0)]}
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for a zero-alteration gene that
@@ -134,7 +132,7 @@ describe("DataUtils", ()=>{
             samples: {},
             patients: {'PATIENT1': {
                wholeExomeSequenced: false,
-               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1', 0)]}
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for that (zero-alteration) gene
@@ -156,7 +154,7 @@ describe("DataUtils", ()=>{
             samples: {},
             patients: {'PATIENT1': {
                wholeExomeSequenced: true,
-               sequencedGenes: {'PTEN': [makeMinimalWholeExomePanelData('PATIENT1', 0)]}
+               sequencedGenes: {'PTEN': [makeMinimalWholeExomePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for that (zero-alteration) gene
@@ -182,7 +180,7 @@ describe("DataUtils", ()=>{
             patients: {
                'PATIENT1': {
                   wholeExomeSequenced: false,
-                  sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1', 0)]}
+                  sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
                },
                'PATIENT2': {wholeExomeSequenced: false, sequencedGenes: {}}
             }
@@ -207,7 +205,7 @@ describe("DataUtils", ()=>{
             samples: {},
             patients: {'PATIENT1': {
                wholeExomeSequenced: true,
-               sequencedGenes: {'PTEN': [makeMinimalWholeExomePanelData('PATIENT1', 0)]}
+               sequencedGenes: {'PTEN': [makeMinimalWholeExomePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for that (zero-alteration) gene
@@ -229,7 +227,7 @@ describe("DataUtils", ()=>{
             samples: {},
             patients: {'PATIENT1': {
                wholeExomeSequenced: false,
-               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1', 0)]}
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for that (zero-alteration) gene
@@ -252,7 +250,7 @@ describe("DataUtils", ()=>{
             samples: {},
             patients: {'PATIENT1': {
                wholeExomeSequenced: false,
-               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1', 0)]}
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for a zero-alteration gene that
@@ -278,7 +276,7 @@ describe("DataUtils", ()=>{
                wholeExomeSequenced: false,
                // makeMinimalGenePanelData returns an object with
                // genePanelId: 'GENEPANEL1'
-               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1', 21)]}
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
             }}
          };
          // when called to make a cell of data for that (zero-alteration) gene
@@ -292,7 +290,7 @@ describe("DataUtils", ()=>{
          // that covers this gene in this patient
          assert.deepEqual(
             (trackDatum.coverage as GenePanelData[])[0],
-            makeMinimalGenePanelData('PATIENT1', 21)
+            makeMinimalGenePanelData('PATIENT1')
          );
       });
    });
