@@ -163,27 +163,28 @@ export function fillGeneticTrackDatum(
 
 export function makeGeneticTrackData(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["samples"],
-    hugoGeneSymbol:string,
+    hugoGeneSymbols:string|string[],
     samples:Sample[],
     genePanelInformation:GenePanelInformation
 ):GeneticTrackDatum[];
 
 export function makeGeneticTrackData(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["patients"],
-    hugoGeneSymbol:string,
+    hugoGeneSymbols:string|string[],
     patients:Pick<Patient, 'patientId'|'studyId'|'uniquePatientKey'>[],
     genePanelInformation:GenePanelInformation
 ):GeneticTrackDatum[];
 
 export function makeGeneticTrackData(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["samples"]|CaseAggregatedData<AnnotatedExtendedAlteration>["patients"],
-    hugoGeneSymbol:string,
+    hugoGeneSymbols:string|string[],
     cases:Sample[]|Patient[],
     genePanelInformation:GenePanelInformation
 ):GeneticTrackDatum[] {
     if (!cases.length) {
         return [];
     }
+    const geneSymbolArray = hugoGeneSymbols instanceof Array ? hugoGeneSymbols : [hugoGeneSymbols];
     const ret:GeneticTrackDatum[] = [];
     if (isSampleList(cases)) {
         // case: Samples
@@ -194,18 +195,22 @@ export function makeGeneticTrackData(
             newDatum.uid = sample.uniqueSampleKey;
 
             const sampleSequencingInfo = genePanelInformation.samples[sample.uniqueSampleKey];
-            if (!sampleSequencingInfo.wholeExomeSequenced && !sampleSequencingInfo.sequencedGenes.hasOwnProperty(hugoGeneSymbol)) {
+            const anyGeneSequenced = geneSymbolArray.some(
+               symbol => sampleSequencingInfo.sequencedGenes.hasOwnProperty(symbol)
+            );
+            if (!sampleSequencingInfo.wholeExomeSequenced && !anyGeneSequenced) {
                 newDatum.na = true;
             } else {
-                if (sampleSequencingInfo.sequencedGenes[hugoGeneSymbol]) {
-                    newDatum.coverage = sampleSequencingInfo.sequencedGenes[hugoGeneSymbol];
+                if (sampleSequencingInfo.sequencedGenes[geneSymbolArray[0]]) {
+                    newDatum.coverage = sampleSequencingInfo.sequencedGenes[geneSymbolArray[0]];
                 }
                 if (sampleSequencingInfo.wholeExomeSequenced) {
                     newDatum.wholeExomeSequenced = true;
                 }
             }
             fillGeneticTrackDatum(
-                newDatum, hugoGeneSymbol,
+                newDatum,
+                geneSymbolArray.join(' / '),
                 caseAggregatedAlterationData[sample.uniqueSampleKey]
             );
             ret.push(newDatum as GeneticTrackDatum);
@@ -219,18 +224,22 @@ export function makeGeneticTrackData(
             newDatum.uid = patient.uniquePatientKey;
 
             const patientSequencingInfo = genePanelInformation.patients[patient.uniquePatientKey];
-            if (!patientSequencingInfo.wholeExomeSequenced && !patientSequencingInfo.sequencedGenes.hasOwnProperty(hugoGeneSymbol)) {
+            const anyGeneSequenced = geneSymbolArray.some(
+               symbol => patientSequencingInfo.sequencedGenes.hasOwnProperty(symbol)
+            );
+            if (!patientSequencingInfo.wholeExomeSequenced && !anyGeneSequenced) {
                 newDatum.na = true;
             } else {
-                if (patientSequencingInfo.sequencedGenes[hugoGeneSymbol]) {
-                    newDatum.coverage = patientSequencingInfo.sequencedGenes[hugoGeneSymbol];
+                if (patientSequencingInfo.sequencedGenes[geneSymbolArray[0]]) {
+                    newDatum.coverage = patientSequencingInfo.sequencedGenes[geneSymbolArray[0]];
                 }
                 if (patientSequencingInfo.wholeExomeSequenced) {
                     newDatum.wholeExomeSequenced = true;
                 }
             }
             fillGeneticTrackDatum(
-                newDatum, hugoGeneSymbol,
+                newDatum,
+                geneSymbolArray.join(' / '),
                 caseAggregatedAlterationData[patient.uniquePatientKey]
             );
             ret.push(newDatum as GeneticTrackDatum);

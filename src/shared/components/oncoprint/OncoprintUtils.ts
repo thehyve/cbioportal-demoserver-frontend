@@ -266,12 +266,18 @@ export function makeGeneticTrackWith({
                 oql.list.map(geneLine => geneLine.gene).join(' / ')
             );
             const oqlLine = `[${oql.list.map(geneLine => geneLine.oql_line).join(' ')}]`;
+            const data = makeGeneticTrackData(
+                sampleMode ? dataByCase.samples : dataByCase.patients,
+                oql.list.map(({gene}) => gene),
+                sampleMode ? samples : patients,
+                genePanelInformation
+            );
             return {
                 key: `GENETICTRACK_${index}`,
                 label,
                 oql: oqlLine,
                 info: '',
-                data: []
+                data
             };
         } else {
             const data = makeGeneticTrackData(

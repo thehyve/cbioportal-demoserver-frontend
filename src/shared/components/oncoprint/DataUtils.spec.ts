@@ -124,6 +124,29 @@ describe("DataUtils", ()=>{
          assert.isTrue(trackDatum.na);
       });
 
+      it('sets na if none of the genes in a multi-gene cell is covered by the seq panel', () => {
+         // given a patient and a gene panel that doesn't mark all genes as
+         // sequenced in that patient
+         const patientArray = [{uniquePatientKey: 'PATIENT1', patientId: 'TCGA-02-0001', studyId: 'gbm_tcga'}];
+         const genePanelByCase = {
+            samples: {},
+            patients: {'PATIENT1': {
+               wholeExomeSequenced: false,
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
+            }}
+         };
+         // when called to make a cell of data for two zero-alteration genes
+         // that aren't covered by the panel
+         const [trackDatum] = makeGeneticTrackData(
+            {'PATIENT1': []},
+            ['TP53', 'BRCA1'],
+            patientArray,
+            genePanelByCase
+         );
+         // then it sets the na field of the cell to true
+         assert.isTrue(trackDatum.na);
+      });
+
       it('does not set na if a single-gene cell is covered by the seq panel', () => {
          // given a patient and a gene panel that marks a gene as sequenced in
          // that patient
@@ -139,6 +162,28 @@ describe("DataUtils", ()=>{
          const [trackDatum] = makeGeneticTrackData(
             {'PATIENT1': []},
             'PTEN',
+            patientArray,
+            genePanelByCase
+         );
+         // then it makes the na field of that track evaluate to a falsy value
+         assert.isNotOk(trackDatum.na);
+      });
+
+      it('does not set na if one of the genes in a multi-gene cell is covered by the seq panel', () => {
+         // given a patient and a gene panel that marks a gene as sequenced in
+         // that patient
+         const patientArray = [{uniquePatientKey: 'PATIENT1', patientId: 'TCGA-02-0001', studyId: 'gbm_tcga'}];
+         const genePanelByCase = {
+            samples: {},
+            patients: {'PATIENT1': {
+               wholeExomeSequenced: false,
+               sequencedGenes: {'PTEN': [makeMinimalGenePanelData('PATIENT1')]}
+            }}
+         };
+         // when called to make a cell of data for that (zero-alteration) gene
+         const [trackDatum] = makeGeneticTrackData(
+            {'PATIENT1': []},
+            ['BRCA2', 'PTEN'],
             patientArray,
             genePanelByCase
          );
