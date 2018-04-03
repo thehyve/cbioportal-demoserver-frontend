@@ -287,9 +287,13 @@ export function makeGeneticTrackWith({
         },
         index: number
     ): GeneticTrackSpec => {
-        const data = isMergedTrackFilter(oql) ? [] : (sampleMode
-            ? makeGeneticTrackData(dataByCase.samples, oql.gene, samples as Sample[], genePanelInformation)
-            : makeGeneticTrackData(dataByCase.patients, oql.gene, patients as Patient[], genePanelInformation)
+        const geneSymbolArray = (isMergedTrackFilter(oql)
+            ? oql.list.map(({gene}) => gene)
+            : [oql.gene]
+        );
+        const data = (sampleMode
+            ? makeGeneticTrackData(dataByCase.samples, geneSymbolArray, samples as Sample[], genePanelInformation)
+            : makeGeneticTrackData(dataByCase.patients, geneSymbolArray, patients as Patient[], genePanelInformation)
         );
         const info = isMergedTrackFilter(oql) ? '' : alterationInfoForCaseAggregatedDataByOQLLine(
             sampleMode,
