@@ -2,7 +2,7 @@ import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation,
     CaseAggregatedData, ExtendedAlteration,
-    GenePanelInformation
+    IGenePanelInformation
 } from "../../../pages/resultsView/ResultsViewPageStore";
 import {
     ClinicalAttribute,
@@ -12,7 +12,7 @@ import {
 } from "../../api/generated/CBioPortalAPI";
 import {
     ClinicalTrackDatum,
-    GeneticTrackDatum,
+    IGeneticTrackDatum,
     IBaseHeatmapTrackDatum,
     IGeneHeatmapTrackDatum,
 } from "./Oncoprint";
@@ -97,11 +97,11 @@ export function selectDisplayValue(counts:{[value:string]:number}, priority:{[va
     }
 };
 
-export function fillGeneticTrackDatum(
-    newDatum:Partial<GeneticTrackDatum>,
+export function fillGeneticTrackDatum<T>(
+    newDatum:Partial<IGeneticTrackDatum<T>>,
     hugoGeneSymbol:string,
     data:AnnotatedExtendedAlteration[]
-):GeneticTrackDatum {
+): IGeneticTrackDatum<T> {
     newDatum.gene = hugoGeneSymbol;
     newDatum.data = data;
 
@@ -161,38 +161,38 @@ export function fillGeneticTrackDatum(
     newDatum.disp_mut = selectDisplayValue(dispMutCounts, mutRenderPriority);
     newDatum.disp_germ = newDatum.disp_mut ? dispGermline[newDatum.disp_mut] : undefined;
 
-    return newDatum as GeneticTrackDatum; // return for convenience, even though changes made in place
+    return newDatum as IGeneticTrackDatum<T>; // return for convenience, even though changes made in place
 }
 
-export function makeGeneticTrackData(
+export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{genePanelId: string}>(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["samples"],
     hugoGeneSymbols:string|string[],
     samples:Sample[],
-    genePanelInformation:GenePanelInformation
-):GeneticTrackDatum[];
+    genePanelInformation:IGenePanelInformation<T>
+): IGeneticTrackDatum<T>[];
 
-export function makeGeneticTrackData(
+export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{genePanelId: string}>(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["patients"],
     hugoGeneSymbols:string|string[],
     patients:Patient[],
-    genePanelInformation:GenePanelInformation
-):GeneticTrackDatum[];
+    genePanelInformation:IGenePanelInformation<T>
+): IGeneticTrackDatum<T>[];
 
-export function makeGeneticTrackData(
+export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{genePanelId: string}>(
     caseAggregatedAlterationData:CaseAggregatedData<AnnotatedExtendedAlteration>["samples"]|CaseAggregatedData<AnnotatedExtendedAlteration>["patients"],
     hugoGeneSymbols:string|string[],
     cases:Sample[]|Patient[],
-    genePanelInformation:GenePanelInformation
-):GeneticTrackDatum[] {
+    genePanelInformation:IGenePanelInformation<T>
+): IGeneticTrackDatum<T>[] {
     if (!cases.length) {
         return [];
     }
     const geneSymbolArray = hugoGeneSymbols instanceof Array ? hugoGeneSymbols : [hugoGeneSymbols];
-    const ret:GeneticTrackDatum[] = [];
+    const ret: IGeneticTrackDatum<T>[] = [];
     if (isSampleList(cases)) {
         // case: Samples
         for (const sample of cases) {
-            const newDatum:Partial<GeneticTrackDatum> = {};
+            const newDatum:Partial<IGeneticTrackDatum<T>> = {};
             newDatum.sample = sample.sampleId;
             newDatum.study_id = sample.studyId;
             newDatum.uid = sample.uniqueSampleKey;
@@ -220,12 +220,12 @@ export function makeGeneticTrackData(
                 geneSymbolArray.join(' / '),
                 caseAggregatedAlterationData[sample.uniqueSampleKey]
             );
-            ret.push(newDatum as GeneticTrackDatum);
+            ret.push(newDatum as IGeneticTrackDatum<T>);
         }
     } else {
         // case: Patients
         for (const patient of cases) {
-            const newDatum:Partial<GeneticTrackDatum> = {};
+            const newDatum:Partial<IGeneticTrackDatum<T>> = {};
             newDatum.patient = patient.patientId;
             newDatum.study_id = patient.studyId;
             newDatum.uid = patient.uniquePatientKey;
@@ -254,7 +254,7 @@ export function makeGeneticTrackData(
                 geneSymbolArray.join(' / '),
                 caseAggregatedAlterationData[patient.uniquePatientKey]
             );
-            ret.push(newDatum as GeneticTrackDatum);
+            ret.push(newDatum as IGeneticTrackDatum<T>);
         }
     }
     return ret;

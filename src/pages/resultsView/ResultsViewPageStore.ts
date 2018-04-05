@@ -125,18 +125,20 @@ export type CaseAggregatedData<T> = {
     patients: {[uniquePatientKey:string]:T[]};
 };
 
-export type GenePanelInformation = {
+export interface IGenePanelInformation<T extends {wholeExomeSequenced: true}|{genePanelId: string}> {
     samples:
         {[uniqueSampleKey:string]:{
-            sequencedGenes:{[hugoGeneSymbol:string]:GenePanelData[]},
+            sequencedGenes:{[hugoGeneSymbol:string]: T[]},
             wholeExomeSequenced: boolean
         }};
     patients:
         {[uniquePatientKey:string]:{
-            sequencedGenes:{[hugoGeneSymbol:string]:GenePanelData[]},
+            sequencedGenes:{[hugoGeneSymbol:string]: T[]},
             wholeExomeSequenced: boolean
         }};
-};
+}
+
+export type GenePanelInformation = IGenePanelInformation<GenePanelData>;
 
 export function buildDefaultOQLProfile(profilesTypes: string[], zScoreThreshold: number, rppaScoreThreshold: number) {
 

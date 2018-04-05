@@ -51,14 +51,14 @@ export interface IGenesetHeatmapTrackDatum extends IBaseHeatmapTrackDatum {
     geneset_id: string;
 }
 
-export type GeneticTrackDatum = {
+export interface IGeneticTrackDatum<T> {
     gene: string;
     sample?:string;
     patient?:string;
     study_id:string;
     uid:string;
     data:(ExtendedAlteration&AnnotatedMutation)[];
-    coverage?: GenePanelData[];
+    coverage?: T[];
     wholeExomeSequenced?:boolean;
     na?: boolean;
     disp_mut?:string;
@@ -67,7 +67,9 @@ export type GeneticTrackDatum = {
     disp_prot?:string;
     disp_fusion?:boolean;
     disp_germ?:boolean;
-};
+}
+
+export type GeneticTrackDatum = IGeneticTrackDatum<GenePanelData>;
 
 export type GeneticTrackSpec = {
     key: string; // for efficient diffing, just like in React. must be unique

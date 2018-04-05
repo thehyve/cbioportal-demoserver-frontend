@@ -64,17 +64,17 @@ describe("DataUtils", ()=>{
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
          genePanelId: "GENEPANEL1",
-      } as GenePanelData);
+      });
       const makeMinimalDifferentGenePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
          genePanelId: "GENEPANEL2",
-      } as GenePanelData);
+      });
       const makeMinimalWholeExomePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
-         wholeExomeSequenced: true
-      } as GenePanelData);
+         wholeExomeSequenced: true as true
+      });
       const makeMinimalPatient = (uniquePatientKey: string, patientId: string) => ({
           uniquePatientKey, patientId, studyId: 'gbm_tcga'
       } as Patient);
