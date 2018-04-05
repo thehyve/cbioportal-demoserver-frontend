@@ -103,6 +103,7 @@ describe('OncoprintUtils', () => {
                 { 'patientId': 'TCGA-02-0006', 'studyId': 'gbm_tcga', 'uniquePatientKey': 'VENHQS0wMi0wMDA2OmdibV90Y2dh' }
             ],
             genePanelInformation: {
+                samples: {},
                 patients: {
                     'VENHQS0wMi0wMDAxOmdibV90Y2dh': {sequencedGenes: {}, wholeExomeSequenced: false},
                     'VENHQS0wMi0wMDAzOmdibV90Y2dh': {sequencedGenes: {}, wholeExomeSequenced: false},
