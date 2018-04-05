@@ -59,17 +59,17 @@ describe("DataUtils", ()=>{
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
          genePanelId: "GENEPANEL1",
-      } as GenePanelData);
+      });
       const makeMinimalDifferentGenePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
          genePanelId: "GENEPANEL2",
-      } as GenePanelData);
+      });
       const makeMinimalWholeExomePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
-         wholeExomeSequenced: true
-      } as GenePanelData);
+         wholeExomeSequenced: true as true
+      });
 
       it('returns one cell for each listed case', () => {
          // given three patients and a whole-exome gene panel

@@ -20,6 +20,7 @@ import {OncoprintPatientGeneticTrackData, OncoprintSampleGeneticTrackData} from 
 import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation, CaseAggregatedData, ExtendedAlteration,
+    GenePanelInformation,
     ResultsViewPageStore
 } from "../../../pages/resultsView/ResultsViewPageStore";
 import {remoteData} from "../../api/remoteData";
@@ -242,7 +243,7 @@ interface IGeneticTrackAppState {
     sampleMode: boolean;
     samples: Sample[];
     patients: Pick<Patient, 'patientId'|'studyId'|'uniquePatientKey'>[];
-    genePanelInformation: any;
+    genePanelInformation: GenePanelInformation;
     sequencedSampleKeysByGene: any;
     sequencedPatientKeysByGene: any;
 }
