@@ -201,8 +201,12 @@ export function makeGeneticTrackData(
             if (!sampleSequencingInfo.wholeExomeSequenced && !anyGeneSequenced) {
                 newDatum.na = true;
             } else {
-                if (sampleSequencingInfo.sequencedGenes[geneSymbolArray[0]]) {
-                    newDatum.coverage = sampleSequencingInfo.sequencedGenes[geneSymbolArray[0]];
+                const coverageEntries = _.flatMap(
+                    geneSymbolArray,
+                    symbol => sampleSequencingInfo.sequencedGenes[symbol]
+                );
+                if (coverageEntries) {
+                    newDatum.coverage = coverageEntries;
                 }
                 if (sampleSequencingInfo.wholeExomeSequenced) {
                     newDatum.wholeExomeSequenced = true;
@@ -230,9 +234,14 @@ export function makeGeneticTrackData(
             if (!patientSequencingInfo.wholeExomeSequenced && !anyGeneSequenced) {
                 newDatum.na = true;
             } else {
-                if (patientSequencingInfo.sequencedGenes[geneSymbolArray[0]]) {
-                    newDatum.coverage = patientSequencingInfo.sequencedGenes[geneSymbolArray[0]];
+                const coverageEntries = _.flatMap(
+                    geneSymbolArray,
+                    symbol => patientSequencingInfo.sequencedGenes[symbol]
+                );
+                if (coverageEntries) {
+                    newDatum.coverage = coverageEntries;
                 }
+
                 if (patientSequencingInfo.wholeExomeSequenced) {
                     newDatum.wholeExomeSequenced = true;
                 }

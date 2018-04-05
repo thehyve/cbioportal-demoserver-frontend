@@ -60,6 +60,11 @@ describe("DataUtils", ()=>{
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
          genePanelId: "GENEPANEL1",
       } as GenePanelData);
+      const makeMinimalDifferentGenePanelData = (patientKey: string) => ({
+         uniquePatientKey: patientKey,
+         uniqueSampleKey: `${patientKey}-SAMPLE1`,
+         genePanelId: "GENEPANEL2",
+      } as GenePanelData);
       const makeMinimalWholeExomePanelData = (patientKey: string) => ({
          uniquePatientKey: patientKey,
          uniqueSampleKey: `${patientKey}-SAMPLE1`,
@@ -181,6 +186,7 @@ describe("DataUtils", ()=>{
             }}
          };
          // when called to make a cell of data for that (zero-alteration) gene
+         // in addition to another one
          const [trackDatum] = makeGeneticTrackData(
             {'PATIENT1': []},
             ['BRCA2', 'PTEN'],
@@ -311,7 +317,7 @@ describe("DataUtils", ()=>{
          assert.isNotOk(trackDatum.wholeExomeSequenced);
       });
 
-      it('passes the gene panel data for the cell along in the coverage property', () => {
+      it('passes the gene panel data for a single-gene cell along in the coverage property', () => {
          // given a patient and a gene panel that marks a gene as sequenced in
          // that patient
          const patientArray = [{uniquePatientKey: 'PATIENT1', patientId: 'TCGA-02-0001', studyId: 'gbm_tcga'}];
@@ -338,6 +344,45 @@ describe("DataUtils", ()=>{
             makeMinimalGenePanelData('PATIENT1')
          );
       });
+
+      it('passes the gene panel data for genes displayed in the cell along in the coverage property', () => {
+         // given a patient, a gene panel that marks two genes as sequenced in
+         // that patient, and a different gene panel that marks one
+         // of them as sequenced in that patient
+         const patientArray = [{uniquePatientKey: 'PATIENT1', patientId: 'TCGA-02-0001', studyId: 'gbm_tcga'}];
+         const genePanelByCase = {
+            samples: {},
+            patients: {'PATIENT1': {
+               wholeExomeSequenced: false,
+               sequencedGenes: {
+                  'PTEN': [makeMinimalGenePanelData('PATIENT1')],
+                  'BRCA2': [
+                     makeMinimalGenePanelData('PATIENT1'),
+                     makeMinimalDifferentGenePanelData('PATIENT1')
+                  ]
+               }
+            }}
+         };
+         // when called to make a cell of data for the two (zero-alteration)
+         // genes
+         const [trackDatum] = makeGeneticTrackData(
+            {'PATIENT1': []},
+            ['BRCA2', 'PTEN'],
+            patientArray,
+            genePanelByCase
+         );
+         // then the coverage attribute for the cell lists all the gene panel
+         // entries that cover these two genes in this patient
+         assert.deepEqual(
+            trackDatum.coverage as GenePanelData[],
+            [
+               makeMinimalGenePanelData('PATIENT1'),
+               makeMinimalDifferentGenePanelData('PATIENT1'),
+               makeMinimalGenePanelData('PATIENT1')
+            ]
+         );
+      });
+
    });
 
    describe("fillGeneticTrackDatum", ()=>{
