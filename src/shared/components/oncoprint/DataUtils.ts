@@ -203,7 +203,7 @@ export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{gene
             } else {
                 const coverageEntries = _.flatMap(
                     geneSymbolArray,
-                    symbol => sampleSequencingInfo.sequencedGenes[symbol]
+                    symbol => sampleSequencingInfo.sequencedGenes[symbol] || []
                 );
                 if (coverageEntries) {
                     newDatum.coverage = coverageEntries;
@@ -236,7 +236,7 @@ export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{gene
             } else {
                 const coverageEntries = _.flatMap(
                     geneSymbolArray,
-                    symbol => patientSequencingInfo.sequencedGenes[symbol]
+                    symbol => patientSequencingInfo.sequencedGenes[symbol] || []
                 );
                 if (coverageEntries) {
                     newDatum.coverage = coverageEntries;

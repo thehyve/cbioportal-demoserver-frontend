@@ -345,7 +345,7 @@ describe("DataUtils", ()=>{
          );
       });
 
-      it('passes the gene panel data for genes displayed in the cell along in the coverage property', () => {
+      it('passes the gene panel data for all genes displayed in the cell along in the coverage property', () => {
          // given a patient, a gene panel that marks two genes as sequenced in
          // that patient, and a different gene panel that marks one
          // of them as sequenced in that patient
@@ -364,15 +364,15 @@ describe("DataUtils", ()=>{
             }}
          };
          // when called to make a cell of data for the two (zero-alteration)
-         // genes
+         // genes and another one that isn't covered
          const [trackDatum] = makeGeneticTrackData(
             {'PATIENT1': []},
-            ['BRCA2', 'PTEN'],
+            ['BRCA2', 'PTEN', 'BRCA1'],
             patientArray,
             genePanelByCase
          );
          // then the coverage attribute for the cell lists all the gene panel
-         // entries that cover these two genes in this patient
+         // entries that cover the two covered genes in this patient
          assert.deepEqual(
             trackDatum.coverage as GenePanelData[],
             [
