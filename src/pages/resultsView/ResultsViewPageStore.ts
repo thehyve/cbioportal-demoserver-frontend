@@ -68,7 +68,7 @@ import {countMutations, mutationCountByPositionKey} from "./mutationCountHelpers
 import {getPatientSurvivals} from "./SurvivalStoreHelper";
 import {QueryStore} from "shared/components/query/QueryStore";
 import {
-    annotateMolecularDatum, getOncoKbOncogenic,
+    annotateMolecularDatum, getOncoKbOncogenic, groupDataByCase,
     computeCustomDriverAnnotationReport, computePutativeDriverAnnotatedMutations,
     initializeCustomDriverAnnotationSettings, computeGenePanelInformation
 } from "./ResultsViewPageStoreUtils";
@@ -436,7 +436,6 @@ export class ResultsViewPageStore {
         }
     });
 
-    // FIXME: extract common functionality of flattened version below
     readonly putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine = remoteData<{
         cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
         oql: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>
@@ -450,33 +449,25 @@ export class ResultsViewPageStore {
             this.patients
         ],
         invoke: () => {
-            let unfilteredAlterations: (AnnotatedMutation|AnnotatedGeneMolecularData)[] = [];
-            unfilteredAlterations = unfilteredAlterations.concat(this.putativeDriverAnnotatedMutations.result!);
-            unfilteredAlterations = unfilteredAlterations.concat(this.annotatedMolecularData.result!);
-
-            const filteredAlterationsByOQLLine: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>[] = (
-                filterCBioPortalWebServiceDataByUnflattenedOQLLine(
-                    this.oqlQuery,
-                    unfilteredAlterations,
-                    (new accessors(this.selectedMolecularProfiles.result!)),
-                    this.defaultOQLQuery.result!
-                )
-            );
-
-            return Promise.resolve(filteredAlterationsByOQLLine.map(oql => {
-                const data: AnnotatedExtendedAlteration[] = (
-                    isMergedTrackFilter(oql)
-                    ? _.flatMap(oql.list, (geneLine) => geneLine.data)
-                    : oql.data
+            if (this.oqlQuery.trim() === '') {
+                return Promise.resolve([]);
+            } else {
+                const filteredAlterationsByOQLLine: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>[] = (
+                    filterCBioPortalWebServiceDataByUnflattenedOQLLine(
+                        this.oqlQuery,
+                        [...(this.putativeDriverAnnotatedMutations.result!), ...(this.annotatedMolecularData.result!)],
+                        (new accessors(this.selectedMolecularProfiles.result!)),
+                        this.defaultOQLQuery.result!
+                    )
                 );
-                const cases: CaseAggregatedData<AnnotatedExtendedAlteration> = {
-                    samples:
-                        groupBy(data, datum=>datum.uniqueSampleKey, this.samples.result!.map(sample=>sample.uniqueSampleKey)),
-                    patients:
-                        groupBy(data, datum=>datum.uniquePatientKey, this.patients.result!.map(sample=>sample.uniquePatientKey))
-                };
-                return {cases, oql};
-            }));
+
+                return Promise.resolve(filteredAlterationsByOQLLine.map(
+                    (oql) => ({
+                        cases: groupDataByCase(oql, this.samples.result!, this.patients.result!),
+                        oql
+                    })
+                ));
+            }
         }
     });
 
@@ -489,29 +480,23 @@ export class ResultsViewPageStore {
             this.samples,
             this.patients
         ],
-        invoke:()=>{
-            let unfilteredAlterations:(AnnotatedMutation | AnnotatedGeneMolecularData)[] = [];
-            unfilteredAlterations = unfilteredAlterations.concat(this.putativeDriverAnnotatedMutations.result!);
-            unfilteredAlterations = unfilteredAlterations.concat(this.annotatedMolecularData.result!);
-
-            if (this.oqlQuery.trim() != "") {
-                const filteredAlterationsByOQLLine:OQLLineFilterOutput<AnnotatedExtendedAlteration>[] = filterCBioPortalWebServiceDataByOQLLine(this.oqlQuery, unfilteredAlterations,
-                        (new accessors(this.selectedMolecularProfiles.result!)), this.defaultOQLQuery.result!);
-
-                    return Promise.resolve(filteredAlterationsByOQLLine.map(oql=>{
-                        const cases:CaseAggregatedData<AnnotatedExtendedAlteration> = {
-                            samples:
-                                groupBy(oql.data, datum=>datum.uniqueSampleKey, this.samples.result!.map(sample=>sample.uniqueSampleKey)),
-                            patients:
-                                groupBy(oql.data, datum=>datum.uniquePatientKey, this.patients.result!.map(sample=>sample.uniquePatientKey))
-                        };
-                        return {
-                            cases,
-                            oql
-                        };
-                    }));
-            } else {
+        invoke: () => {
+            if (this.oqlQuery.trim() === '') {
                 return Promise.resolve([]);
+            } else {
+                const filteredAlterationsByOQLLine:OQLLineFilterOutput<AnnotatedExtendedAlteration>[] = filterCBioPortalWebServiceDataByOQLLine(
+                    this.oqlQuery,
+                    [...(this.putativeDriverAnnotatedMutations.result!), ...(this.annotatedMolecularData.result!)],
+                    (new accessors(this.selectedMolecularProfiles.result!)),
+                    this.defaultOQLQuery.result!
+                );
+
+                return Promise.resolve(filteredAlterationsByOQLLine.map(
+                    (oql) => ({
+                        cases: groupDataByCase(oql, this.samples.result!, this.patients.result!),
+                        oql
+                    })
+                ));
             }
         }
     });
