@@ -4,6 +4,10 @@ import {GeneticTrackDatum} from "./Oncoprint";
 import {AnnotatedExtendedAlteration, AnnotatedMutation} from "../../../pages/resultsView/ResultsViewPageStore";
 import $ from "jquery";
 
+// This file uses type assertions to force functions that require overly
+// specific parameter types to accept literals believed to be sufficient
+// tslint:disable no-object-literal-type-assertion
+
 describe("Oncoprint TooltipUtils", ()=>{
     describe("makeGeneticTrackTooltip", ()=>{
         let tooltip:(d:GeneticTrackDatum)=>JQuery;
@@ -156,6 +160,126 @@ describe("Oncoprint TooltipUtils", ()=>{
                 const tooltipOutput = tooltip(datum as GeneticTrackDatum);
                 assert.equal(tooltipOutput.find("img[src$='driver.png']").length, 0, "should be no binary icons");
                 assert.equal(tooltipOutput.find("img[src$='driver_tiers.png']").length, 0, "should be no tiers icons");
+            });
+        });
+        describe('alteration descriptions', () => {
+            it('should not describe any type of alteration if the datum lists none', () => {
+                // given a track datum that does not list any alterations
+                const datum = {
+                    gene: 'GENE1',
+                    study_id: 'STUDY1',
+                    uid: 'PaTiEnT1==',
+                    patient: 'PATIENT1',
+                    data: [],
+                    wholeExomeSequenced: true
+                } as GeneticTrackDatum;
+                // when called to format a tooltip for this datum
+                const tooltipOutput = tooltip(datum);
+                // then the output does not include a CNA line
+                assert.notInclude(
+                    tooltipOutput.text().toLowerCase(),
+                    'copy number alteration:'
+                );
+            });
+
+            it('should describe a copy number amplification if the datum lists such an alteration', () => {
+                // given a track datum that lists one amplification
+                const datum = {
+                    gene: 'GENE1',
+                    study_id: 'STUDY1',
+                    uid: 'PaTiEnT1==',
+                    patient: 'PATIENT1',
+                    data: [{
+                        molecularProfileAlterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationSubType: 'amp',
+                        value: '2',
+                        oncoKbOncogenic: '',
+                        entrezGeneId: 1,
+                        gene: {entrezGeneId: 1, hugoGeneSymbol: 'GENE1'},
+                        sampleId: 'PATIENT1-SAMPLE1'
+                    }],
+                    disp_cna: 'amp',
+                    wholeExomeSequenced: true
+                } as GeneticTrackDatum;
+                // when called to format a tooltip for this datum
+                const tooltipOutput = tooltip(datum);
+                // then the output includes a CNA line mentioning amplification
+                assert.include(
+                    tooltipOutput.text().toLowerCase(),
+                    'copy number alteration: amplified'
+                );
+            });
+
+            it('should describe both copy number alterations if two samples shown in the cell have different ones', () => {
+                // given a track datum that lists an amplification in one
+                // sample and a heterozygous gain in another
+                const datum = {
+                    gene: 'GENE1',
+                    study_id: 'STUDY1',
+                    uid: 'PaTiEnT1==',
+                    patient: 'PATIENT1',
+                    data: [{
+                        molecularProfileAlterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationSubType: 'amp',
+                        value: '2',
+                        oncoKbOncogenic: '',
+                        entrezGeneId: 1,
+                        gene: {entrezGeneId: 1, hugoGeneSymbol: 'GENE1'},
+                        sampleId: 'PATIENT1-SAMPLE1'
+                    }, {
+                        molecularProfileAlterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationSubType: 'gain',
+                        value: '1',
+                        oncoKbOncogenic: '',
+                        entrezGeneId: 1,
+                        gene: {entrezGeneId: 1, hugoGeneSymbol: 'GENE1'},
+                        sampleId: 'PATIENT1-SAMPLE2'
+                    }],
+                    disp_cna: 'amp',
+                    wholeExomeSequenced: true
+                } as GeneticTrackDatum;
+                // when called to format a tooltip for this datum
+                const tooltipOutput = tooltip(datum);
+                // then the output includes a CNA line mentioning both
+                assert.include(
+                    tooltipOutput.text().toLowerCase(),
+                    'copy number alteration: amplified,gain'
+                );
+            });
+
+            it('should specify the gene symbol for a copy number alteration if the track is not only about that gene', () => {
+                // given a merged-track datum that lists a homozygous deletion
+                // in one of its genes
+                const datum = {
+                    gene: 'GENE1 / GENE2',
+                    study_id: 'STUDY1',
+                    uid: 'PaTiEnT1==',
+                    patient: 'PATIENT1',
+                    data: [{
+                        molecularProfileAlterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationType: 'COPY_NUMBER_ALTERATION',
+                        alterationSubType: 'homdel',
+                        value: '-2',
+                        oncoKbOncogenic: '',
+                        entrezGeneId: 1,
+                        gene: {entrezGeneId: 1, hugoGeneSymbol: 'GENE1'},
+                        uniquePatientKey: 'PaTiEnT1==',
+                        uniqueSampleKey: 'PaTiEnT1-SaMpLe1=='
+                    }],
+                    disp_cna: 'homdel',
+                    wholeExomeSequenced: true
+                } as GeneticTrackDatum;
+                // when called to format a tooltip for this datum
+                const tooltipOutput = tooltip(datum);
+                // then the output includes a CNA line that specifies which gene
+                // it occurs in
+                assert.include(
+                    tooltipOutput.text().toLowerCase(),
+                    'copy number alteration: gene1:homodeleted'
+                );
             });
         });
     });
