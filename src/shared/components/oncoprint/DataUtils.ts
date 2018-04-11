@@ -97,11 +97,22 @@ export function selectDisplayValue(counts:{[value:string]:number}, priority:{[va
     }
 };
 
-export function fillGeneticTrackDatum<T>(
-    newDatum:Partial<IGeneticTrackDatum<T>>,
+type FilledGeneticTrackDatum<T> = T & Pick<IGeneticTrackDatum<object>, (
+    'gene'
+    | 'data'
+    | 'disp_fusion'
+    | 'disp_cna'
+    | 'disp_mrna'
+    | 'disp_prot'
+    | 'disp_mut'
+    | 'disp_germ'
+)>;
+export function fillGeneticTrackDatum<T extends object>(
+    oldDatum: T,
     hugoGeneSymbol:string,
     data:AnnotatedExtendedAlteration[]
-): IGeneticTrackDatum<T> {
+):  FilledGeneticTrackDatum<T> {
+    const newDatum: Partial<FilledGeneticTrackDatum<T>> = oldDatum;
     newDatum.gene = hugoGeneSymbol;
     newDatum.data = data;
 
@@ -158,10 +169,11 @@ export function fillGeneticTrackDatum<T>(
     newDatum.disp_cna = selectDisplayValue(dispCnaCounts, cnaRenderPriority);
     newDatum.disp_mrna = selectDisplayValue(dispMrnaCounts, mrnaRenderPriority);
     newDatum.disp_prot = selectDisplayValue(dispProtCounts, protRenderPriority);
-    newDatum.disp_mut = selectDisplayValue(dispMutCounts, mutRenderPriority);
-    newDatum.disp_germ = newDatum.disp_mut ? dispGermline[newDatum.disp_mut] : undefined;
+    const disp_mut = selectDisplayValue(dispMutCounts, mutRenderPriority);
+    newDatum.disp_mut = disp_mut;
+    newDatum.disp_germ = disp_mut ? dispGermline[disp_mut] : undefined;
 
-    return newDatum as IGeneticTrackDatum<T>; // return for convenience, even though changes made in place
+    return newDatum as FilledGeneticTrackDatum<T>;
 }
 
 export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{genePanelId: string}>(
@@ -215,11 +227,11 @@ export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{gene
                     newDatum.wholeExomeSequenced = true;
                 }
             }
-            fillGeneticTrackDatum(
-                newDatum,
+            _.assign(newDatum, fillGeneticTrackDatum(
+                {},
                 geneSymbolArray.join(' / '),
                 caseAggregatedAlterationData[sample.uniqueSampleKey]
-            );
+            ));
             ret.push(newDatum as IGeneticTrackDatum<T>);
         }
     } else {
@@ -249,11 +261,11 @@ export function makeGeneticTrackData<T extends {wholeExomeSequenced: true}|{gene
                     newDatum.wholeExomeSequenced = true;
                 }
             }
-            fillGeneticTrackDatum(
-                newDatum,
+            _.assign(newDatum, fillGeneticTrackDatum(
+                {},
                 geneSymbolArray.join(' / '),
                 caseAggregatedAlterationData[patient.uniquePatientKey]
-            );
+            ));
             ret.push(newDatum as IGeneticTrackDatum<T>);
         }
     }
