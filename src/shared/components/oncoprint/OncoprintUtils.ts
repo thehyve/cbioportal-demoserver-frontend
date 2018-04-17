@@ -243,15 +243,19 @@ export function alterationInfoForCaseAggregatedDataByOQLLine(
     sampleMode: boolean,
     data: {
         cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
-        oql: {gene: string}
+        oql: {gene: string} | string[]
     },
     sequencedSampleKeysByGene: {[hugoGeneSymbol:string]:string[]},
     sequencedPatientKeysByGene: {[hugoGeneSymbol:string]:string[]})
 {
-    const sequenced =
-        sampleMode ?
-            sequencedSampleKeysByGene[data.oql.gene].length :
-            sequencedPatientKeysByGene[data.oql.gene].length;
+    const geneSymbolArray = (data.oql instanceof Array
+        ? data.oql
+        : [data.oql.gene]
+    );
+    const sequenced = (sampleMode
+        ? _.uniq(_.flatMap(geneSymbolArray, symbol => sequencedSampleKeysByGene[symbol])).length
+        : _.uniq(_.flatMap(geneSymbolArray, symbol => sequencedPatientKeysByGene[symbol])).length
+    );
 
     const altered =
         sampleMode ?
@@ -296,9 +300,9 @@ export function makeGeneticTrackWith({
             ? makeGeneticTrackData(dataByCase.samples, geneSymbolArray, samples as Sample[], coverageInformation)
             : makeGeneticTrackData(dataByCase.patients, geneSymbolArray, patients as Patient[], coverageInformation)
         );
-        const info = isMergedTrackFilter(oql) ? '' : alterationInfoForCaseAggregatedDataByOQLLine(
+        const info = alterationInfoForCaseAggregatedDataByOQLLine(
             sampleMode,
-            {cases: dataByCase, oql},
+            {cases: dataByCase, oql: geneSymbolArray},
             sequencedSampleKeysByGene,
             sequencedPatientKeysByGene
         ).percent;
