@@ -15,7 +15,8 @@ import OncoprintControls, {
 import {ResultsViewPageStore} from "../../../pages/resultsView/ResultsViewPageStore";
 import {ClinicalAttribute, Gene, MolecularProfile, Mutation, Sample} from "../../api/generated/CBioPortalAPI";
 import {
-    percentAltered, makeGeneticTracksMobxPromise,
+    percentAltered,
+    makeGeneticTrackExpansionsMobxPromise, makeGeneticTracksMobxPromise,
     makeGenesetHeatmapExpansionsMobxPromise, makeGenesetHeatmapTracksMobxPromise,
     makeHeatmapTracksMobxPromise, makeClinicalTracksMobxPromise
 } from "./OncoprintUtils";
@@ -795,10 +796,16 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
         } else {
             return undefined;
         }
-    };
+    }
 
-    readonly sampleGeneticTracks = makeGeneticTracksMobxPromise(this, true);
-    readonly patientGeneticTracks = makeGeneticTracksMobxPromise(this, false);
+    readonly sampleGeneticTracks = makeGeneticTracksMobxPromise(
+        this, true,
+        makeGeneticTrackExpansionsMobxPromise(this, true)
+    );
+    readonly patientGeneticTracks = makeGeneticTracksMobxPromise(
+        this, false,
+        makeGeneticTrackExpansionsMobxPromise(this, false)
+    );
     @computed get geneticTracks() {
         return (this.columnMode === "sample" ? this.sampleGeneticTracks : this.patientGeneticTracks);
     }

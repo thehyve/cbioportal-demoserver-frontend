@@ -505,6 +505,16 @@ export class ResultsViewPageStore {
         }
     });
 
+    readonly putativeDriverFilteredCaseAggregatedDataByQueriedGeneSymbol = remoteData<
+        {[geneSymbol: string]: {cases:CaseAggregatedData<AnnotatedExtendedAlteration>, oql:OQLLineFilterOutput<AnnotatedExtendedAlteration>}}
+    >({
+        await: () => [this.putativeDriverFilteredCaseAggregatedDataByOQLLine],
+        invoke: () => Promise.resolve(_.keyBy(
+            this.putativeDriverFilteredCaseAggregatedDataByOQLLine.result!,
+            (lineAlterations) => lineAlterations.oql.gene
+        ))
+    });
+
     readonly genePanelInformation = remoteData<GenePanelInformation>({
         await:()=>[
             this.studyToMutationMolecularProfile,

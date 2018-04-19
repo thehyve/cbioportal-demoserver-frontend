@@ -355,7 +355,46 @@ export function formatExpansionTracks(
     );
 }
 
-export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
+export function makeGeneticTrackExpansionsMobxPromise(
+    oncoprint: ResultsViewOncoprint,
+    sampleMode: boolean
+) {
+    return remoteData<{[parentKey: string]: GeneticTrackSpec[]}>({
+        await:()=>[
+            oncoprint.props.store.samples,
+            oncoprint.props.store.patients,
+            oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByQueriedGeneSymbol,
+            oncoprint.props.store.genePanelInformation,
+            oncoprint.props.store.sequencedSampleKeysByGene,
+            oncoprint.props.store.sequencedPatientKeysByGene,
+        ],
+        invoke: () => {
+            const expansionGeneMap = oncoprint.expansionsByGeneticTrackKey;
+            const dataByGene = oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByQueriedGeneSymbol.result!;
+            const trackFunction = makeGeneticTrackWith({
+                sampleMode,
+                samples: oncoprint.props.store.samples.result!,
+                patients: oncoprint.props.store.patients.result!,
+                genePanelInformation: oncoprint.props.store.genePanelInformation.result!,
+                sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
+                sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
+                // assume that expansions do not themselves need expansions
+                expansionTracksByParent: {},
+                expansionGeneMap
+            });
+            return Promise.resolve(
+                formatExpansionTracks(expansionGeneMap.toJS(), dataByGene, trackFunction)
+            );
+        },
+        default: {},
+    });
+}
+
+export function makeGeneticTracksMobxPromise(
+    oncoprint:ResultsViewOncoprint,
+    sampleMode:boolean,
+    expansionMapPromise: MobxPromise<{[parentKey: string]: GeneticTrackSpec[]}>
+) {
     return remoteData<GeneticTrackSpec[]>({
         await:()=>[
             oncoprint.props.store.samples,
@@ -363,7 +402,8 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
             oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine,
             oncoprint.props.store.genePanelInformation,
             oncoprint.props.store.sequencedSampleKeysByGene,
-            oncoprint.props.store.sequencedPatientKeysByGene
+            oncoprint.props.store.sequencedPatientKeysByGene,
+            expansionMapPromise
         ],
         invoke: async () => {
             const trackFunction = makeGeneticTrackWith({
@@ -373,8 +413,8 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
                 genePanelInformation: oncoprint.props.store.genePanelInformation.result!,
                 sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
                 sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
-                expansionGeneMap: oncoprint.expansionsByGeneticTrackKey,
-                expansionTracksByParent: {}
+                expansionTracksByParent: expansionMapPromise.result!,
+                expansionGeneMap: oncoprint.expansionsByGeneticTrackKey
             });
             return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine.result!.map(
                 (alterationData, trackIndex) => trackFunction(
