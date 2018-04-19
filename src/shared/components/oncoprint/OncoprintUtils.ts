@@ -277,6 +277,7 @@ interface IGeneticTrackAppState {
     sequencedSampleKeysByGene: any;
     sequencedPatientKeysByGene: any;
     expansionIndexMap: ObservableMap<number[]>;
+    expansionTracksByParent: {[parentKey: string]: GeneticTrackSpec[]};
 }
 export function makeGeneticTrackWith({
     sampleMode,
@@ -285,7 +286,8 @@ export function makeGeneticTrackWith({
     genePanelInformation,
     sequencedSampleKeysByGene,
     sequencedPatientKeysByGene,
-    expansionIndexMap
+    expansionIndexMap,
+    expansionTracksByParent
 }: IGeneticTrackAppState) {
     return (
         {cases: dataByCase, oql}: {
@@ -318,7 +320,8 @@ export function makeGeneticTrackWith({
             oql: formatGeneticTrackOql(oql),
             info,
             data,
-            expansionCallback
+            expansionCallback,
+            expansionTrackList: expansionTracksByParent[trackKey]
         };
     };
 }
@@ -342,6 +345,7 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
                 sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
                 sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
                 expansionIndexMap: oncoprint.expansionsByGeneticTrackKey,
+                expansionTracksByParent: {}
             });
             return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine.result!.map(
                 (alterationData, trackIndex) => trackFunction(

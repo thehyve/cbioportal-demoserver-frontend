@@ -113,7 +113,8 @@ describe('OncoprintUtils', () => {
             },
             sequencedSampleKeysByGene: {},
             sequencedPatientKeysByGene: {'BRCA1': [], 'PTEN': [], 'TP53': []},
-            expansionIndexMap: observable.map<number[]>()
+            expansionIndexMap: observable.map<number[]>(),
+            expansionTracksByParent: {}
         });
         const makeMinimal3Patient3GeneCaseData = () => ({
             samples: {},
@@ -242,6 +243,36 @@ describe('OncoprintUtils', () => {
                 storeProperties.expansionIndexMap.get(track.key)!.slice(),
                 [0, 1, 2]
             );
+        });
+
+        it('passes expansion tracks along with the track if any are listed for its key', () => {
+            // given
+            const queryData = {
+                cases: makeMinimal3Patient3GeneCaseData(),
+                oql: {
+                    list: [
+                        {gene: 'RB1', oql_line: 'RB1;', parsed_oql_line: {gene: 'RB1', alterations: []}, data: []},
+                        {gene: 'CDK1', oql_line: 'CDK1;', parsed_oql_line: {gene: 'CDK1', alterations: []}, data: []}
+                    ]
+                }
+            };
+            const trackKey = MINIMAL_TRACK_KEY;
+            const expansionTracks = [
+                {key: 'EXPANSIONTRACK_1', label: 'RB1', oql: 'RB1;', info: '100%', data: []},
+                {key: 'EXPANSIONTRACK_2', label: 'CDK1', oql: 'CDK1;', info: '0%', data: []}
+            ];
+            const postExpandStoreProperties = {
+                ...makeMinimal3Patient3GeneStoreProperties(),
+                expansionTracksByParent: {[trackKey]: expansionTracks}
+            };
+            // when
+            const trackFunction = makeGeneticTrackWith({
+                sampleMode: false,
+                ...postExpandStoreProperties,
+            });
+            const track = trackFunction(queryData, trackKey);
+            //then
+            assert.deepEqual(track.expansionTrackList, expansionTracks);
         });
     });
 
