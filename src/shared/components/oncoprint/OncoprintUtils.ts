@@ -277,6 +277,7 @@ interface IGeneticTrackAppState {
     sequencedSampleKeysByGene: any;
     sequencedPatientKeysByGene: any;
     expansionGeneMap: ObservableMap<string[]>;
+    expansionTracksByParent: {[parentKey: string]: GeneticTrackSpec[]};
 }
 export function makeGeneticTrackWith({
     sampleMode,
@@ -285,7 +286,8 @@ export function makeGeneticTrackWith({
     genePanelInformation,
     sequencedSampleKeysByGene,
     sequencedPatientKeysByGene,
-    expansionGeneMap
+    expansionGeneMap,
+    expansionTracksByParent
 }: IGeneticTrackAppState) {
     return (
         {cases: dataByCase, oql}: {
@@ -308,18 +310,19 @@ export function makeGeneticTrackWith({
             sequencedSampleKeysByGene,
             sequencedPatientKeysByGene
         ).percent;
-
         const trackKey = `GENETICTRACK_${index}`;
+        const expansionCallback = (isMergedTrackFilter(oql)
+            ? () => { expansionGeneMap.set(trackKey, geneSymbolArray); }
+            : undefined
+        );
         return {
             key: trackKey,
             label: formatGeneticTrackLabel(oql),
             oql: formatGeneticTrackOql(oql),
             info,
             data,
-            expansionCallback: (isMergedTrackFilter(oql)
-                ? () => { expansionGeneMap.set(trackKey, geneSymbolArray); }
-                : undefined
-            )
+            expansionCallback,
+            expansionTrackList: expansionTracksByParent[trackKey]
         };
     };
 }
@@ -343,7 +346,8 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
                     genePanelInformation: oncoprint.props.store.genePanelInformation.result!,
                     sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
                     sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
-                    expansionGeneMap: oncoprint.expansionsByGeneticTrackKey
+                    expansionGeneMap: oncoprint.expansionsByGeneticTrackKey,
+                    expansionTracksByParent: {}
                 })
             );
         },

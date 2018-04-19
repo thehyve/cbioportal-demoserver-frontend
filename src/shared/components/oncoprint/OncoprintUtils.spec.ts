@@ -113,7 +113,8 @@ describe('OncoprintUtils', () => {
             },
             sequencedSampleKeysByGene: {},
             sequencedPatientKeysByGene: {'BRCA1': [], 'PTEN': [], 'TP53': []},
-            expansionGeneMap: observable.map<string[]>()
+            expansionGeneMap: observable.map<string[]>(),
+            expansionTracksByParent: {}
         });
         const makeMinimal3Patient3GeneCaseData = () => ({
             samples: {},
@@ -242,6 +243,42 @@ describe('OncoprintUtils', () => {
                 storeProperties.expansionGeneMap.get(track.key)!.slice(),
                 ['FOLR1', 'FOLR2', 'IZUMO1R']
             );
+        });
+
+        it('passes expansion tracks along with the track if any are listed for its key', () => {
+            // given
+            const queryData = {
+                cases: makeMinimal3Patient3GeneCaseData(),
+                oql: {
+                    list: [
+                        {gene: 'RB1', oql_line: 'RB1;', parsed_oql_line: {gene: 'RB1', alterations: []}, data: []},
+                        {gene: 'CDK1', oql_line: 'CDK1;', parsed_oql_line: {gene: 'CDK1', alterations: []}, data: []}
+                    ]
+                }
+            };
+            const preExpandStoreProperties = makeMinimal3Patient3GeneStoreProperties();
+            const trackKey = (makeGeneticTrackWith({
+                    sampleMode: false, ...preExpandStoreProperties
+                })(
+                    queryData, MINIMAL_TRACK_INDEX
+                ).key
+            );
+            const expansionTracks = [
+                {key: 'GENETICTRACK_NaN', label: 'RB1', oql: 'RB1;', info: '100%', data: []},
+                {key: 'GENETICTRACK_NaN', label: 'CDK1', oql: 'CDK1;', info: '0%', data: []}
+            ];
+            const postExpandStoreProperties = {
+                ...preExpandStoreProperties,
+                expansionTracksByParent: {[trackKey]: expansionTracks}
+            };
+            // when
+            const trackFunction = makeGeneticTrackWith({
+                sampleMode: false,
+                ...postExpandStoreProperties,
+            });
+            const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+            //then
+            assert.deepEqual(track.expansionTrackList, expansionTracks);
         });
     });
 
