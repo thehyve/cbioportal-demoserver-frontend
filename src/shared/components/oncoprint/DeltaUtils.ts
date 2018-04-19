@@ -498,7 +498,8 @@ function transitionGeneticTrack(
             data_id_key: "uid",
             data: nextSpec.data,
             tooltipFn: makeGeneticTrackTooltip(true),
-            track_info: nextSpec.info
+            track_info: nextSpec.info,
+            expandCallback: nextSpec.expansionCallback || undefined
         };
         const newTrackId = oncoprint.addTracks([geneticTrackParams])[0];
         trackSpecKeyToTrackId[nextSpec.key] = newTrackId;
