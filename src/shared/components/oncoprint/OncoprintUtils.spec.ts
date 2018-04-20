@@ -127,7 +127,7 @@ describe('OncoprintUtils', () => {
                 'VENHQS0wMi0wMDA2OmdibV90Y2dh': []
             }
         });
-        const MINIMAL_TRACK_INDEX = 0;
+        const MINIMAL_TRACK_KEY = 'GENETICTRACK_0';
 
         it('if queried for a plain gene, labels the track based on that query', () => {
             // given store properties for three patients and query data for
@@ -147,7 +147,7 @@ describe('OncoprintUtils', () => {
                 sampleMode: false,
                 ...storeProperties
             });
-            const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+            const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
             // then it returns a track with the same label and OQL
             assert.equal(track.label, 'TP53');
             assert.equal(track.oql, 'TP53;');
@@ -169,7 +169,7 @@ describe('OncoprintUtils', () => {
                 sampleMode: false,
                 ...storeProperties
             });
-            const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+            const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
             // then it returns a track with the genes' OQL and labels
             assert.equal(track.label, 'BRCA1 / PTEN');
             assert.equal(track.oql, '[BRCA1; PTEN;]');
@@ -194,7 +194,7 @@ describe('OncoprintUtils', () => {
                 sampleMode: false,
                 ...storeProperties
             });
-            const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+            const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
             // then it returns a track with that label and the genes' OQL
             assert.equal(track.label, 'HELLO');
             assert.equal(track.oql, '[BRCA1; PTEN;]');
@@ -216,7 +216,7 @@ describe('OncoprintUtils', () => {
                 sampleMode: false,
                 ...storeProperties
             });
-            const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+            const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
             // then
             assert.isFunction(track.expansionCallback);
         });
@@ -239,7 +239,7 @@ describe('OncoprintUtils', () => {
                 sampleMode: false,
                 ...storeProperties,
             });
-            const track = trackFunction(queryData, MINIMAL_TRACK_INDEX);
+            const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
             track.expansionCallback!();
             // then
             assert.includeMembers(
