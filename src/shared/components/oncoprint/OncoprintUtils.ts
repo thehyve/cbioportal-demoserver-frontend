@@ -292,7 +292,7 @@ export function makeGeneticTrackWith({
             cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
             oql: UnflattenedOQLLineFilterOutput<object>
         },
-        index: number
+        trackKey: string
     ): GeneticTrackSpec => {
         const geneSymbolArray = (isMergedTrackFilter(oql)
             ? oql.list.map(({gene}) => gene)
@@ -308,7 +308,6 @@ export function makeGeneticTrackWith({
             sequencedSampleKeysByGene,
             sequencedPatientKeysByGene
         ).percent;
-        const trackKey = `GENETICTRACK_${index}`;
         const expansionCallback = (isMergedTrackFilter(oql)
             ? () => { expansionIndexMap.set(trackKey, _.range(oql.list.length)); }
             : undefined
@@ -335,16 +334,19 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
             oncoprint.props.store.sequencedPatientKeysByGene
         ],
         invoke: async () => {
+            const trackFunction = makeGeneticTrackWith({
+                sampleMode,
+                samples: oncoprint.props.store.samples.result!,
+                patients: oncoprint.props.store.patients.result!,
+                genePanelInformation: oncoprint.props.store.genePanelInformation.result!,
+                sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
+                sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
+                expansionIndexMap: oncoprint.expansionsByGeneticTrackKey,
+            });
             return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine.result!.map(
-                makeGeneticTrackWith({
-                    sampleMode,
-                    samples: oncoprint.props.store.samples.result!,
-                    patients: oncoprint.props.store.patients.result!,
-                    genePanelInformation: oncoprint.props.store.genePanelInformation.result!,
-                    sequencedSampleKeysByGene: oncoprint.props.store.sequencedSampleKeysByGene.result!,
-                    sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
-                    expansionIndexMap: oncoprint.expansionsByGeneticTrackKey
-                })
+                (alterationData, trackIndex) => trackFunction(
+                    alterationData, `GENETICTRACK_${trackIndex}`
+                )
             );
         },
         default: [],
