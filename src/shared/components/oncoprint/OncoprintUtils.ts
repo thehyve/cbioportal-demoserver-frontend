@@ -32,7 +32,11 @@ import {MobxPromise} from "mobxpromise";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 import GenesetCorrelatedGeneCache from "shared/cache/GenesetCorrelatedGeneCache";
 import Spec = Mocha.reporters.Spec;
-import {UnflattenedOQLLineFilterOutput, isMergedTrackFilter} from "../../lib/oql/oqlfilter";
+import {
+    OQLLineFilterOutput,
+    UnflattenedOQLLineFilterOutput,
+    isMergedTrackFilter
+} from "../../lib/oql/oqlfilter";
 import {ClinicalAttribute, Patient, Sample} from "../../api/generated/CBioPortalAPI";
 
 interface IGenesetExpansionMap {
@@ -324,6 +328,31 @@ export function makeGeneticTrackWith({
             expansionTrackList: expansionTracksByParent[trackKey]
         };
     };
+}
+
+export function formatExpansionTracks(
+    expansionGenesByParent: {[parentKey: string]: string[]},
+    dataByGene: {[geneSymbol: string]: {
+        cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+        oql: OQLLineFilterOutput<AnnotatedExtendedAlteration>
+    }},
+    trackFunction: (
+        alterationData: {
+            cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+            oql: OQLLineFilterOutput<AnnotatedExtendedAlteration>
+        },
+        trackId: string
+    ) => GeneticTrackSpec
+): {[parentKey: string]: GeneticTrackSpec[]} {
+    return _.mapValues(
+        expansionGenesByParent,
+        (genes, parentKey) => genes.map(
+            (geneSymbol, expansionIndex) => trackFunction(
+                dataByGene[geneSymbol],
+                `${parentKey}_EXPANSION_${expansionIndex}`
+            )
+        )
+    );
 }
 
 export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sampleMode:boolean) {
