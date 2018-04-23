@@ -1,4 +1,4 @@
-import {getSimplifiedMutationType} from "shared/lib/oql/accessors";
+import accessors, {getSimplifiedMutationType} from "shared/lib/oql/accessors";
 import {assert} from "chai";
 import {
     Gene, NumericGeneMolecularData, GenePanelData, MolecularProfile, Mutation, Patient,
@@ -8,6 +8,7 @@ import {
     annotateMolecularDatum,
     annotateMutationPutativeDriver,
     computeCustomDriverAnnotationReport, computeGenePanelInformation, computePutativeDriverAnnotatedMutations,
+    filterMergedTrackGeneData,
     getOncoKbOncogenic,
     initializeCustomDriverAnnotationSettings,
     getQueriedStudies
@@ -94,6 +95,160 @@ describe("ResultsViewPageStoreUtils", ()=>{
             assert.deepEqual(
                 computeCustomDriverAnnotationReport([driverTiersFilterMutation, driverFilterMutation, neitherMutation]),
                 {hasBinary:true, tiers:["T"]}
+            );
+        });
+    });
+
+    describe("filterMergedTrackGeneData", () => {
+        // I believe these metadata to be all `new accessors()` needs
+        // tslint:disable-next-line no-object-literal-type-assertion
+        const makeBasicExpressionProfile = () => ({
+            "molecularAlterationType": "MRNA_EXPRESSION",
+            "datatype": "Z-SCORE",
+            "molecularProfileId": "brca_tcga_mrna_median_Zscores",
+            "studyId": "brca_tcga"
+        } as MolecularProfile);
+
+        // I believe this to be the projection the filter function needs
+        const makeMinimalExpressionData = (
+            points: {entrezGeneId: number, uniqueSampleKey: string, value: number}[]
+        ) => points.map(({entrezGeneId, uniqueSampleKey, value}) => ({
+            entrezGeneId, value,uniqueSampleKey,
+            sampleId: `TCGA-${uniqueSampleKey}`,
+            uniquePatientKey: `${uniqueSampleKey}_PATIENT`,
+            patientId: `TCGA-${uniqueSampleKey}_PATIENT`,
+            molecularProfileId: 'brca_tcga_mrna_median_Zscores',
+            studyId: 'brca_tcga',
+            gene: {
+                entrezGeneId, hugoGeneSymbol: `GENE${entrezGeneId}`,
+                "type": "protein-coding", "cytoband": "1p20.1", "length": 4000
+            }
+        })) as NumericGeneMolecularData[];
+
+        const makeMinimalCaseArrays = (sampleKeys: string[]) => ({
+            samples: sampleKeys.map(
+                uniqueSampleKey => ({uniqueSampleKey})
+            ),
+            patients: sampleKeys.map(
+                uniqueSampleKey => ({uniquePatientKey: `${uniqueSampleKey}_PATIENT`})
+            )
+        });
+
+        it("returns a listless object if queried for a single-gene track", () => {
+            // given
+            const accessorsInstance = new accessors([makeBasicExpressionProfile()]);
+            const dataArray: NumericGeneMolecularData[] = makeMinimalExpressionData([{
+                entrezGeneId: 1000,
+                uniqueSampleKey: 'SAMPLE1',
+                value: 1.5
+            }]);
+            const {samples, patients} = makeMinimalCaseArrays(['SAMPLE1']);
+            // when
+            const data = filterMergedTrackGeneData(
+                'TP53',
+                'EXP>=2 EXP<=-2;',
+                dataArray,
+                accessorsInstance,
+                samples, patients
+            );
+            // then
+            assert.lengthOf(data, 1);
+            assert.notProperty(data[0], 'list');
+        });
+
+        it("returns a two-element list object with no alterations if queried for a two-gene merged track that matches none", () => {
+            // given
+            const accessorsInstance = new accessors([makeBasicExpressionProfile()]);
+            const dataArray: NumericGeneMolecularData[] = makeMinimalExpressionData([
+                {entrezGeneId: 1000, uniqueSampleKey: 'SAMPLE1', value: 1.5},
+                {entrezGeneId: 1001, uniqueSampleKey: 'SAMPLE1', value: 1.5},
+            ]);
+            const {samples, patients} = makeMinimalCaseArrays(['SAMPLE1']);
+            // when
+            const data = filterMergedTrackGeneData(
+                '[GENE1000 GENE1001]',
+                'EXP>=3 EXP<=-3;',
+                dataArray,
+                accessorsInstance,
+                samples, patients
+            );
+            // then
+            assert.lengthOf(data, 1);
+            assert.lengthOf(data[0].list!, 2);
+            assert.deepEqual(
+                data[0].list![0].cases,
+                {
+                    samples: {'SAMPLE1': []},
+                    patients: {'SAMPLE1_PATIENT': []}
+                }
+            );
+            assert.deepEqual(
+                data[0].list![1].cases,
+                {
+                    samples: {'SAMPLE1': []},
+                    patients: {'SAMPLE1_PATIENT': []}
+                }
+            );
+        });
+
+        it("lists alterations that match genes in a merged track", () => {
+            // given
+            const accessorsInstance = new accessors([makeBasicExpressionProfile()]);
+            const dataArray: NumericGeneMolecularData[] = makeMinimalExpressionData([
+                {entrezGeneId: 1000, uniqueSampleKey: 'SAMPLE1', value: 0},
+                {entrezGeneId: 1000, uniqueSampleKey: 'SAMPLE2', value: 0},
+                {entrezGeneId: 1001, uniqueSampleKey: 'SAMPLE1', value: 2.2},
+                {entrezGeneId: 1001, uniqueSampleKey: 'SAMPLE2', value: -2.7}
+            ]);
+            const {samples, patients} = makeMinimalCaseArrays(
+                ['SAMPLE1', 'SAMPLE2']
+            );
+            // when
+            const data = filterMergedTrackGeneData(
+                '[GENE1000 GENE1001]',
+                'EXP>=2.5 EXP<=-2.5;',
+                dataArray,
+                accessorsInstance,
+                samples, patients
+            );
+            // then
+            const gene2AlterationsBySample = data[0].list![1].cases.samples;
+            assert.lengthOf(gene2AlterationsBySample['SAMPLE1'], 0);
+            assert.lengthOf(gene2AlterationsBySample['SAMPLE2'], 1);
+            assert.equal(
+                gene2AlterationsBySample['SAMPLE2'][0].alterationSubType,
+                'down'
+            );
+        });
+
+        it("lists different alterations if two merged tracks query the same gene with different filters", () => {
+            // given
+            const dataArray: NumericGeneMolecularData[] = makeMinimalExpressionData([
+                {entrezGeneId: 1000, uniqueSampleKey: 'SAMPLE1', value: 0},
+                {entrezGeneId: 1001, uniqueSampleKey: 'SAMPLE1', value: 2.2},
+            ]);
+            const accessorsInstance: accessors = new accessors([makeBasicExpressionProfile()]);
+            const {samples, patients} = makeMinimalCaseArrays(
+                ['SAMPLE1', 'SAMPLE2']
+            );
+            // when
+            const data = filterMergedTrackGeneData(
+                '[GENE1001 GENE1000] [DATATYPES: EXP>=2.5 EXP<=-2.5; GENE1001 GENE1000]',
+                'EXP>=2 EXP<=-2;',
+                dataArray,
+                accessorsInstance,
+                samples, patients
+            );
+            // then
+            const track1Gene1AlterationsBySample = data[0].list![0].cases.samples;
+            assert.lengthOf(
+                track1Gene1AlterationsBySample["SAMPLE1"],
+                1
+            );
+            const track2Gene1AlterationsBySample = data[1].list![0].cases.samples;
+            assert.lengthOf(
+                track2Gene1AlterationsBySample["SAMPLE1"],
+                0
             );
         });
     });
