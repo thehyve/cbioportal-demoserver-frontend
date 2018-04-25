@@ -108,6 +108,7 @@ describe('OncoprintUtils', () => {
             }
         });
         const MINIMAL_TRACK_KEY = 'GENETICTRACK_0';
+        const MINIMAL_TRACK_INDEX = 0;
 
         describe('makeGeneticTrackWith', () => {
             const makeMinimalCoverageRecord = () => ({
@@ -131,8 +132,10 @@ describe('OncoprintUtils', () => {
                 },
                 sequencedSampleKeysByGene: {},
                 sequencedPatientKeysByGene: {'BRCA1': [], 'PTEN': [], 'TP53': []},
-                expansionIndexMap: observable.map<number[]>(),
-                expansionTracksByParent: {}
+                expansionTracksByParent: {},
+                expansionIndexMap: observable.shallowMap<
+                    {parentIndex: number, expansionIndex: number}[]
+                >()
             });
 
             it('if queried for a plain gene, labels the track based on that query', () => {
@@ -153,7 +156,7 @@ describe('OncoprintUtils', () => {
                     sampleMode: false,
                     ...storeProperties
                 });
-                const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
+                const track = trackFunction(queryData, MINIMAL_TRACK_KEY, MINIMAL_TRACK_INDEX);
                 // then it returns a track with the same label and OQL
                 assert.equal(track.label, 'TP53');
                 assert.equal(track.oql, 'TP53;');
@@ -175,7 +178,7 @@ describe('OncoprintUtils', () => {
                     sampleMode: false,
                     ...storeProperties
                 });
-                const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
+                const track = trackFunction(queryData, MINIMAL_TRACK_KEY, MINIMAL_TRACK_INDEX);
                 // then it returns a track with the genes' OQL and labels
                 assert.equal(track.label, 'BRCA1 / PTEN');
                 assert.equal(track.oql, '[BRCA1; PTEN;]');
@@ -200,7 +203,7 @@ describe('OncoprintUtils', () => {
                     sampleMode: false,
                     ...storeProperties
                 });
-                const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
+                const track = trackFunction(queryData, MINIMAL_TRACK_KEY, MINIMAL_TRACK_INDEX);
                 // then it returns a track with that label and the genes' OQL
                 assert.equal(track.label, 'HELLO');
                 assert.equal(track.oql, '[BRCA1; PTEN;]');
@@ -222,14 +225,19 @@ describe('OncoprintUtils', () => {
                     sampleMode: false,
                     ...storeProperties
                 });
-                const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
+                const track = trackFunction(queryData, MINIMAL_TRACK_KEY, MINIMAL_TRACK_INDEX);
                 // then
                 assert.isFunction(track.expansionCallback);
             });
 
-            it("makes the expansion callback for merged tracks list the track's subquery indexes in the expansion observable", () => {
+            it("makes the expansion callback for a merged track list the track's subquery indexes in the expansion observable", () => {
                 // given
-                const storeProperties = makeMinimal3Patient3GeneStoreProperties();
+                const storeProperties = {
+                    ...makeMinimal3Patient3GeneStoreProperties(),
+                    expansionIndexMap: observable.shallowMap<
+                        {parentIndex: number, expansionIndex: number}[]
+                    >()
+                };
                 const queryData = {
                     cases: makeMinimal3Patient3GeneCaseData(),
                     oql: {
@@ -240,17 +248,32 @@ describe('OncoprintUtils', () => {
                         ]
                     }
                 };
+                const trackKey = MINIMAL_TRACK_KEY;
+                const trackIndex = MINIMAL_TRACK_INDEX + 2;
                 // when
                 const trackFunction = makeGeneticTrackWith({
                     sampleMode: false,
                     ...storeProperties,
                 });
-                const track = trackFunction(queryData, MINIMAL_TRACK_KEY);
-                track.expansionCallback!();
+                const track = trackFunction(
+                    queryData,
+                    trackKey,
+                    trackIndex
+                );
                 // then
-                assert.includeMembers(
-                    storeProperties.expansionIndexMap.get(track.key)!.slice(),
-                    [0, 1, 2]
+                assert.isFalse(
+                    storeProperties.expansionIndexMap.has(trackKey),
+                    'Specifying a genetic track should not add any ' +
+                    'expansions until the expansion callback is called'
+                );
+                track.expansionCallback!();
+                assert.deepEqual(
+                    storeProperties.expansionIndexMap.get(trackKey)!.slice(),
+                    [
+                        {parentIndex: trackIndex, expansionIndex: 0},
+                        {parentIndex: trackIndex, expansionIndex: 1},
+                        {parentIndex: trackIndex, expansionIndex: 2}
+                    ]
                 );
             });
 
@@ -279,7 +302,7 @@ describe('OncoprintUtils', () => {
                     sampleMode: false,
                     ...postExpandStoreProperties,
                 });
-                const track = trackFunction(queryData, trackKey);
+                const track = trackFunction(queryData, trackKey, MINIMAL_TRACK_INDEX);
                 //then
                 assert.deepEqual(track.expansionTrackList, expansionTracks);
             });

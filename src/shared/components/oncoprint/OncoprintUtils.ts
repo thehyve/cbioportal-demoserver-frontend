@@ -280,7 +280,7 @@ interface IGeneticTrackAppState {
     coverageInformation: CoverageInformation;
     sequencedSampleKeysByGene: any;
     sequencedPatientKeysByGene: any;
-    expansionIndexMap: ObservableMap<number[]>;
+    expansionIndexMap: ObservableMap<{parentIndex: number, expansionIndex: number}[]>;
     expansionTracksByParent: {[parentKey: string]: GeneticTrackSpec[]};
 }
 export function makeGeneticTrackWith({
@@ -298,7 +298,8 @@ export function makeGeneticTrackWith({
             cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
             oql: UnflattenedOQLLineFilterOutput<object>
         },
-        trackKey: string
+        trackKey: string,
+        trackIndex: number
     ): GeneticTrackSpec => {
         const geneSymbolArray = (isMergedTrackFilter(oql)
             ? oql.list.map(({gene}) => gene)
@@ -315,7 +316,15 @@ export function makeGeneticTrackWith({
             sequencedPatientKeysByGene
         ).percent;
         const expansionCallback = (isMergedTrackFilter(oql)
-            ? () => { expansionIndexMap.set(trackKey, _.range(oql.list.length)); }
+            ? () => {
+                const allIndexes = _.range(oql.list.length).map(
+                    expansionIndex => ({parentIndex: trackIndex, expansionIndex})
+                );
+                expansionIndexMap.set(
+                    trackKey,
+                    allIndexes
+                );
+            }
             : undefined
         );
         return {
@@ -382,7 +391,7 @@ export function makeGeneticTracksMobxPromise(oncoprint:ResultsViewOncoprint, sam
             });
             return oncoprint.props.store.putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine.result!.map(
                 (alterationData, trackIndex) => trackFunction(
-                    alterationData, `GENETICTRACK_${trackIndex}`
+                    alterationData, `GENETICTRACK_${trackIndex}`, trackIndex
                 )
             );
         },
