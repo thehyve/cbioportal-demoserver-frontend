@@ -70,7 +70,7 @@ import {
     annotateMolecularDatum, getOncoKbOncogenic, groupDataByCase,
     computeCustomDriverAnnotationReport, computePutativeDriverAnnotatedMutations,
     initializeCustomDriverAnnotationSettings, computeGenePanelInformation,
-    getQueriedStudies
+    filterMergedTrackGeneData, getQueriedStudies
 } from "./ResultsViewPageStoreUtils";
 import {getAlterationCountsForCancerTypesForAllGenes} from "../../shared/lib/alterationCountHelpers";
 import sessionServiceClient from "shared/api//sessionServiceInstance";
@@ -542,6 +542,34 @@ export class ResultsViewPageStore {
             }
         }
     });
+
+    readonly putativeDriverFilteredCaseAggregatedDataByMergedTrackSubquery = remoteData<
+        {
+            list?: {
+                cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+                oql: OQLLineFilterOutput<object>
+            }[]
+        }[]
+        >({
+            await: () => [
+                this.defaultOQLQuery,
+                this.putativeDriverAnnotatedMutations,
+                this.annotatedMolecularData,
+                this.selectedMolecularProfiles,
+                this.samples,
+                this.patients
+            ],
+            invoke: () => Promise.resolve(
+                filterMergedTrackGeneData(
+                    this.oqlQuery,
+                    this.defaultOQLQuery.result!,
+                    [...(this.putativeDriverAnnotatedMutations.result!), ...(this.annotatedMolecularData.result!)],
+                    new accessors(this.selectedMolecularProfiles.result!),
+                    this.samples.result!,
+                    this.patients.result!
+                )
+            )
+        });
 
     readonly genePanelInformation = remoteData<GenePanelInformation>({
         await:()=>[
