@@ -131,7 +131,8 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
     private heatmapGeneInputValueUpdater:IReactionDisposer;
 
     public selectedClinicalAttributeIds = observable.shallowMap<boolean>();
-    public expansionsByGeneticTrackKey = observable.map<number[]>();
+    public expansionsByGeneticTrackKey =
+        observable.shallowMap<{parentIndex: number, expansionIndex: number}[]>();
     public expansionsByGenesetHeatmapTrackKey =
         observable.map<IGenesetExpansionRecord[]>();
     public molecularProfileIdToHeatmapTracks =
