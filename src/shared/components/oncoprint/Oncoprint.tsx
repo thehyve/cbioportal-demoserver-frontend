@@ -77,6 +77,7 @@ export type GeneticTrackSpec = {
     data: GeneticTrackDatum[];
     expansionCallback?: () => void;
     expansionTrackList?: GeneticTrackSpec[];
+    labelColor?: string;
 };
 
 interface IBaseHeatmapTrackSpec {
