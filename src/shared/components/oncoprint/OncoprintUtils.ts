@@ -285,7 +285,7 @@ export function makeGeneticTrackWith({
     coverageInformation,
     sequencedSampleKeysByGene,
     sequencedPatientKeysByGene,
-    expansionIndexMap
+    expansionIndexMap,
 }: IGeneticTrackAppState) {
     return function makeTrack(
         {cases: dataByCase, oql, list: subTrackData}: {
@@ -335,7 +335,8 @@ export function makeGeneticTrackWith({
         ));
         return {
             key: trackKey,
-            label: formatGeneticTrackLabel(oql),
+            label: (parentKey !== undefined ? '  ' : '') + formatGeneticTrackLabel(oql),
+            labelColor: parentKey !== undefined ? 'grey' : undefined,
             oql: formatGeneticTrackOql(oql),
             info,
             data,
