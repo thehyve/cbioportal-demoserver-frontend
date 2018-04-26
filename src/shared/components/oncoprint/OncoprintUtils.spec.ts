@@ -301,6 +301,34 @@ describe('OncoprintUtils', () => {
                 //then
                 assert.deepEqual(track.expansionTrackList, expansionTracks);
             });
+
+            it('indents and lowlights tracks if requested', () => {
+                // given
+                const storeProperties = makeMinimal3Patient3GeneStoreProperties();
+                const queryData = {
+                     cases: makeMinimal3Patient3GeneCaseData(),
+                     oql: {
+                        gene: 'KRAS',
+                        oql_line: 'KRAS;',
+                        parsed_oql_line: {gene: 'KRAS', alterations: []},
+                        data: []
+                    }
+                };
+                // when
+                const trackFunction = makeGeneticTrackWith({
+                    sampleMode: true,
+                    ...storeProperties,
+                    indent: true
+                });
+                const track = trackFunction(
+                    queryData,
+                    MINIMAL_TRACK_KEY,
+                    MINIMAL_TRACK_INDEX
+                );
+                // then
+                assert.equal(track.labelColor, 'grey');
+                assert.equal(track.label, '  KRAS');
+            });
         });
 
         describe('formatExpansionTracks', () => {

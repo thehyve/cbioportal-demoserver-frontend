@@ -131,6 +131,32 @@ describe("Oncoprint DeltaUtils", ()=>{
                 'The expansion tracks added should correspond to those requested'
             );
         });
+
+        it("renders a genetic track with a coloured label if so requested", () => {
+            // given a genetic track specification with a label color
+            const newProps: IOncoprintProps = {
+                ...makeMinimalOncoprintProps(),
+                geneticTracks: [{
+                    key: 'GENETICTRACK_14',
+                    label: 'GENE7',
+                    oql: 'GENE7: A316M;',
+                    info: '0%',
+                    data: [],
+                    labelColor: 'fuchsia'
+                }]
+            };
+            const oncoprint: OncoprintJS<any> = createStubInstance(OncoprintJS);
+            (oncoprint.addTracks as SinonStub).returns([1]);
+            const trackIdsByKey = {};
+            // when instructed to render the track from scratch
+            transition(newProps, makeMinimalOncoprintProps(), oncoprint, () => trackIdsByKey);
+            // then it adds a track with the specified track label color
+            assert.isTrue(
+                (oncoprint.addTracks as SinonStub).calledWith(
+                    [match.has('track_label_color', 'fuchsia')]
+                )
+            );
+        });
     });
 
     describe("transitionTrackGroupSortPriority", ()=>{

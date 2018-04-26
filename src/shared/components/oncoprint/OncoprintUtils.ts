@@ -282,6 +282,7 @@ interface IGeneticTrackAppState {
     sequencedPatientKeysByGene: any;
     expansionIndexMap: ObservableMap<{parentIndex: number, expansionIndex: number}[]>;
     expansionTracksByParent: {[parentKey: string]: GeneticTrackSpec[]};
+    indent?: boolean;
 }
 export function makeGeneticTrackWith({
     sampleMode,
@@ -291,7 +292,8 @@ export function makeGeneticTrackWith({
     sequencedSampleKeysByGene,
     sequencedPatientKeysByGene,
     expansionIndexMap,
-    expansionTracksByParent
+    expansionTracksByParent,
+    indent
 }: IGeneticTrackAppState) {
     return (
         {cases: dataByCase, oql}: {
@@ -329,7 +331,8 @@ export function makeGeneticTrackWith({
         );
         return {
             key: trackKey,
-            label: formatGeneticTrackLabel(oql),
+            label: (indent ? '  ' : '') + formatGeneticTrackLabel(oql),
+            labelColor: indent ? 'grey' : undefined,
             oql: formatGeneticTrackOql(oql),
             info,
             data,
@@ -394,7 +397,8 @@ export function makeGeneticTrackExpansionsMobxPromise(
                 sequencedPatientKeysByGene: oncoprint.props.store.sequencedPatientKeysByGene.result!,
                 // assume that expansions do not themselves need expansions
                 expansionTracksByParent: {},
-                expansionIndexMap
+                expansionIndexMap,
+                indent: true
             });
             return Promise.resolve(
                 formatExpansionTracks(expansionIndexMap.toJS(), dataByQueryIndex, trackFunction)
