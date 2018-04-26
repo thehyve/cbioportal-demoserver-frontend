@@ -704,7 +704,6 @@ function transitionGenesetHeatmapTrack(
             track_padding: 0,
             label: nextSpec.label,
             html_label: linebreakGenesetId(nextSpec.label),
-            track_label_color: 'grey',
             target_group: nextSpec.trackGroupIndex,
             sort_direction_changeable: true,
             sortCmpFn: heatmapTrackSortComparator,
@@ -779,6 +778,7 @@ function transitionHeatmapTrack(
             has_column_spacing: false,
             track_padding: 0,
             label: nextSpec.label,
+            track_label_color: nextSpec.labelColor || undefined,
             target_group: nextSpec.trackGroupIndex,
             removable: true,
             removeCallback: ()=>{
