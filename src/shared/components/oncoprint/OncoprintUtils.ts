@@ -27,7 +27,7 @@ import {
 } from "./DataUtils";
 import ResultsViewOncoprint from "./ResultsViewOncoprint";
 import _ from "lodash";
-import {action, runInAction, ObservableMap} from "mobx";
+import {action, runInAction, ObservableMap, IObservableArray} from "mobx";
 import {MobxPromise} from "mobxpromise";
 import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 import GenesetCorrelatedGeneCache from "shared/cache/GenesetCorrelatedGeneCache";
@@ -321,6 +321,13 @@ export function makeGeneticTrackWith({
             ? () => { expansionIndexMap.set(trackKey, _.range(oql.list.length)); }
             : undefined
         );
+        const removeCallback = (parentKey !== undefined
+            ? () => {
+                (expansionIndexMap.get(parentKey) as IObservableArray<number>
+                ).remove(index);
+            }
+            : undefined
+        );
         const expansions: GeneticTrackSpec[] = (
             expansionIndexMap.get(trackKey) || []
         ).map(expansionIndex => makeTrack(
@@ -333,6 +340,7 @@ export function makeGeneticTrackWith({
             info,
             data,
             expansionCallback,
+            removeCallback,
             expansionTrackList: expansions.length ? expansions : undefined
         };
     };
