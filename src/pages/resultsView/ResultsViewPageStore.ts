@@ -67,7 +67,8 @@ import {countMutations, mutationCountByPositionKey} from "./mutationCountHelpers
 import {getPatientSurvivals} from "./SurvivalStoreHelper";
 import {QueryStore} from "shared/components/query/QueryStore";
 import {
-    annotateMolecularDatum, getOncoKbOncogenic, groupDataByCase,
+    annotateMolecularDatum, filterSubQueryData,
+    getOncoKbOncogenic, groupDataByCase,
     computeCustomDriverAnnotationReport, computePutativeDriverAnnotatedMutations,
     initializeCustomDriverAnnotationSettings, computeGenePanelInformation,
     getQueriedStudies, CoverageInformation
@@ -466,7 +467,11 @@ export class ResultsViewPageStore {
 
     readonly putativeDriverFilteredCaseAggregatedDataByUnflattenedOQLLine = remoteData<{
         cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
-        oql: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>
+        oql: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>,
+        list?: {
+            cases: CaseAggregatedData<AnnotatedExtendedAlteration>,
+            oql: OQLLineFilterOutput<object>
+        }[]
     }[]>({
         await: () => [
             this.putativeDriverAnnotatedMutations,
@@ -477,22 +482,33 @@ export class ResultsViewPageStore {
             this.patients
         ],
         invoke: () => {
+            const data = [...(this.putativeDriverAnnotatedMutations.result!), ...(this.annotatedMolecularData.result!)];
+            const accessorsInstance = new accessors(this.selectedMolecularProfiles.result!);
+            const defaultOQLQuery = this.defaultOQLQuery.result!;
+            const samples = this.samples.result!;
+            const patients = this.patients.result!;
+
             if (this.oqlQuery.trim() === '') {
                 return Promise.resolve([]);
             } else {
                 const filteredAlterationsByOQLLine: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>[] = (
                     filterCBioPortalWebServiceDataByUnflattenedOQLLine(
                         this.oqlQuery,
-                        [...(this.putativeDriverAnnotatedMutations.result!), ...(this.annotatedMolecularData.result!)],
-                        (new accessors(this.selectedMolecularProfiles.result!)),
-                        this.defaultOQLQuery.result!
+                        data,
+                        accessorsInstance,
+                        defaultOQLQuery
                     )
                 );
 
                 return Promise.resolve(filteredAlterationsByOQLLine.map(
                     (oql) => ({
-                        cases: groupDataByCase(oql, this.samples.result!, this.patients.result!),
-                        oql
+                        cases: groupDataByCase(oql, samples, patients),
+                        oql,
+                        list: filterSubQueryData(
+                            oql, defaultOQLQuery,
+                            data, accessorsInstance,
+                            samples, patients
+                        )
                     })
                 ));
             }
