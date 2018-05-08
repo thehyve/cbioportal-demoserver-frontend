@@ -488,7 +488,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               });
+               } as any);
        });
        it("fills a datum w one mutation data correctly", ()=>{
            let data = [
@@ -507,9 +507,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "missense_rec",
                    disp_germ: false
-               },
-               "missense driver with no germline"
-           );
+               } as any, "missense driver with no germline");
 
            data = [{
                mutationType: "in_frame_del",
@@ -526,9 +524,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "inframe",
                    disp_germ: false
-               },
-               "inframe non-driver"
-           );
+               } as any, "inframe non-driver");
 
            data = [{
                mutationType: "truncating",
@@ -545,9 +541,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "trunc",
                    disp_germ: false
-               },
-               "truncating non-driver"
-           );
+               } as any, "truncating non-driver");
 
            data = [{
                mutationType: "fusion",
@@ -565,9 +559,7 @@ describe("DataUtils", ()=>{
                    disp_mut: undefined,
                    disp_fusion: true,
                    disp_germ: undefined
-               },
-               "fusion non-driver"
-           );
+               } as any, "fusion non-driver");
        });
 
 
@@ -586,9 +578,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "amplification"
-           );
+               } as any, "amplification");
 
            data = [{
                value: 1,
@@ -604,9 +594,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "gain"
-           );
+               } as any, "gain");
 
            data = [{
                value: -1,
@@ -623,9 +611,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "hetloss"
-           );
+               } as any, "hetloss");
 
            data = [{
                value: -2,
@@ -642,9 +628,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "homdel"
-           );
+               } as any, "homdel");
 
            data = [{
                value: 0,
@@ -660,9 +644,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "diploid"
-           );
+               } as any, "diploid");
        });
 
        it("fills a datum w one germline data correctly", ()=>{
@@ -682,9 +664,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "missense_rec",
                    disp_germ: true
-               },
-               "missense driver with germline"
-           );
+               } as any, "missense driver with germline");
 
             data = [{
                mutationType: "missense",
@@ -701,9 +681,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "missense_rec",
                    disp_germ: false
-               },
-               "missense driver without germline"
-           );
+               } as any, "missense driver without germline");
        });
 
        it("fills a datum w one germline and one non-germline data correctly", ()=>{
@@ -728,9 +706,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "missense_rec",
                    disp_germ: true
-               },
-               "missense driver with germline is stronger than missense passenger"
-           );
+               } as any, "missense driver with germline is stronger than missense passenger");
 
            data = [{
                mutationType: "missense",
@@ -753,9 +729,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "trunc_rec",
                    disp_germ: false
-               },
-               "trunc driver is stronger than missense passenger w germline"
-           );
+               } as any, "trunc driver is stronger than missense passenger w germline");
        });
 
        it("fills a datum w one mrna data correctly", ()=>{
@@ -773,9 +747,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "up"
-           );
+               } as any, "up");
 
            data = [{
                alterationSubType:"down",
@@ -791,9 +763,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "down"
-           );
+               } as any, "down");
        });
        it("fills a datum w one protein data correctly", ()=>{
            let data = [{
@@ -810,9 +780,7 @@ describe("DataUtils", ()=>{
                    disp_prot: "up",
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "up"
-           );
+               } as any, "up");
 
            data = [{
                alterationSubType:"down",
@@ -828,9 +796,7 @@ describe("DataUtils", ()=>{
                    disp_prot: "down",
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "down"
-           );
+               } as any, "down");
        });
        it("fills a datum w two mutation data w correct priority", ()=>{
            let data = [{
@@ -852,9 +818,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "trunc_rec",
                    disp_germ: false
-               },
-               "truncating driver beats missense driver"
-           );
+               } as any, "truncating driver beats missense driver");
 
            data = [{
                mutationType: "missense",
@@ -875,9 +839,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "missense_rec",
                    disp_germ: false
-               },
-               "missense driver beats truncating non-driver"
-           );
+               } as any, "missense driver beats truncating non-driver");
 
            data = [{
                mutationType: "missense",
@@ -898,9 +860,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: "trunc",
                    disp_germ: false
-               },
-               "truncating non-driver beats missense non-driver"
-           );
+               } as any, "truncating non-driver beats missense non-driver");
        });
        it("fills a datum w multiple cna data w correct priority", ()=>{
            let data = [{
@@ -920,9 +880,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "amplification beats gain"
-           );
+               } as any, "amplification beats gain");
 
            data = [{
                value: -2,
@@ -941,9 +899,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "homdel beats diploid"
-           );
+               } as any, "homdel beats diploid");
 
            data = [{
                value: -2,
@@ -965,9 +921,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "two homdels beats one amp"
-           );
+               } as any, "two homdels beats one amp");
 
            data = [{
                value: -2,
@@ -989,9 +943,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "two amps beats one homdel"
-           );
+               } as any, "two amps beats one homdel");
        });
        it("fills a datum w multiple mrna data w correct priority", ()=>{
            let data = [{
@@ -1014,9 +966,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "two downs beats one up"
-           );
+               } as any, "two downs beats one up");
 
            data = [{
                alterationSubType:"up",
@@ -1038,9 +988,7 @@ describe("DataUtils", ()=>{
                    disp_prot: undefined,
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "two ups beats one down"
-           );
+               } as any, "two ups beats one down");
        });
        it("fills a datum w multiple protein data w correct priority", ()=>{
            let data = [{
@@ -1063,9 +1011,7 @@ describe("DataUtils", ()=>{
                    disp_prot: "down",
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "two downs beats one up"
-           );
+               } as any, "two downs beats one up");
 
            data = [{
                alterationSubType:"up",
@@ -1087,9 +1033,7 @@ describe("DataUtils", ()=>{
                    disp_prot: "up",
                    disp_mut: undefined,
                    disp_germ: undefined
-               },
-               "two ups beats one down"
-           );
+               } as any, "two ups beats one down");
        });
        it("fills a datum w several data of different types correctly", ()=>{
            let data = [{
@@ -1138,7 +1082,7 @@ describe("DataUtils", ()=>{
                    disp_prot: "down",
                    disp_mut: "trunc_rec",
                    disp_germ: false
-               });
+               } as any);
        });
    });
 
@@ -1254,6 +1198,7 @@ describe("DataUtils", ()=>{
                {sampleId:"sample", studyId:"study"} as Sample,
                [{value: 7}]
            );
+           console.log(partialTrackDatum);
            assert.deepEqual(
                partialTrackDatum,
                {geneset_id:"MY_FAVORITE_GENE_SET-3", study:"study", profile_data:7}
