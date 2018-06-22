@@ -17,6 +17,7 @@ import {IColumnVisibilityDef} from "shared/components/columnVisibilityControls/C
 import {toggleColumnVisibility} from "shared/components/lazyMobXTable/ColumnVisibilityResolver";
 import { PatientViewPageStore } from './clinicalInformation/PatientViewPageStore';
 import ClinicalInformationPatientTable from "./clinicalInformation/ClinicalInformationPatientTable";
+import ClinicalInformationEventsTable from "./clinicalInformation/ClinicalInformationEventsTable";
 import ClinicalInformationSamples from "./clinicalInformation/ClinicalInformationSamplesTable";
 import {observer, inject } from "mobx-react";
 import {getSpanElementsFromCleanData} from './clinicalInformation/lib/clinicalAttributesUtil.js';
@@ -493,7 +494,23 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                         </div>
                     </MSKTab>
 
-                    </MSKTabs>
+                    <MSKTab key={6} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)">
+
+                        <div className="clearfix">
+                            <FeatureTitle title="Lab tests (Fast drug screening)"
+                                          isLoading={ patientViewPageStore.clinicalEvents.isPending }
+                                          className="pull-left"/>
+                            { (patientViewPageStore.clinicalDataPatient.isComplete) && (
+                                <ClinicalInformationEventsTable showTitleBar={true}
+                                                                 data={patientViewPageStore.clinicalEvents.result}/>
+                            )
+                            }
+                        </div>
+
+
+                   </MSKTab>
+              </MSKTabs>
+
 
                     </Then>
                     <Else>
