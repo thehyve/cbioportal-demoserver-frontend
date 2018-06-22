@@ -9,6 +9,10 @@ function plotCaseLabelsInTimeline(caseIds, clinicalDataMap, caseMetaData) {
 
     var fillColorAndLabelForCase = function (circle, caseId) {
         var label = caseMetaData.label[caseId];
+        var labelNr = parseInt(label);
+        if (labelNr >= 2) {
+            label = ".ABC"[labelNr-1];
+        }
         var color = caseMetaData.color[caseId];
         circle.select("circle").attr("fill", color);
         circle.append("text")

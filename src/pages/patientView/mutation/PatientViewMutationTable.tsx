@@ -79,7 +79,7 @@ export default class PatientViewMutationTable extends MutationTable<IPatientView
         };
 
         this._columns[MutationTableColumnType.TUMORS] = {
-            name: "Tumors",
+            name: "Tumors/subclones",
             render:(d:Mutation[])=>TumorColumnFormatter.renderFunction(d, this.props.sampleManager),
             sortBy:(d:Mutation[])=>TumorColumnFormatter.getSortValue(d, this.props.sampleManager),
             download: (d:Mutation[])=>TumorColumnFormatter.getSample(d),
