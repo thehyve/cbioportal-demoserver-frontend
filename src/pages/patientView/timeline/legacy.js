@@ -142,7 +142,7 @@ export function buildTimeline(params, caseIds, patientInfo, clinicalDataMap, cas
         .data(timeData)
         .divId("#timeline")
         .setTimepointsDisplay("Imaging", "square")
-        .orderTracks(["Specimen", "Surgery", "Status", "Diagnostics", "Diagnostic", "Imaging", "Lab_test", "Treatment"])
+        .orderTracks(["Specimen", "Surgery", "Status", "Diagnostics", "Diagnostic", "Imaging", "Treatment", "Lab_test"])
         .splitByClinicalAttributes("Lab_test", "TEST")
     var splitData = window.pvTimeline.data();
     // Get TEST names that have a RESULT field in their clinical
@@ -172,6 +172,8 @@ export function buildTimeline(params, caseIds, patientInfo, clinicalDataMap, cas
         window.pvTimeline
             .splitByClinicalAttributes("Treatment", ["SUBTYPE", "AGENT"])
             .splitByClinicalAttributes("Treatment", ["TREATMENT_TYPE", "AGENT"])
+            .splitByClinicalAttributes("Lab_test", ["SUBTYPE", "AGENT"])
+            .splitByClinicalAttributes("Lab_test", ["TREATMENT_TYPE", "AGENT"])
             .collapseAll()
             .toggleTrackCollapse("Specimen")
             .enableTrackTooltips(false)
