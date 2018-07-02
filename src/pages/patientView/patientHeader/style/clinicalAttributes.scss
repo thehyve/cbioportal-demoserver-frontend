@@ -119,6 +119,7 @@ $sample-color-xenograft: pink;
       color: $sample-color-primary;
     }
     .clinical-attribute[attr-id="DERIVED_NORMALIZED_CASE_TYPE"][attr-value="Progressed"],
+    .clinical-attribute[attr-id="DERIVED_NORMALIZED_CASE_TYPE"][attr-value="Metastasis clone"],
     .clinical-attribute[attr-id="DERIVED_NORMALIZED_CASE_TYPE"][attr-value="Recurrence"] {
       color: $sample-color-recurrence;
     }
