@@ -109,7 +109,9 @@ function derive(clinicalData) {
             if (caseType !== null && typeof caseType !== 'undefined') {
                 caseTypeLower = caseType.toLowerCase();
 
-                if (caseTypeLower.indexOf('metasta') >= 0) {
+                if (caseTypeLower.indexOf('metastasis clone') >= 0) {
+                    caseTypeNormalized = 'Metastasis clone';
+                } else if (caseTypeLower.indexOf('metasta') >= 0) {
                     caseTypeNormalized = 'Metastasis';
                 } else if (caseTypeLower.indexOf('recurr') >= 0) {
                     caseTypeNormalized = 'Recurrence';

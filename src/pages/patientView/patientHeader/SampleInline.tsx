@@ -40,8 +40,8 @@ export default class SampleInline extends React.Component<ISampleInlineProps, {}
         const {sampleNumber, sampleColor, fillOpacity} = this.props;
 
         let label = (sampleNumber).toString();
-        if (sampleNumber >= 2) {
-            label = ".ABCDEFGHIJ"[sampleNumber-1];
+        if (sampleNumber >= 3) {
+            label = "..ABCDEFGHIJ"[sampleNumber-1];
         }
         return (
             <SampleLabelHTML
