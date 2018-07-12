@@ -21,35 +21,25 @@ interface IPatientEventRow {
 
 export default class ClinicalInformationEventsTable extends React.Component<IClinicalEventTableProps, {}> {
 
-    private getDisplayValue(data:{attribute:string, value:string}):string {
-        let ret:string;
-        switch (data.attribute) {
-            case "Overall Survival (Months)":
-                ret = parseInt(data.value, 10).toFixed(0);
-                break;
-            default:
-                ret = data.value;
-                break;
+    private getDisplayValue(data:IPatientEventRow, key: string):string {
+        for (let i = 0; i < data.columns.length; i++) {
+            if (data.columns[i].key == key) {
+                return data.columns[i].value;
+            }
         }
-        return ret;
+        return "";
+        
     }
     
-    private getColumnsAndData(dataItems: {columns: any[]}[]) {
+    private getColumnsAndData(dataItems: IPatientEventRow[]) {
         if (!dataItems || !dataItems[0])
             return [];
-        let result = [];
-        let i = 0;
-        debugger;
-        for (i = 0; i < 13; i++) {
-                let item  = {   
-                                  name: dataItems[0].columns[i].key,
-                                  render:(data)=><span>{data.columns[i].value}</span>,
-                                  download: (data) => data.columns[i].value,
-                                  filter: -1
-                              };
-                result.push(item);
-        }
-        return result;
+        return dataItems[0].columns.map(({key, value}: {key: string, value: string}) =>
+            ({name: key,
+                      render: (data:IPatientEventRow) => <span>{this.getDisplayValue(data, key)}</span>,
+                      download: (data:IPatientEventRow) => this.getDisplayValue(data, key),
+                      sortBy: (data:IPatientEventRow)=> this.getDisplayValue(data, key)
+                }));
     }
     
 
@@ -60,8 +50,7 @@ export default class ClinicalInformationEventsTable extends React.Component<ICli
         return (
             <PatientEventTable
                   data={tableData}
-                  columns={
-                      this.getColumnsAndData(tableData)}
+                  columns={this.getColumnsAndData(tableData)}
                   showPagination={false}
                   showColumnVisibility={false}
                   className={styles.patientTable}
@@ -78,7 +67,7 @@ export default class ClinicalInformationEventsTable extends React.Component<ICli
 
     public prepareData(eventData: ClinicalEvent[]) {
 
-        const tableData: any[] = [];
+        const tableData: IPatientEventRow[] = [];
 
         let i = 0;
         let j = 0;
