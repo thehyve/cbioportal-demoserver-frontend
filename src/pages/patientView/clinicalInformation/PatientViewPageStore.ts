@@ -188,6 +188,19 @@ export class PatientViewPageStore {
         invoke: async() => fetchClinicalDataForPatient(this.studyId, this.patientId),
         default: []
     });
+    
+    readonly getPathologySlideURL = remoteData<string>({
+        await: () => [this.clinicalDataPatient],
+        invoke: async() => {
+            for (let clinicalVariable of this.clinicalDataPatient.result) {
+                if (clinicalVariable.clinicalAttributeId == 'PATHOLOGY_SLIDE_URL') {
+                    return clinicalVariable.value;
+                }
+            }
+            return '';
+        },
+        default: ''
+    });
 
     readonly samples = remoteData(
         async() => fetchSamplesForPatient(this.studyId, this._patientId, this.sampleId),

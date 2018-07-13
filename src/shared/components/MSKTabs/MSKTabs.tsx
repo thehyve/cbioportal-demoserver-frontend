@@ -14,6 +14,7 @@ export interface IMSKTabProps {
     hide?:boolean;
     loading?:boolean;
     anchorStyle?:{[k:string]:string|number|boolean};
+    label?:string;
 }
 
 export class MSKTab extends React.Component<IMSKTabProps,{}> {
@@ -253,7 +254,7 @@ export class MSKTabs extends React.Component<IMSKTabsProps, IMSKTabsState> {
                     ref={this.tabRefHandler.bind(this, tab.props.id)}
                     className={activeClass}
                 >
-                    <a onClick={this.setActiveTab.bind(this,tab.props.id)} style={tab.props.anchorStyle}>{tab.props.linkText}</a>
+                    <a onClick={this.setActiveTab.bind(this,tab.props.id)} style={tab.props.anchorStyle}>{tab.props.linkText} <sup>{tab.props.label}</sup></a>
                 </li>
             );
         });
