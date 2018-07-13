@@ -500,6 +500,17 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                             <IFrameLoader height={700} url={  `http://cancer.digitalslidearchive.net/index_mskcc.php?slide_name=${patientViewPageStore.patientId}` } />
                         </div>
                     </MSKTab>
+                        
+                    <MSKTab key={5} id="pathologySlides" linkText="Pathology Slides" label="BETA"
+                        hide={/https/.test(window.location.protocol) // can't show this iframe if we're on https:
+                        || (patientViewPageStore.getPathologySlideURL.result == '')}
+                        loading={patientViewPageStore.getPathologySlideURL.isPending}
+                    >
+                        <div style={{position: "relative"}}>
+                            <iframe style={{ width:'100%', position:'relative', height:700, border:'none'}} src={patientViewPageStore.getPathologySlideURL.result}></iframe>
+                        </div>
+                    </MSKTab>
+
 
                     <MSKTab key={6} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)">
 
