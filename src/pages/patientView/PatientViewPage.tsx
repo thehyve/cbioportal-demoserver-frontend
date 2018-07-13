@@ -494,7 +494,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                         </div>
                     </MSKTab>
                         
-                    <MSKTab key={5} id="pathologySlides" linkText="Pathology Slides" label="BETA"
+                    <MSKTab key={6} id="pathologySlides" linkText="Pathology Slides" label="BETA"
                         hide={/https/.test(window.location.protocol) // can't show this iframe if we're on https:
                         || (patientViewPageStore.getPathologySlideURL.result == '')}
                         loading={patientViewPageStore.getPathologySlideURL.isPending}
@@ -505,7 +505,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                     </MSKTab>
 
 
-                    <MSKTab key={6} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)">
+                    <MSKTab key={7} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)">
 
                         <div className="clearfix">
                             <FeatureTitle title="Lab tests (Fast drug screening)"
