@@ -58,7 +58,8 @@
 .cbioportal-frontend sub {
   bottom: -0.25em; }
 .cbioportal-frontend img {
-  border: 0; }
+  border: 0;
+  margin-right: 40px; }
 .cbioportal-frontend svg:not(:root) {
   overflow: hidden; }
 .cbioportal-frontend figure {
