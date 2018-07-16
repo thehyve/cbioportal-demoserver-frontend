@@ -494,14 +494,14 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                         </div>
                     </MSKTab>
                         
-                    <MSKTab key={6} id="pathologySlides" linkText="Pathology Slides" label="BETA">
+                    <MSKTab key={6} id="pathologySlides" linkText="Pathology Slides" label="PROTOTYPE">
                         <div style={{position: "relative"}}>
                             <iframe style={{ width:'100%', position:'relative', height:700, border:'none'}} src={patientViewPageStore.getPathologySlideURL.result}></iframe>
                         </div>
                     </MSKTab>
 
 
-                    <MSKTab key={7} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)" label="BETA">
+                    <MSKTab key={7} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)" label="PROTOTYPE">
 
                         <div className="clearfix">
                             <FeatureTitle title="Lab tests (Fast drug screening)"
