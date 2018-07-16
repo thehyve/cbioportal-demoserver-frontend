@@ -56,7 +56,7 @@ export default class ClinicalInformationEventsTable extends React.Component<ICli
                   className={styles.patientTable}
                   initialItemsPerPage={SHOW_ALL_PAGE_SIZE}
                   initialSortColumn={tableData[0].columns[1].key}
-                  initialSortDirection="asc"
+                  initialSortDirection={"desc"}
                   showFilter={(this.props.showFilter === false) ? false : true }
                   showCopyDownload={(this.props.showCopyDownload === false) ? false : true }
             />
