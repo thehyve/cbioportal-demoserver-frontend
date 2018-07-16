@@ -53,7 +53,8 @@
   position: relative;
   vertical-align: baseline; }
 .cbioportal-frontend sup {
-  top: -0.5em; }
+  top: -0.5em;
+  color: red; }
 .cbioportal-frontend sub {
   bottom: -0.25em; }
 .cbioportal-frontend img {
