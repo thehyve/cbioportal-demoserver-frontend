@@ -508,7 +508,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                     </MSKTab>
 
 
-                    <MSKTab key={7} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)">
+                    <MSKTab key={7} id="timelineDataTab1" linkText="Lab tests (Fast drug screening)" label="BETA">
 
                         <div className="clearfix">
                             <FeatureTitle title="Lab tests (Fast drug screening)"
