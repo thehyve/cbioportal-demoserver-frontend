@@ -515,6 +515,7 @@ export class ResultsViewPageStore {
             return Promise.resolve(ret);
         }
     });
+    
 
     readonly unfilteredAlterations = remoteData<(Mutation|NumericGeneMolecularData)[]>({
         await: ()=>[
@@ -1657,6 +1658,8 @@ export class ResultsViewPageStore {
             this.geneCache.addData(genes);
         }
     });
+    
+    readonly genesets = this.genesetIds && this.genesetIds.length ? this.genesetIds : [];
 
     readonly entrezGeneIdToGene = remoteData<{[entrezGeneId:number]:Gene}>({
         await: ()=>[this.genes],

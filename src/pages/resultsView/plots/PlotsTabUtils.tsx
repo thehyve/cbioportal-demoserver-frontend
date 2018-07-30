@@ -40,12 +40,13 @@ export const CLIN_ATTR_DATA_TYPE = "clinical_attribute";
 export const dataTypeToDisplayType:{[s:string]:string} = {
     "COPY_NUMBER_ALTERATION": "Copy Number",
     "MRNA_EXPRESSION": "mRNA",
+    "GENESET_SCORE": "Gene Sets",
     "PROTEIN_LEVEL": "Protein Level",
     "METHYLATION": "DNA Methylation",
     [CLIN_ATTR_DATA_TYPE]:"Clinical Attribute"
 };
 
-export const dataTypeDisplayOrder = [CLIN_ATTR_DATA_TYPE, "MRNA_EXPRESSION", "COPY_NUMBER_ALTERATION", "PROTEIN_LEVEL", "METHYLATION"];
+export const dataTypeDisplayOrder = [CLIN_ATTR_DATA_TYPE, "MRNA_EXPRESSION", "GENESET_SCORE", "COPY_NUMBER_ALTERATION", "PROTEIN_LEVEL", "METHYLATION"];
 
 export const CNA_STROKE_WIDTH = 1.8;
 export const PLOT_SIDELENGTH = 650;

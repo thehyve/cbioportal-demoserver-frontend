@@ -64,6 +64,7 @@ export enum PlotType {
 
 export type AxisMenuSelection = {
     entrezGeneId?:number;
+    geneset:string;
     dataType?:string;
     dataSourceId?:string;
     logScale: boolean;
@@ -416,6 +417,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             );
         }
     });
+    
+    readonly geneSetOptions = this.props.store.genesets.map(geneset=>({ value: geneset, label: geneset }));
 
     readonly clinicalAttributeIdToClinicalAttribute = remoteData<{[clinicalAttributeId:string]:ClinicalAttribute}>({
         await:()=>[
@@ -485,10 +488,11 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     });
 
-    readonly geneToDataTypeOptions = remoteData<{[entrezGeneId:number]:{value:string, label:string}[]}>({
+    readonly geneToDataTypeOptions = remoteData<{[entrezGeneId:number|string]:{value:string, label:string}[]}>({
         await:()=>[
             this.props.store.nonMutationMolecularProfilesWithData,
-            this.clinicalAttributeOptions
+            this.clinicalAttributeOptions,
+            this.props.store.molecularProfilesInStudies
         ],
         invoke:()=>{
             return Promise.resolve(_.mapValues(this.props.store.nonMutationMolecularProfilesWithData.result!,
@@ -499,6 +503,18 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
 
                     if (this.clinicalAttributeOptions.result!.length) {
                         dataTypeIds.push(CLIN_ATTR_DATA_TYPE);
+                    }
+                    
+                    if (this.props.store.molecularProfilesInStudies.result!.length) {
+                        this.props.store.molecularProfilesInStudies.result.filter(p=>{
+                            if (p.molecularAlterationType === AlterationTypeConstants.GENESET_SCORE) {
+                                if (dataTypeIds.indexOf("GENESET_SCORE") == -1) {
+                                    dataTypeIds.push("GENESET_SCORE");
+                                }
+                                //for (const gene in this.props.store.genesets) {
+                                //    
+                                //}
+=                            }
                     }
 
                     return _.sortBy(dataTypeIds,
@@ -826,14 +842,14 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 <h4>{vertical ? "Vertical" : "Horizontal"} Axis</h4>
                 <div>
                     <div className="form-group" style={{opacity:(axisSelection.dataType === CLIN_ATTR_DATA_TYPE ? 0.5 : 1)}}>
-                        <label>Gene</label>
+                        <label>{axisSelection.dataType === "GENESET_SCORE" ? "Gene set" : "Gene"}</label>
                         <div style={{display:"flex", flexDirection:"row"}}>
-                            <ReactSelect
+                            <ReactSelect //TODO: Fetch the gene sets!
                                 name={`${vertical ? "v" : "h"}-gene-selector`}
-                                value={axisSelection.entrezGeneId}
+                                value={axisSelection.dataType === "GENESET_SCORE" ? this.geneSetOptions : axisSelection.entrezGeneId}
                                 onChange={vertical ? this.onVerticalAxisGeneSelect : this.onHorizontalAxisGeneSelect}
                                 isLoading={this.geneOptions.isPending}
-                                options={this.geneOptions.isComplete ? this.geneOptions.result : []}
+                                options={axisSelection.dataType === "GENESET_SCORE" ? this.geneSetOptions : this.geneOptions.isComplete ? this.geneOptions.result : []}
                                 clearable={false}
                                 searchable={false}
                                 disabled={axisSelection.dataType === CLIN_ATTR_DATA_TYPE}
