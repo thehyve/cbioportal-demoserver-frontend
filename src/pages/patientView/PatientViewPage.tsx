@@ -507,7 +507,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                             <FeatureTitle title="Lab tests (Fast drug screening)"
                                           isLoading={ patientViewPageStore.clinicalEvents.isPending }
                                           className="pull-left"/>
-                            { (patientViewPageStore.clinicalDataPatient.isComplete) && (
+                            { (patientViewPageStore.clinicalEvents.isComplete) && (
                                 <ClinicalInformationEventsTable showTitleBar={true}
                                                                  data={patientViewPageStore.clinicalEvents.result}/>
                             )
