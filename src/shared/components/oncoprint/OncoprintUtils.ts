@@ -136,8 +136,8 @@ export function getHeatmapTrackRuleSetParams(molecularAlterationType: string) {
     if (molecularAlterationType === "METHYLATION") {
         value_range = [0,1];
         legend_label = "Methylation Heatmap";
-        value_stop_points = [0,1];
-        colors = [[0,0,0,1], [255,0,0,1]];
+        value_stop_points = [0,0.35,1];
+        colors = [[0,0,255,1], [255,255,255,1], [255,0,0,1]];
     } else {
         value_range = [-3,3];
         legend_label = "Expression Heatmap";
@@ -396,7 +396,7 @@ export function makeClinicalTracksMobxPromise(oncoprint:ResultsViewOncoprint, sa
             ];
             if (oncoprint.clinicalAttributesById.isComplete) {
                 const attributes = oncoprint.selectedClinicalAttributeIds.keys().map(attrId=>{
-                    return oncoprint.clinicalAttributesById.result[attrId];
+                    return oncoprint.clinicalAttributesById.result![attrId];
                 }).filter(x=>!!x);
                 ret = ret.concat(oncoprint.props.store.oncoprintClinicalDataCache.getAll(attributes));
             }

@@ -6,7 +6,7 @@
     "title": "cBioPortal web API [Beta]",
     "contact": {
       "name": "cBioPortal",
-      "url": "www.cbioportal.org",
+      "url": "http://www.cbioportal.org",
       "email": "cbioportal@googlegroups.com"
     },
     "license": {
@@ -1911,6 +1911,46 @@
               "type": "array",
               "items": {
                 "$ref": "#/definitions/MutationCountByPosition"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mutation-counts/fetch": {
+      "post": {
+        "tags": [
+          "Mutations"
+        ],
+        "summary": "Fetch mutation counts in multiple studies by sample IDs",
+        "operationId": "fetchMutationCountsInStudiesUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "sampleIdentifiers",
+            "description": "List of Sample Identifiers",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SampleIdentifier"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MutationCount"
               }
             }
           }
