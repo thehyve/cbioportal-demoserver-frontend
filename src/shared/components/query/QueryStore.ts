@@ -492,7 +492,7 @@ export class QueryStore
 		default: {},
 	});
 
-	readonly virtualStudies = remoteData(sessionServiceClient.getUserVirtualStudies(), []);
+	readonly virtualStudies = [];//remoteData(sessionServiceClient.getUserVirtualStudies(), []);
 
 	@computed get selectableStudiesSet():{[studyId:string]:string[]} {
 		return  Object.assign({}, this.physicalStudiesIdsSet.result, this.virtualStudiesIdsSet.result, this.sharedQueriedStudiesSet.result);
