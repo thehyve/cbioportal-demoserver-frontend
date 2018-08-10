@@ -181,7 +181,7 @@ export class QueryStore
 
 	@observable studiesHaveChangedSinceInitialization:boolean = false;
 
-	//temporary store to collect deleted studies. 
+	//temporary store to collect deleted studies.
 	//it is used to restore virtual studies in current window
 	@observable deletedVirtualStudies:string[] = [];
 
@@ -425,7 +425,7 @@ export class QueryStore
 		this.geneQueryErrorDisplayStatus = 'unfocused';
 		this._geneQuery = value;
 	}
-	
+
 	@observable _genesetQuery = '';
     get genesetQuery()
     {
@@ -455,7 +455,7 @@ export class QueryStore
 	@observable clickAgainToDeselectSingle:boolean = true;
 	@observable searchExampleMessage = "";
 	@observable volcanoPlotSelectedPercentile: {label: string, value: string} = {label: '75%', value: '75'};
-	
+
 
 	@observable private _maxTreeDepth:number = AppConfig.maxTreeDepth;
 	@computed get maxTreeDepth()
@@ -541,7 +541,7 @@ export class QueryStore
 			const unknownQueriedIds:string[] = this._defaultSelectedIds.keys().filter(id => !knownSelectableIdsSet[id]);
 
 			let result:{[studyId:string]:string[]} = {}
-			
+
 			await Promise.all(unknownQueriedIds.map(id =>{
 				return new Promise((resolve, reject) => {
 					sessionServiceClient.getVirtualStudy(id).then((virtualStudy)=>{
@@ -688,12 +688,12 @@ export class QueryStore
 		invoke: () => this.invokeGenesLater(this.geneIds),
 		default: {found: [], suggestions: []}
 	});
-	
+
 	readonly genesets = remoteData({
 	    invoke: () => this.invokeGenesetsLater(this.genesetIds),
 	    default: {found: [], invalid: []}
 	});
-	
+
 	private invokeGenesLater = debounceAsync(
 		async (geneIds:string[]):Promise<{found: Gene[], suggestions: GeneReplacement[]}> =>
 		{
@@ -731,7 +731,7 @@ export class QueryStore
 		},
 		500
 	);
-	
+
 	private invokeGenesetsLater = debounceAsync(
 			async (genesetIds:string[]):Promise<{found: Geneset[], invalid: string[]}> =>
 			{
@@ -1071,8 +1071,8 @@ export class QueryStore
 		}
 		return '';
 	}
-	
-	get isGenesetProfileSelected() 
+
+	get isGenesetProfileSelected()
 	{
         let result = false;
         if (this.getFilteredProfiles("GENESET_SCORE")[0]) {
@@ -1194,7 +1194,7 @@ export class QueryStore
 			return [];
 		}
 	}
-	
+
 	// GENE SETS
 	@computed get genesetIdsQuery():{ query: GenesetId[], error?: { start: number, end: number, message: string } }
     {
@@ -1229,30 +1229,30 @@ export class QueryStore
             };
         }
     }
-    
+
     @computed get genesetIds():GenesetId[]
     {
         return this.genesetIdsQuery.query;
     }
-    
+
     readonly hierarchyData = remoteData<any[]>({
         invoke: async()=>{
             const hierarchyData = await getHierarchyData(
-            this.getFilteredProfiles("GENESET_SCORE")[0].molecularProfileId, 
+            this.getFilteredProfiles("GENESET_SCORE")[0].molecularProfileId,
             Number(this.volcanoPlotSelectedPercentile.value),
             0, 1, this.defaultSelectedSampleListId);
             return hierarchyData;
         }
     });
-        
-        
+
+
     readonly volcanoPlotTableData = remoteData<Geneset[]>({
         await: ()=>[this.hierarchyData],
         invoke: async()=>{
             return getGenesetsFromHierarchy(this.hierarchyData.result!);
         }
     });
-    
+
     @computed get minYVolcanoPlot(): number|undefined
     {
         if (this.volcanoPlotTableData.result) {
@@ -1261,9 +1261,9 @@ export class QueryStore
             return undefined;
         }
     }
-    
+
     @observable map_genesets_selected_volcano = new ObservableMap<boolean>();
-    
+
     @computed get volcanoPlotGraphData(): {x: number, y: number, fill: string}[]|undefined
     {
         if (this.volcanoPlotTableData.result) {
@@ -1271,7 +1271,7 @@ export class QueryStore
         } else {
             return undefined;
         }
-        
+
     }
 
 	// SUBMIT
@@ -1340,11 +1340,11 @@ export class QueryStore
 		}
 
 		if (this.selectedProfileIds.length !== 0) {
-		    if (this.selectedProfileIds.length === 1) 
+		    if (this.selectedProfileIds.length === 1)
             {
 	            if (this.isGenesetProfileSelected)
                 { //Only geneset profile selected
-                    if (!this.genesetQuery.length && !this.oql.query.length) 
+                    if (!this.genesetQuery.length && !this.oql.query.length)
                     {
                         return "Please enter one or more gene symbols and gene sets.";
                     }
@@ -1358,8 +1358,8 @@ export class QueryStore
                     }
                 }
                 else
-                { 
-                    if (!this.oql.query.length) 
+                {
+                    if (!this.oql.query.length)
                     {
                         return "Please enter one or more gene symbols.";
                     }
@@ -1389,8 +1389,8 @@ export class QueryStore
 				return "Please enter one or more gene symbols.";
 			}
 		}
-		
-		
+
+
 
 		if (this.genes.result.suggestions.length)
 			return "Please edit the gene symbols.";
@@ -1577,7 +1577,7 @@ export class QueryStore
 	{
 		this.geneQuery = normalizeQuery(this.geneQuery.toUpperCase().replace(new RegExp(`\\b${oldSymbol.toUpperCase()}\\b`, 'g'), () => newSymbol.toUpperCase()));
 	}
-	
+
 	@action replaceGeneset(oldGeneset:string, newGeneset:string)
     {
         this.genesetQuery = normalizeQuery(this.genesetQuery.toUpperCase().replace(new RegExp(`\\b${oldGeneset.toUpperCase()}\\b`, 'g'), () => newGeneset.toUpperCase()));
@@ -1592,21 +1592,21 @@ export class QueryStore
 			this.replaceGene(geneSymbol, '');
 		this.geneQuery = normalizeQuery([this.geneQuery, ...toAppend].join(' '));
 	}
-	
+
 	@action addToGenesetSelection(map_geneset_selected:ObservableMap<boolean>)
     {
 	    let [toAppend, toRemove] = _.partition(map_geneset_selected.keys(), geneSet => map_geneset_selected.get(geneSet));
 	    const genesetQuery = _.union(toAppend, this.genesetIds).join(' ');
         this.genesetQuery = normalizeQuery(genesetQuery);
     }
-	
+
 	@action applyGenesetSelection(map_geneset_selected:ObservableMap<boolean>)
     {
         const [toAppend, toRemove] = _.partition(map_geneset_selected.keys(), geneSet => map_geneset_selected.get(geneSet));
         let genesetQuery = this.genesetQuery;
         if (toAppend.length > 0) {
             let genesetList: string[] = [];
-            for (const geneset of toAppend) 
+            for (const geneset of toAppend)
             {
                 genesetList.push(geneset);
             }
@@ -1698,7 +1698,7 @@ export class QueryStore
 
 	@cached get molecularProfilesInStudyCache() {
 		return new MolecularProfilesInStudyCache();
-		
+
 	}
 
 	@cached get sampleListsInStudyCache() {
