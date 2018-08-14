@@ -21,17 +21,20 @@ interface IPatientEventRow {
 
 export default class ClinicalInformationEventsTable extends React.Component<IClinicalEventTableProps, {}> {
 
-    private getDisplayValue(data:IPatientEventRow, key: string):string {
+    private getDisplayValue(data:IPatientEventRow, key: string):number|string {
         for (let i = 0; i < data.columns.length; i++) {
             if (data.columns[i].key == key) {
-                return data.columns[i].value;
+                if (isNaN(Number(data.columns[i].value))) {
+                    return data.columns[i].value;
+                }
+                return Number(data.columns[i].value);
             }
         }
         return "";
         
     }
     
-    private getColumnsAndData(dataItems: IPatientEventRow[]) {
+    private getColumnsAndData(dataItems: IPatientEventRow[]): any {
         if (!dataItems || !dataItems[0])
             return [];
         return dataItems[0].columns.map(({key, value}: {key: string, value: string}) =>
