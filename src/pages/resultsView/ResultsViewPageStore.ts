@@ -24,7 +24,7 @@ import {
     fetchSamplesWithoutCancerTypeClinicalData, fetchStudiesForSamplesWithoutCancerTypeClinicalData, IDataQueryFilter,
     isMutationProfile, fetchOncoKbAnnotatedGenesSuppressErrors, groupBy, fetchOncoKbData,
     ONCOKB_DEFAULT, generateUniqueSampleKeyToTumorTypeMap, cancerTypeForOncoKb, fetchCnaOncoKbData,
-    fetchCnaOncoKbDataWithNumericGeneMolecularData, fetchGermlineConsentedSamples, fetchGenes
+    fetchCnaOncoKbDataWithNumericGeneMolecularData, fetchGermlineConsentedSamples, fetchGenes, fetchGenesets
 } from "shared/lib/StoreUtils";
 import {indexHotspotsData, fetchHotspotsData} from "shared/lib/CancerHotspotsUtils";
 import ResultsViewMutationMapperStore from "./mutation/ResultsViewMutationMapperStore";
@@ -53,10 +53,11 @@ import GeneMolecularDataCache from "../../shared/cache/GeneMolecularDataCache";
 import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCache";
 import GenesetCorrelatedGeneCache from "../../shared/cache/GenesetCorrelatedGeneCache";
 import GeneCache from "../../shared/cache/GeneCache";
+import GenesetCache from "../../shared/cache/GenesetCache";
 import {IHotspotIndex} from "../../shared/model/CancerHotspots";
 import {IOncoKbData} from "../../shared/model/OncoKB";
 import {generateQueryVariantId} from "../../shared/lib/OncoKbUtils";
-import {CosmicMutation, AlterationEnrichment, ExpressionEnrichment} from "../../shared/api/generated/CBioPortalAPIInternal";
+import {CosmicMutation, AlterationEnrichment, ExpressionEnrichment, Geneset} from "../../shared/api/generated/CBioPortalAPIInternal";
 import internalClient from "../../shared/api/cbioportalInternalClientInstance";
 import {IndicatorQueryResp} from "../../shared/api/generated/OncoKbAPI";
 import {getAlterationString} from "../../shared/lib/CopyNumberUtils";
@@ -515,7 +516,6 @@ export class ResultsViewPageStore {
             return Promise.resolve(ret);
         }
     });
-    
 
     readonly unfilteredAlterations = remoteData<(Mutation|NumericGeneMolecularData)[]>({
         await: ()=>[
@@ -1659,8 +1659,13 @@ export class ResultsViewPageStore {
         }
     });
     
-    readonly genesets = this.genesetIds && this.genesetIds.length ? this.genesetIds : [];
-
+    readonly genesets = remoteData<Geneset[]>({
+        invoke: async () => fetchGenesets(this.genesetIds),
+        onResult:(genesets:Geneset[])=>{
+            this.genesetCache.addData(genesets);
+        }
+    });
+    
     readonly entrezGeneIdToGene = remoteData<{[entrezGeneId:number]:Gene}>({
         await: ()=>[this.genes],
         invoke: ()=>Promise.resolve(_.keyBy(this.genes.result!, gene=>gene.entrezGeneId))
@@ -2388,6 +2393,10 @@ export class ResultsViewPageStore {
 
     @cached get geneCache() {
         return new GeneCache();
+    }
+    
+    @cached get genesetCache() {
+        return new GenesetCache();
     }
 
     public numericGeneMolecularDataCache = new MobxPromiseCache<{entrezGeneId:number, molecularProfileId:string}, NumericGeneMolecularData[]>(

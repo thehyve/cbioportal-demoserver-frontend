@@ -14,7 +14,7 @@ import g2sClient from "shared/api/g2sClientInstance";
 import {Alignment, default as Genome2StructureAPI} from "shared/api/generated/Genome2StructureAPI";
 import {
     CosmicMutation, default as CBioPortalAPIInternal,
-    GisticToGene, Gistic, MutSig
+    GisticToGene, Gistic, MutSig, Geneset
 } from "shared/api/generated/CBioPortalAPIInternal";
 import oncokbClient from "shared/api/oncokbClientInstance";
 import civicClient from "shared/api/civicClientInstance";
@@ -70,6 +70,7 @@ export async function fetchMutationData(mutationFilter:MutationFilter,
 
 export async function fetchGenes(hugoGeneSymbols?: string[],
                                  client: CBioPortalAPI = defaultClient)
+
 {
     if (hugoGeneSymbols && hugoGeneSymbols.length) {
         const order = stringListToIndexSet(hugoGeneSymbols);
@@ -81,6 +82,20 @@ export async function fetchGenes(hugoGeneSymbols?: string[],
     } else {
         return [];
     }
+}
+
+export async function fetchGenesets(genesetIds?: string[],
+        client:CBioPortalAPIInternal = internalClient)
+
+{
+if (genesetIds && genesetIds.length) {
+const order = stringListToIndexSet(genesetIds);
+return _.sortBy(await internalClient.fetchGenesetsUsingPOST({
+genesetIds: genesetIds.slice(),
+}), (geneset: Geneset) => order[geneset.genesetId]);
+} else {
+return [];
+}
 }
 
 export async function fetchPdbAlignmentData(uniprotId: string,
