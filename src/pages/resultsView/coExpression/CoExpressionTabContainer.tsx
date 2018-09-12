@@ -10,15 +10,19 @@ export default class CoexpressionTabContainer extends React.Component<{ store:Re
         if (this.props.store.molecularProfilesInStudies.isComplete &&
             this.props.store.genes.isComplete &&
             this.props.store.studyToDataQueryFilter.isComplete &&
-            this.props.store.geneMolecularDataCache.isComplete
+            this.props.store.geneMolecularDataCache.isComplete &&
+            this.props.store.genesets.isComplete &&
+            this.props.store.genesetMolecularDataCache.isComplete
         ) {
             return (
                 <CoExpressionTab
                     store={this.props.store}
                     molecularProfiles={this.props.store.molecularProfilesInStudies.result}
                     genes={this.props.store.genes.result}
+                    genesets={this.props.store.genesets.result}
                     studyToDataQueryFilter={this.props.store.studyToDataQueryFilter.result}
                     numericGeneMolecularDataCache={this.props.store.numericGeneMolecularDataCache}
+                    genesetMolecularDataCache={this.props.store.genesetMolecularDataCache.result}
                     mutationCache={this.props.store.mutationCache}
                     molecularProfileIdToProfiledSampleCount={this.props.store.molecularProfileIdToProfiledSampleCount}
                     coverageInformation={this.props.store.coverageInformation}

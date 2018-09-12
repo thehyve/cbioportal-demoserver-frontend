@@ -11,11 +11,12 @@ import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultToo
 import {remoteData} from "../../../shared/api/remoteData";
 import internalClient from "../../../shared/api/cbioportalInternalClientInstance";
 import {MobxPromise} from "mobxpromise";
-import {CoExpression, CoExpressionFilter} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {CoExpression, CoExpressionFilter, Geneset} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import _ from "lodash";
 import {IDataQueryFilter} from "../../../shared/lib/StoreUtils";
 import {MSKTab, MSKTabs} from "../../../shared/components/MSKTabs/MSKTabs";
 import CoExpressionViz from "./CoExpressionViz";
+import GenesetCoExpressionViz from "./GenesetCoExpressionViz";
 import GeneMolecularDataCache from "../../../shared/cache/GeneMolecularDataCache";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import MutationDataCache from "../../../shared/cache/MutationDataCache";
@@ -27,13 +28,16 @@ import {ICoExpressionPlotProps} from "./CoExpressionPlot";
 import {bind} from "bind-decorator";
 import {CoverageInformation} from "../ResultsViewPageStoreUtils";
 import OqlStatusBanner from "../../../shared/components/oqlStatusBanner/OqlStatusBanner";
+import GenesetMolecularDataCache from "../../../shared/cache/GenesetMolecularDataCache";
 
 export interface ICoExpressionTabProps {
     store:ResultsViewPageStore;
     molecularProfiles:MolecularProfile[];
     genes:Gene[];
-    studyToDataQueryFilter:{[studyId:string]:IDataQueryFilter}
+    genesets:Geneset[];
+    studyToDataQueryFilter:{[studyId:string]:IDataQueryFilter};
     numericGeneMolecularDataCache:MobxPromiseCache<{entrezGeneId:number, molecularProfileId:string}, NumericGeneMolecularData[]>;
+    genesetMolecularDataCache: GenesetMolecularDataCache;
     mutationCache:MobxPromiseCache<{entrezGeneId:number}, Mutation[]>;
     molecularProfileIdToProfiledSampleCount:MobxPromise<{[molecularProfileId:string]:number}>;
     coverageInformation:MobxPromise<CoverageInformation>;
@@ -46,6 +50,7 @@ export class CoExpressionCache extends MobxPromiseCache<{entrezGeneId:number, mo
 export default class CoExpressionTab extends React.Component<ICoExpressionTabProps, {}> {
     @observable selectedMolecularProfile:MolecularProfile|undefined; // only undefined initially, until molecular profiles downloaded, at which point its set automatically (see componentWillMount) and cant be made undefined again
     @observable selectedEntrezGeneId:number | undefined; // only undefined initially, until genes downloaded, at which point its set automatically (see componentWillMount) and cant be made undefined again
+    @observable selectedGenesetId:string | undefined; // only undefined initially, until gene sets downloaded, at which point its set automatically (see componentWillMount) and cant be made undefined again
 
     @observable private plotState = {
         plotLogScale: false,
@@ -56,6 +61,7 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
 
     private setMolecularProfileReaction:IReactionDisposer;
     private setGeneReaction:IReactionDisposer;
+    private setGenesetReaction:IReactionDisposer;
 
     constructor(props:ICoExpressionTabProps) {
         super(props);
@@ -80,6 +86,11 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
     @bind
     private onSelectGene(entrezGeneId:string) {
         this.selectedEntrezGeneId = parseInt(entrezGeneId, 10);
+    }
+
+    @bind
+    private onSelectGeneset(genesetId:string) {
+        this.selectedGenesetId = genesetId;
     }
 
     @computed get profiles() {
@@ -166,28 +177,55 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
 
     @bind
     private geneTabs() {
-        if (this.selectedMolecularProfile && this.selectedEntrezGeneId !== undefined) {
+        if (this.selectedMolecularProfile && (this.selectedEntrezGeneId !== undefined || this.selectedGenesetId !== undefined)) {
             const coExpressionVizElements = [];
-            for (const gene of this.props.genes) {
-                for (const profile of this.profiles) {
-                    coExpressionVizElements.push(
-                        <CoExpressionViz
-                            key={`${gene.entrezGeneId},${profile.molecularProfileId}`}
-                            coExpressionCache={this.coExpressionCache}
-                            gene={gene}
-                            molecularProfile={profile}
-                            numericGeneMolecularDataCache={this.props.numericGeneMolecularDataCache}
-                            mutationCache={this.hasMutationData ? this.props.mutationCache : undefined}
-                            hidden={
-                                (profile.molecularProfileId !== this.selectedMolecularProfile!.molecularProfileId) ||
-                                (gene.entrezGeneId !== this.selectedEntrezGeneId!)
-                            }
-                            plotState={this.plotState}
-                            plotHandlers={this.plotHandlers}
-                            coverageInformation={this.props.coverageInformation}
-                            studyToMutationMolecularProfile={this.props.studyToMutationMolecularProfile}
-                        />
-                    );
+            let selectedGenesetProfile = false;
+            if (this.selectedMolecularProfile.molecularAlterationType === AlterationTypeConstants.GENESET_SCORE) {
+                selectedGenesetProfile = true;
+                for (const geneset of this.props.genesets) {
+                    for (const profile of this.profiles) {
+                         // coExpressionVizElements.push(
+                         //     <GenesetCoExpressionViz
+                         //         key={`${geneset.name},${profile.molecularProfileId}`}
+                         //         coExpressionCache={this.coExpressionCache}
+                         //         geneset={geneset}
+                         //         molecularProfile={profile}
+                         //         genesetMolecularDataCache={this.props.genesetMolecularDataCache}
+                         //         mutationCache={this.hasMutationData ? this.props.mutationCache : undefined}
+                         //         hidden={
+                         //             (profile.molecularProfileId !== this.selectedMolecularProfile!.molecularProfileId) ||
+                         //             (geneset.genesetId !== this.selectedGenesetId!)
+                         //         }
+                         //         plotState={this.plotState}
+                         //         plotHandlers={this.plotHandlers}
+                         //         coverageInformation={this.props.coverageInformation}
+                         //         studyToMutationMolecularProfile={this.props.studyToMutationMolecularProfile}
+                         //     />
+                         // );
+                    }
+                }
+            } else {
+                for (const gene of this.props.genes) {
+                    for (const profile of this.profiles) {
+                        coExpressionVizElements.push(
+                            <CoExpressionViz
+                                key={`${gene.entrezGeneId},${profile.molecularProfileId}`}
+                                coExpressionCache={this.coExpressionCache}
+                                gene={gene}
+                                molecularProfile={profile}
+                                numericGeneMolecularDataCache={this.props.numericGeneMolecularDataCache}
+                                mutationCache={this.hasMutationData ? this.props.mutationCache : undefined}
+                                hidden={
+                                    (profile.molecularProfileId !== this.selectedMolecularProfile!.molecularProfileId) ||
+                                    (gene.entrezGeneId !== this.selectedEntrezGeneId!)
+                                }
+                                plotState={this.plotState}
+                                plotHandlers={this.plotHandlers}
+                                coverageInformation={this.props.coverageInformation}
+                                studyToMutationMolecularProfile={this.props.studyToMutationMolecularProfile}
+                            />
+                        );
+                    }
                 }
             }
 
@@ -195,15 +233,25 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 <div>
                     <MSKTabs
                         id="coexpressionTabGeneTabs"
-                        activeTabId={this.selectedEntrezGeneId + ""}
-                        onTabClick={this.onSelectGene}
+                        activeTabId={selectedGenesetProfile ? this.selectedGenesetId + "" : this.selectedEntrezGeneId + ""}
+                        onTabClick={selectedGenesetProfile ? this.onSelectGeneset : this.onSelectGene}
                         className="coexpressionTabGeneTabs pillTabs"
                         unmountOnHide={true}
                         tabButtonStyle="pills"
                         enablePagination={true}
-                        arrowStyle={{'line-height':.8}}
+                        arrowStyle={{'line-height':0.8}}
                     >
-                        {this.props.genes.map((gene:Gene, i:number)=>{
+                        {selectedGenesetProfile && this.props.genesets.map((geneset:Geneset, i:number)=>{
+                            return (
+                                <MSKTab
+                                    key={i}
+                                    id={geneset.name+""}
+                                    linkText={geneset.genesetId}
+                                >
+                                </MSKTab>
+                            );
+                        })}
+                        {!selectedGenesetProfile && this.props.genes.map((gene:Gene, i:number)=>{
                             return (
                                 <MSKTab
                                     key={i}
@@ -242,11 +290,20 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 this.selectedEntrezGeneId = this.props.genes[0].entrezGeneId;
             }
         });
+
+        this.setGenesetReaction = autorun(()=>{
+            // set gene set to default if its not already set
+            // will only happen once, the first time props.genesets is set to nonempty array. it cant become undefined again
+            if (!this.selectedGenesetId && this.props.genesets.length) {
+                this.selectedGenesetId = this.props.genesets[0].name;
+            }
+        });
     }
 
     componentWillUnmount() {
         this.setMolecularProfileReaction();
         this.setGeneReaction();
+        this.setGenesetReaction();
     }
 
     render() {

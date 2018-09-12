@@ -8,7 +8,7 @@ import {
     SimpleGetterLazyMobXTableApplicationDataStore,
     SimpleLazyMobXTableApplicationDataStore
 } from "../../../shared/lib/ILazyMobXTableApplicationDataStore";
-import {CoExpression} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {CoExpression, Geneset, GenesetMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import GeneMolecularDataCache from "../../../shared/cache/GeneMolecularDataCache";
 import CoExpressionPlot, {ICoExpressionPlotProps} from "./CoExpressionPlot";
 import {remoteData} from "../../../shared/api/remoteData";
@@ -20,6 +20,9 @@ import {CoExpressionCache} from "./CoExpressionTab";
 import {bind} from "bind-decorator";
 import MobxPromiseCache from "../../../shared/lib/MobxPromiseCache";
 import {CoverageInformation} from "../ResultsViewPageStoreUtils";
+import GenesetMolecularDataCache from "../../../shared/cache/GenesetMolecularDataCache";
+import internalClient from "../../../shared/api/cbioportalInternalClientInstance";
+
 
 export interface ICoExpressionVizProps {
     plotState:{
@@ -27,10 +30,10 @@ export interface ICoExpressionVizProps {
         plotShowMutations:boolean;
     };
     plotHandlers:ICoExpressionPlotProps["handlers"];
-    gene:Gene;
+    geneset:Geneset;
     molecularProfile:MolecularProfile;
     coExpressionCache:CoExpressionCache;
-    numericGeneMolecularDataCache:MobxPromiseCache<{entrezGeneId:number, molecularProfileId:string}, NumericGeneMolecularData[]>;
+    genesetMolecularDataCache:GenesetMolecularDataCache;
     coverageInformation:MobxPromise<CoverageInformation>;
     studyToMutationMolecularProfile:MobxPromise<{[studyId:string]:MolecularProfile}>;
     mutationCache?:MobxPromiseCache<{entrezGeneId:number}, Mutation[]>;
@@ -99,6 +102,37 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
         });
     }
 
+    private readonly getAllGenesets = remoteData<Geneset[]>({
+        invoke: async () => internalClient.getAllGenesetsUsingGET({}),
+        onResult:(genesets:Geneset[])=>{
+            const allGenesets:Geneset[] = [];
+            for (const geneset of genesets) {
+                allGenesets.push(geneset);
+            }
+            return allGenesets;
+        }
+    });
+
+    private getAllGenesetMolecularData = remoteData<GenesetMolecularData[]>({
+        await: () => [this.getAllGenesets],
+        invoke: ()=> {
+            let genesetMolecularData: GenesetMolecularData[] = [];
+            
+
+            Promise.resolve(_.keyBy(this.getAllGenesets.result!, gene=>gene.name))
+            return genesetMolecularData;
+        }
+    });
+
+    // private getAllGenesetMolecularData(molecularProfileId: string): GenesetMolecularData[] {
+    //     let genesetMolecularData: GenesetMolecularData[] = [];
+    //
+    //     const genesets: Promise<Geneset[]> = this.getAllGenesets;
+    //
+    //     const data:GenesetMolecularData[] = genesetMolecularDataCache.get({molecularProfileId, genesetId})!.data!;
+    //     return genesetMolecularData;
+    // }
+
     private dataStore = new CoExpressionDataStore(
         ()=>{
             if (this.props.hidden) {
@@ -138,25 +172,19 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
 
     private getPlotDataPromises(yAxisCoExpression?:CoExpression) {
         const ret:{
-            molecularX:MobxPromise<NumericGeneMolecularData[]>,
-            molecularY:MobxPromise<NumericGeneMolecularData[]>|undefined,
+            molecularX:GenesetMolecularData[]|undefined,
+            molecularY:GenesetMolecularData[]|undefined,
             mutationX:MobxPromise<Mutation[]>|undefined,
             mutationY:MobxPromise<Mutation[]>|undefined
         } = {
-            molecularX: this.props.numericGeneMolecularDataCache.get({
-                entrezGeneId: this.props.gene.entrezGeneId,
-                molecularProfileId: this.props.molecularProfile.molecularProfileId
-            }),
+            molecularX: this.props.genesetMolecularDataCache,
             mutationX:undefined,
             molecularY:undefined,
             mutationY:undefined
         };
 
         if (yAxisCoExpression) {
-            ret.molecularY = this.props.numericGeneMolecularDataCache.get({
-                entrezGeneId: yAxisCoExpression.entrezGeneId,
-                molecularProfileId: this.props.molecularProfile.molecularProfileId
-            });
+            ret.molecularY = this.props.genesetMolecularDataCache
         }
 
         if (this.props.mutationCache) {
