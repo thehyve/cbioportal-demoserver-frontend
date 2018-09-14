@@ -194,7 +194,9 @@ export type GenesetHierarchyInfo = {
 
 };
 export type GenesetMolecularData = {
-    'genesetId': string
+    'geneset': Geneset
+
+        'genesetId': string
 
         'geneticProfileId': string
 
@@ -239,6 +241,22 @@ export type Info = {
     'dbVersion': string
 
         'portalVersion': string
+
+};
+export type MolecularProfileCorrelation = {
+    'cytoband': string
+
+        'geneticEntityId': string
+
+        'geneticEntityName': string
+
+        'geneticEntityType': string
+
+        'pValue': number
+
+        'qValue': number
+
+        'spearmansCorrelation': number
 
 };
 export type MolecularProfileSampleCount = {
@@ -1589,6 +1607,155 @@ export default class CBioPortalAPIInternal {
             return response.body;
         });
     };
+    fetchCoExpressionsUsingPOST_1URL(parameters: {
+        'geneticEntityId': string,
+        'geneticEntityType': string,
+        'subjectProfileId': string,
+        'queryProfileId': string,
+        'coExpressionFilter': CoExpressionFilter,
+        'threshold' ? : number,
+        $queryParameters ? : any
+    }): string {
+        let queryParameters: any = {};
+        let path = '/molecular-profiles/correlations/{geneticEntityId}/{subjectProfileId}/{queryProfileId}/fetch';
+
+        path = path.replace('{geneticEntityId}', parameters['geneticEntityId'] + '');
+        if (parameters['geneticEntityType'] !== undefined) {
+            queryParameters['geneticEntityType'] = parameters['geneticEntityType'];
+        }
+
+        path = path.replace('{subjectProfileId}', parameters['subjectProfileId'] + '');
+
+        path = path.replace('{queryProfileId}', parameters['queryProfileId'] + '');
+
+        if (parameters['threshold'] !== undefined) {
+            queryParameters['threshold'] = parameters['threshold'];
+        }
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                var parameter = parameters.$queryParameters[parameterName];
+                queryParameters[parameterName] = parameter;
+            });
+        }
+        let keys = Object.keys(queryParameters);
+        return this.domain + path + (keys.length > 0 ? '?' + (keys.map(key => key + '=' + encodeURIComponent(queryParameters[key])).join('&')) : '');
+    };
+
+    /**
+     * Calculates correlations between a genetic entity from a specific profile and another profile from the same study
+     * @method
+     * @name CBioPortalAPIInternal#fetchCoExpressionsUsingPOST_1
+     * @param {string} geneticEntityId - Genetic Entity ID (Entrez Gene ID or Gene set ID)
+     * @param {string} geneticEntityType - Genetic Entity type (gene or geneset)
+     * @param {string} subjectProfileId - Molecular Profile ID from the Genetic Entity ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {string} queryProfileId - Molecular Profile ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {} coExpressionFilter - List of Sample IDs/Sample List ID
+     * @param {number} threshold - Threshold
+     */
+    fetchCoExpressionsUsingPOST_1WithHttpInfo(parameters: {
+        'geneticEntityId': string,
+        'geneticEntityType': string,
+        'subjectProfileId': string,
+        'queryProfileId': string,
+        'coExpressionFilter': CoExpressionFilter,
+        'threshold' ? : number,
+        $queryParameters ? : any,
+        $domain ? : string
+    }): Promise < request.Response > {
+        const domain = parameters.$domain ? parameters.$domain : this.domain;
+        const errorHandlers = this.errorHandlers;
+        const request = this.request;
+        let path = '/molecular-profiles/correlations/{geneticEntityId}/{subjectProfileId}/{queryProfileId}/fetch';
+        let body: any;
+        let queryParameters: any = {};
+        let headers: any = {};
+        let form: any = {};
+        return new Promise(function(resolve, reject) {
+            headers['Accept'] = 'application/json';
+            headers['Content-Type'] = 'application/json';
+
+            path = path.replace('{geneticEntityId}', parameters['geneticEntityId'] + '');
+
+            if (parameters['geneticEntityId'] === undefined) {
+                reject(new Error('Missing required  parameter: geneticEntityId'));
+                return;
+            }
+
+            if (parameters['geneticEntityType'] !== undefined) {
+                queryParameters['geneticEntityType'] = parameters['geneticEntityType'];
+            }
+
+            if (parameters['geneticEntityType'] === undefined) {
+                reject(new Error('Missing required  parameter: geneticEntityType'));
+                return;
+            }
+
+            path = path.replace('{subjectProfileId}', parameters['subjectProfileId'] + '');
+
+            if (parameters['subjectProfileId'] === undefined) {
+                reject(new Error('Missing required  parameter: subjectProfileId'));
+                return;
+            }
+
+            path = path.replace('{queryProfileId}', parameters['queryProfileId'] + '');
+
+            if (parameters['queryProfileId'] === undefined) {
+                reject(new Error('Missing required  parameter: queryProfileId'));
+                return;
+            }
+
+            if (parameters['coExpressionFilter'] !== undefined) {
+                body = parameters['coExpressionFilter'];
+            }
+
+            if (parameters['coExpressionFilter'] === undefined) {
+                reject(new Error('Missing required  parameter: coExpressionFilter'));
+                return;
+            }
+
+            if (parameters['threshold'] !== undefined) {
+                queryParameters['threshold'] = parameters['threshold'];
+            }
+
+            if (parameters.$queryParameters) {
+                Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                    var parameter = parameters.$queryParameters[parameterName];
+                    queryParameters[parameterName] = parameter;
+                });
+            }
+
+            request('POST', domain + path, body, headers, queryParameters, form, reject, resolve, errorHandlers);
+
+        });
+    };
+
+    /**
+     * Calculates correlations between a genetic entity from a specific profile and another profile from the same study
+     * @method
+     * @name CBioPortalAPIInternal#fetchCoExpressionsUsingPOST_1
+     * @param {string} geneticEntityId - Genetic Entity ID (Entrez Gene ID or Gene set ID)
+     * @param {string} geneticEntityType - Genetic Entity type (gene or geneset)
+     * @param {string} subjectProfileId - Molecular Profile ID from the Genetic Entity ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {string} queryProfileId - Molecular Profile ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {} coExpressionFilter - List of Sample IDs/Sample List ID
+     * @param {number} threshold - Threshold
+     */
+    fetchCoExpressionsUsingPOST_1(parameters: {
+            'geneticEntityId': string,
+            'geneticEntityType': string,
+            'subjectProfileId': string,
+            'queryProfileId': string,
+            'coExpressionFilter': CoExpressionFilter,
+            'threshold' ? : number,
+            $queryParameters ? : any,
+            $domain ? : string
+        }): Promise < Array < MolecularProfileCorrelation >
+        > {
+            return this.fetchCoExpressionsUsingPOST_1WithHttpInfo(parameters).then(function(response: request.Response) {
+                return response.body;
+            });
+        };
     fetchCoExpressionsUsingPOSTURL(parameters: {
         'molecularProfileId': string,
         'coExpressionFilter': CoExpressionFilter,

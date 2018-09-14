@@ -17,7 +17,6 @@ export function filterAndSortProfiles(profiles:MolecularProfile[]) {
         let good = false;
         switch(profile.molecularAlterationType) {
             case AlterationTypeConstants.MRNA_EXPRESSION:
-            case AlterationTypeConstants.GENESET_SCORE:
             case AlterationTypeConstants.PROTEIN_LEVEL:
                 const profileId = profile.molecularProfileId.toLowerCase();
                 good = (profileId.indexOf("merged_median_zscores") > -1) ||

@@ -8,7 +8,7 @@ import {
     SimpleGetterLazyMobXTableApplicationDataStore,
     SimpleLazyMobXTableApplicationDataStore
 } from "../../../shared/lib/ILazyMobXTableApplicationDataStore";
-import {CoExpression} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {CoExpression, Geneset} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import GeneMolecularDataCache from "../../../shared/cache/GeneMolecularDataCache";
 import CoExpressionPlot, {ICoExpressionPlotProps} from "./CoExpressionPlot";
 import {remoteData} from "../../../shared/api/remoteData";
