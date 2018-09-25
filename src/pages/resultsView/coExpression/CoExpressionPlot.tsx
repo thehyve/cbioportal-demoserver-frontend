@@ -9,7 +9,7 @@ import {
     VictoryTheme,
     VictoryTooltip
 } from "victory";
-import {CoExpression} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {MolecularProfileCorrelation} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import {action, computed, observable} from "mobx";
 import {observer, Observer} from "mobx-react";
 import {MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
@@ -25,13 +25,13 @@ import {axisLabel, isNotProfiled} from "./CoExpressionPlotUtils";
 import _ from "lodash";
 import {scatterPlotSize} from "../../../shared/components/plots/PlotUtils";
 
-type GeneId = { hugoGeneSymbol:string, entrezGeneId: number, cytoband:string};
+type GeneticEntityId = {geneticEntityId: string, geneticEntityName:string, geneticEntityType:"gene"|"geneset", cytoband: string};
 
 export interface ICoExpressionPlotProps {
-    xAxisGene:GeneId;
-    yAxisGene:GeneId;
+    xAxisGene:GeneticEntityId;
+    yAxisGene:GeneticEntityId;
     data:CoExpressionPlotData[];
-    coExpression:CoExpression;
+    coExpression:MolecularProfileCorrelation;
     molecularProfile:MolecularProfile;
 
     height:number;
@@ -151,13 +151,13 @@ export default class CoExpressionPlot extends React.Component<ICoExpressionPlotP
         const ret = [];
         if (hasX) {
             ret.push({
-                name: [this.props.xAxisGene.hugoGeneSymbol, "mutated"],
+                name: [this.props.xAxisGene.geneticEntityName, "mutated"],
                 symbol: { fill: X_MUT_FILL, stroke: X_MUT_STROKE }
             });
         }
         if (hasY) {
             ret.push({
-                name: [this.props.yAxisGene.hugoGeneSymbol, "mutated"],
+                name: [this.props.yAxisGene.geneticEntityName, "mutated"],
                 symbol: { fill: Y_MUT_FILL, stroke: Y_MUT_STROKE }
             });
         }
@@ -199,7 +199,7 @@ export default class CoExpressionPlot extends React.Component<ICoExpressionPlotP
     }
 
     private get title() {
-        return `${this.props.molecularProfile.name}: ${this.props.xAxisGene.hugoGeneSymbol} vs. ${this.props.yAxisGene.hugoGeneSymbol}`;
+        return `${this.props.molecularProfile.name}: ${this.props.xAxisGene.geneticEntityName} vs. ${this.props.yAxisGene.geneticEntityName}`;
     }
 
     @computed get axisLabelX() {
@@ -291,20 +291,20 @@ export default class CoExpressionPlot extends React.Component<ICoExpressionPlotP
                 </div>
                 <div>
                     <span>
-                        {this.props.xAxisGene.hugoGeneSymbol}:&nbsp;
+                        {this.props.xAxisGene.geneticEntityName}:&nbsp;
                         <b>{d.x.toFixed(2)}</b>
                     </span>
                 </div>
                 <div>
                     <span>
-                        {this.props.yAxisGene.hugoGeneSymbol}:&nbsp;
+                        {this.props.yAxisGene.geneticEntityName}:&nbsp;
                         <b>{d.y.toFixed(2)}</b>
                     </span>
                 </div>
                 {d.mutationsX && (
                     <div>
                         <span>
-                            {this.props.xAxisGene.hugoGeneSymbol} Mutation:&nbsp;
+                            {this.props.xAxisGene.geneticEntityName} Mutation:&nbsp;
                             <b>{d.mutationsX}</b>
                         </span>
                     </div>
@@ -312,7 +312,7 @@ export default class CoExpressionPlot extends React.Component<ICoExpressionPlotP
                 {d.mutationsY && (
                     <div>
                         <span>
-                            {this.props.yAxisGene.hugoGeneSymbol} Mutation:&nbsp;
+                            {this.props.yAxisGene.geneticEntityName} Mutation:&nbsp;
                             <b>{d.mutationsY}</b>
                         </span>
                     </div>

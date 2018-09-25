@@ -250,7 +250,7 @@ export type MolecularProfileCorrelation = {
 
         'geneticEntityName': string
 
-        'geneticEntityType': string
+        'geneticEntityType': "gene"|"geneset"
 
         'pValue': number
 
