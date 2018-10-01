@@ -1,10 +1,31 @@
 import {MolecularProfile, Mutation, NumericGeneMolecularData} from "../../../shared/api/generated/CBioPortalAPI";
-import {GenesetMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {Gene} from "../../../shared/api/generated/CBioPortalAPI";
+import {Geneset, GenesetMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import {CoverageInformation} from "../ResultsViewPageStoreUtils";
 import {isSampleProfiled} from "../../../shared/lib/isSampleProfiled";
 
-
 const nonBreakingSpace = '\xa0';
+
+export type PlotMolecularData = {
+    'geneticEntityId': number|string
+
+        'geneticEntity': Gene|Geneset
+
+        'profileId': string
+
+        'patientId': string
+
+        'sampleId': string
+
+        'studyId': string
+
+        'uniquePatientKey': string
+
+        'uniqueSampleKey': string
+
+        'value': number
+};
+
 export function requestAllDataMessage(hugoGeneSymbol:string) {
     return `There are no genes with a Pearson or Spearman correlation with ${hugoGeneSymbol} of${nonBreakingSpace}>${nonBreakingSpace}0.3${nonBreakingSpace}or${nonBreakingSpace}<${nonBreakingSpace}-0.3.`;
 }
@@ -34,7 +55,7 @@ function isProfiled(
 }
 
 export function computePlotData(
-    molecularData: NumericGeneMolecularData[]|GenesetMolecularData[],
+    molecularData: PlotMolecularData[],
     mutationData: Mutation[],
     xGeneticEntityId:string,
     xGeneticEntityName:string,
@@ -42,8 +63,8 @@ export function computePlotData(
     coverageInformation:CoverageInformation,
     studyToMutationMolecularProfile:{[studyId:string]:MolecularProfile}
 ) {
-    const xData:{[uniqueSampleKey:string]:NumericGeneMolecularData} = {};
-    const yData:{[uniqueSampleKey:string]:NumericGeneMolecularData} = {};
+    const xData:{[uniqueSampleKey:string]:PlotMolecularData} = {};
+    const yData:{[uniqueSampleKey:string]:PlotMolecularData} = {};
     const xMutations:{[uniqueSampleKey:string]:Mutation[]} = {};
     const yMutations:{[uniqueSampleKey:string]:Mutation[]} = {};
     const sampleInfo:{[uniqueSampleKey:string]:{sampleId:string, studyId:string}} = {};
@@ -62,7 +83,7 @@ export function computePlotData(
         }
     }
     for (const datum of molecularData) {
-        const targetData = ((datum.entrezGeneId !== undefined ? (datum as NumericGeneMolecularData).entrezGeneId === Number(xGeneticEntityId) : (datum as GenesetMolecularData).genesetId === xGeneticEntityId)) ? xData : yData);
+        const targetData = ((String(datum.geneticEntityId) === xGeneticEntityId) ? xData : yData);
         targetData[datum.uniqueSampleKey] = datum;
         addSampleInfo(datum);
     }
@@ -74,8 +95,8 @@ export function computePlotData(
         const yDatum = yData[uniqueSampleKey];
         if (xDatum && yDatum) {
             // only add data if data for both axes
-            const xVal = xDatum.value;
-            const yVal = yDatum.value;
+            const xVal = Number(xDatum.value);
+            const yVal = Number(yDatum.value);
             if (!isNaN(xVal) && !isNaN(yVal)) {
                 ret.push({
                     x: xVal,

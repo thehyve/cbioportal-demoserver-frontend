@@ -12,15 +12,17 @@ export const tableSearchInformation = "Coexpression data can be filtered by gene
 export function filterAndSortProfiles(profiles:MolecularProfile[]) {
     const profs = profiles.filter(profile=>{
         // we want a profile which is mrna, protein or gene set, and among them we want any profile,
-        // except zscore profiles that are not merged_median_zscores
+        // except zscore profiles that are not merged_median_zscores, or gsva p-values
 
         let good = false;
-        switch(profile.molecularAlterationType) {
-            case AlterationTypeConstants.MRNA_EXPRESSION:
-            case AlterationTypeConstants.PROTEIN_LEVEL:
-                const profileId = profile.molecularProfileId.toLowerCase();
+        const profileId = profile.molecularProfileId.toLowerCase();
+        if (profile.molecularAlterationType === AlterationTypeConstants.MRNA_EXPRESSION ||
+            profile.molecularAlterationType === AlterationTypeConstants.PROTEIN_LEVEL) {
                 good = (profileId.indexOf("merged_median_zscores") > -1) ||
                     (profileId.indexOf("zscores") === -1);
+        }
+        if (profile.molecularAlterationType === AlterationTypeConstants.GENESET_SCORE) {
+            good = profileId.indexOf("gsva_pvalues") === -1;
         }
         return good;
     });

@@ -15,7 +15,7 @@ import CoExpressionPlot, {ICoExpressionPlotProps} from "./CoExpressionPlot";
 import {remoteData} from "../../../shared/api/remoteData";
 import MutationDataCache from "../../../shared/cache/MutationDataCache";
 import {cached, MobxPromise} from "mobxpromise";
-import {computePlotData, requestAllDataMessage} from "./CoExpressionVizUtils";
+import {computePlotData, requestAllDataMessage, PlotMolecularData} from "./CoExpressionVizUtils";
 import {Button} from "react-bootstrap";
 import {CoExpressionCache} from "./CoExpressionTab";
 import {bind} from "bind-decorator";
@@ -29,10 +29,11 @@ export interface ICoExpressionVizProps {
     };
     plotHandlers:ICoExpressionPlotProps["handlers"];
     geneticEntity: {geneticEntityId: string, geneticEntityName:string, geneticEntityType:"gene"|"geneset", cytoband: string};
-    molecularProfile:MolecularProfile;
+    subjectMolecularProfile:MolecularProfile;
+    queryMolecularProfile:MolecularProfile;
     coExpressionCache:CoExpressionCache;
     numericGeneMolecularDataCache:MobxPromiseCache<{entrezGeneId:number, molecularProfileId:string}, NumericGeneMolecularData[]>;
-    genesetMolecularDataCache:GenesetMolecularDataCache;
+    genesetMolecularDataCache:MobxPromise<GenesetMolecularDataCache>;
     coverageInformation:MobxPromise<CoverageInformation>;
     studyToMutationMolecularProfile:MobxPromise<{[studyId:string]:MolecularProfile}>;
     mutationCache?:MobxPromiseCache<{entrezGeneId:number}, Mutation[]>;
@@ -97,8 +98,8 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
         return this.props.coExpressionCache.get({
             geneticEntityId: this.props.geneticEntity.geneticEntityId,
             geneticEntityType: this.props.geneticEntity.geneticEntityType,
-            subjectProfileId: this.props.molecularProfile,
-            queryProfileId: this.props.molecularProfile,
+            subjectProfileId: this.props.subjectMolecularProfile,
+            queryProfileId: this.props.queryMolecularProfile,
             allData: this.allDataRequested
         });
     }
@@ -140,6 +141,47 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
         this.allDataRequested = true;
     }
 
+    private getGenesetPlotData(genesetMolecularDataCachePromise: MobxPromise<GenesetMolecularDataCache>, genesetId: string, molecularProfileId: string): MobxPromise<GenesetMolecularData[]> {
+        return remoteData({
+            await:()=>[genesetMolecularDataCachePromise],
+            invoke: async () => {
+                await genesetMolecularDataCachePromise.result!.getPromise(
+                     {genesetId, molecularProfileId}, true);
+                return genesetMolecularDataCachePromise.result!.get({molecularProfileId, genesetId})!.data!;
+            }
+        });
+    }
+
+    private convertToPlotMolecularData(data: NumericGeneMolecularData[]|GenesetMolecularData[]) {
+        const ret: PlotMolecularData[] = [];
+        for (const datum of data) {
+            if ((datum as NumericGeneMolecularData).entrezGeneId) {
+                ret.push({geneticEntityId: (datum as NumericGeneMolecularData).entrezGeneId,
+                          geneticEntity: (datum as NumericGeneMolecularData).gene,
+                          profileId: (datum as NumericGeneMolecularData).molecularProfileId,
+                          patientId: datum.patientId,
+                          sampleId: datum.sampleId,
+                          studyId: datum.studyId,
+                          uniquePatientKey: datum.uniquePatientKey,
+                          uniqueSampleKey: datum.uniqueSampleKey,
+                          value: (datum as NumericGeneMolecularData).value
+                      });
+            } else {
+                ret.push({geneticEntityId: (datum as GenesetMolecularData).genesetId,
+                          geneticEntity: (datum as GenesetMolecularData).geneset,
+                          profileId: (datum as GenesetMolecularData).geneticProfileId,
+                          patientId: datum.patientId,
+                          sampleId: datum.sampleId,
+                          studyId: datum.studyId,
+                          uniquePatientKey: datum.uniquePatientKey,
+                          uniqueSampleKey: datum.uniqueSampleKey,
+                          value: Number(datum.value)
+                      });
+            }
+        }
+        return ret;
+    }
+
     private getPlotDataPromises(yAxisCoExpression?:MolecularProfileCorrelation) {
         const ret:{
             molecularX:MobxPromise<NumericGeneMolecularData[]>|MobxPromise<GenesetMolecularData[]>,
@@ -150,20 +192,23 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
             molecularX: this.props.geneticEntity.geneticEntityType === "gene" ?
                 this.props.numericGeneMolecularDataCache.get({ //TODO: solve
                     entrezGeneId: Number(this.props.geneticEntity.geneticEntityId),
-                    molecularProfileId: this.props.molecularProfile.molecularProfileId
-                }) : this.props.genesetMolecularDataCache.get({
-                    this.props.molecularProfile.molecularProfileId,
-                    this.props.geneticEntity.geneticEntityId})!.data!,
+                    molecularProfileId: this.props.queryMolecularProfile.molecularProfileId
+                }) : this.getGenesetPlotData(this.props.genesetMolecularDataCache,
+                                             this.props.geneticEntity.geneticEntityId,
+                                             this.props.queryMolecularProfile.molecularProfileId),
             mutationX:undefined,
             molecularY:undefined,
             mutationY:undefined
         };
 
         if (yAxisCoExpression) {
-            ret.molecularY = this.props.numericGeneMolecularDataCache.get({
-                entrezGeneId: Number(yAxisCoExpression.geneticEntityId),
-                molecularProfileId: this.props.molecularProfile.molecularProfileId
-            });
+            ret.molecularY = this.props.geneticEntity.geneticEntityType === "gene" ?
+                this.props.numericGeneMolecularDataCache.get({
+                    entrezGeneId: Number(yAxisCoExpression.geneticEntityId),
+                    molecularProfileId: this.props.queryMolecularProfile.molecularProfileId
+                }) : this.getGenesetPlotData(this.props.genesetMolecularDataCache,
+                                             yAxisCoExpression.geneticEntityId,
+                                             this.props.queryMolecularProfile.molecularProfileId);
         }
 
         if (this.props.mutationCache) {
@@ -210,11 +255,11 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
             }
 
             const promises = this.getPlotDataPromises(this.highlightedCoExpression);
-            let geneticEntityMolecularData:NumericGeneMolecularData[]|GenesetMolecularData[] = [];
+            let geneticEntityMolecularData:PlotMolecularData[] = [];
             if (promises.molecularX && promises.molecularX.isComplete)
-                geneticEntityMolecularData = geneticEntityMolecularData.concat(promises.molecularX.result!);
+                geneticEntityMolecularData = geneticEntityMolecularData.concat(this.convertToPlotMolecularData(promises.molecularX.result!));
             if (promises.molecularY && promises.molecularY.isComplete)
-                geneticEntityMolecularData = geneticEntityMolecularData.concat(promises.molecularY.result!);
+                geneticEntityMolecularData = geneticEntityMolecularData.concat(this.convertToPlotMolecularData(promises.molecularY.result!));
 
             let mutations:Mutation[] = [];
             if (promises.mutationX && promises.mutationX.isComplete)
@@ -247,7 +292,7 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
     }
 
     @computed get showLogScaleControls() {
-        const profileId = this.props.molecularProfile.molecularProfileId.toLowerCase();
+        const profileId = this.props.queryMolecularProfile.molecularProfileId.toLowerCase();
         return (
             (profileId.indexOf("rna_seq") > -1) &&
             (profileId.indexOf("zscore") === -1)
@@ -315,8 +360,7 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
                                 showMutations={this.plotShowMutations}
                                 logScale={this.plotLogScale}
                                 handlers={this.props.plotHandlers}
-                                molecularProfile={this.props.molecularProfile}
-
+                                molecularProfile={this.props.queryMolecularProfile}
                                 height={530}
                                 width={530}
                             />

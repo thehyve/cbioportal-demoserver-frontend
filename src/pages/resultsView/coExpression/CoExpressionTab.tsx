@@ -39,7 +39,7 @@ export interface ICoExpressionTabProps {
     genesets:Geneset[];
     studyToDataQueryFilter:{[studyId:string]:IDataQueryFilter};
     numericGeneMolecularDataCache:MobxPromiseCache<{entrezGeneId:number, molecularProfileId:string}, NumericGeneMolecularData[]>;
-    genesetMolecularDataCache: GenesetMolecularDataCache;
+    genesetMolecularDataCache: MobxPromise<GenesetMolecularDataCache>;
     mutationCache:MobxPromiseCache<{entrezGeneId:number}, Mutation[]>;
     molecularProfileIdToProfiledSampleCount:MobxPromise<{[molecularProfileId:string]:number}>;
     coverageInformation:MobxPromise<CoverageInformation>;
@@ -147,8 +147,31 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 }
             }
         }),
-        q=>`${q.geneticEntityId},${q.subjectProfileId}`
+        q=>`${q.geneticEntityId},${q.queryProfileId}`
     );
+
+    private getSubjectMolecularProfile(geneticEntity: {geneticEntityId: string, geneticEntityName:string, geneticEntityType:"gene"|"geneset", cytoband: string}) {
+        let ret = this.selectedMolecularProfile as MolecularProfile;
+        let genesetProfile;
+        for (const profile of this.profiles) {
+            const profileId = profile.molecularProfileId.toLowerCase();
+            if (profileId.indexOf("gsva_pvalues") === -1) {
+                genesetProfile = profile;
+            }
+        }
+        if (geneticEntity.geneticEntityType === "geneset") {
+            if (genesetProfile) {
+                ret = genesetProfile;
+            }
+        } else {
+            if (this.selectedMolecularProfile === genesetProfile) {
+                //Find expression profile for geneset profile: TODO that, create endpoint to retrieve molecular profile using the
+                // genetic_profile_link table from the database.
+                // Assign molecular profile
+            }
+        }
+        return ret;
+    }
 
     private get dataSetSelector() {
         if (this.selectedMolecularProfile && this.props.molecularProfileIdToProfiledSampleCount.isComplete) {
@@ -160,27 +183,14 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 };
             });
             return (
-                <div>
-                    <div className="form-inline">
-                        <div className="checkbox"><label>
-                            <input
-                                type="checkbox"
-                                checked={true}
-                            />
-                            Genes
-                        </label></div>
-                        <div className="checkbox"><label>
-                            <input
-                                type="checkbox"
-                                checked={true}
-                            />
-                            Gene sets
-                        </label></div>
-
-                <div className="form-group">
-
-                    <label for="test">Gene Expression Data Set:</label>
-                    <div id="test" style={{display:"inline-block", width:376, marginLeft:4, marginRight:4, zIndex:10 /* so that on top when opened*/}}>
+                <div
+                   style = {{
+                       display: "flex",
+                       alignItems: "center"
+                   }}
+               >
+                   <span>Data Set:</span>
+                   <div style={{display:"inline-block", width:376, marginLeft:4, marginRight:4, zIndex:10 /* so that on top when opened*/}}>
                         <Select
                             name="data-set-select"
                             value={this.selectedMolecularProfile.molecularProfileId}
@@ -191,8 +201,6 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                             className="coexpression-select-profile"
                         />
                     </div>
-                </div>
-            </div>
                 </div>
             );
         } else {
@@ -220,11 +228,14 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                             key={`${geneticEntity.geneticEntityName},${profile.molecularProfileId}`}
                             coExpressionCache={this.coExpressionCache}
                             geneticEntity={geneticEntity}
-                            molecularProfile={profile}
+                            subjectMolecularProfile={this.getSubjectMolecularProfile(geneticEntity)}
+                            queryMolecularProfile={profile}
                             numericGeneMolecularDataCache={this.props.numericGeneMolecularDataCache}
+                            genesetMolecularDataCache={this.props.genesetMolecularDataCache}
                             mutationCache={this.hasMutationData ? this.props.mutationCache : undefined}
                             hidden={
-                                (!((geneticEntity.geneticEntityId) === this.selectedGeneticEntity))
+                                (profile.molecularProfileId !== this.selectedMolecularProfile!.molecularProfileId) ||
+                                (geneticEntity.geneticEntityId !== this.selectedGeneticEntity)
                             }
                             plotState={this.plotState}
                             plotHandlers={this.plotHandlers}
@@ -254,18 +265,14 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                                     key={i}
                                     id={geneticEntity.geneticEntityId}
                                     linkText={geneticEntity.geneticEntityName}
+                                    hide={geneticEntity.geneticEntityType === "gene" ? false : true} //TODO: change "true" for the condition where molecular profile fits.
                                 >
                                 </MSKTab>
                             );
                         })}
                     </MSKTabs>
                     </div>
-                    <div>
-                        {this.dataSetSelector}
-                    </div>
-                    <div>
                     {coExpressionVizElements}
-                    </div>
                 </div>
             );
         } else {
@@ -314,6 +321,9 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
         if (this.profiles.length) {
             divContents = (
                 <div>
+                    <Observer>
+                        {this.header}
+                    </Observer>
                     <Observer>
                         {this.geneTabs}
                     </Observer>
