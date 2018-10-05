@@ -19,6 +19,7 @@ async function fetch(
     const param = {
         genesetId,
         geneticProfileId: molecularProfileId,
+        correlationThreshold: 0,
         ...sampleFilterByProfile[molecularProfileId]
     };
     return client.fetchCorrelatedGenesUsingPOST(param);
