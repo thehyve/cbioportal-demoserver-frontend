@@ -32,6 +32,8 @@ import ValidationAlert from "shared/components/ValidationAlert";
 import AjaxErrorModal from "shared/components/AjaxErrorModal";
 import AppConfig from 'appConfig';
 import { getMouseIcon } from './SVGIcons';
+import autobind from "autobind-decorator";
+import client from "../../shared/api/cbioportalClientInstance";
 
 import './patient.scss';
 import IFrameLoader from "../../shared/components/iframeLoader/IFrameLoader";
@@ -39,6 +41,7 @@ import {getSampleViewUrl} from "../../shared/api/urls";
 import {PageLayout} from "../../shared/components/PageLayout/PageLayout";
 
 const patientViewPageStore = new PatientViewPageStore();
+const win = (window as any);
 
 (window as any).patientViewPageStore = patientViewPageStore;
 
@@ -193,6 +196,15 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
 
     private shouldShowPathologyReport(patientViewPageStore: PatientViewPageStore): boolean {
         return patientViewPageStore.pathologyReport.isComplete && patientViewPageStore.pathologyReport.result.length > 0;
+    }
+
+    @autobind
+    private customTabMountCallback(div:HTMLDivElement,tab:any){
+        if (typeof win[tab.mountCallbackName] === 'function'){
+            win[tab.mountCallbackName](div, this.props.routing.location, patientViewPageStore, client, tab.customParameters || {});
+        } else {
+            alert(`Tab mount callback not implemented for ${tab.title}`);
+        }
     }
 
     public render() {
@@ -499,6 +511,15 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                             <IFrameLoader height={700} url={  `http://cancer.digitalslidearchive.net/index_mskcc.php?slide_name=${patientViewPageStore.patientId}` } />
                         </div>
                     </MSKTab>
+
+                    {
+                        (AppConfig.customTabs) && AppConfig.customTabs.filter((tab)=>tab.location==="PATIENT_PAGE").map((tab:any, i:number)=>{
+                            return (<MSKTab key={100+i} id={'customTab'+1} unmountOnHide={(tab.unmountOnHide===true)}
+                                           onTabDidMount={(div)=>{ this.customTabMountCallback(div, tab) }} linkText={tab.title}>
+
+                            </MSKTab>)
+                        })
+                    }
 
                     </MSKTabs>
 
