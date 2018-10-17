@@ -201,7 +201,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
     @autobind
     private customTabMountCallback(div:HTMLDivElement,tab:any){
         if (typeof win[tab.mountCallbackName] === 'function'){
-            win[tab.mountCallbackName](div, this.props.routing.location, patientViewPageStore, client, tab.customParameters || {});
+            win[tab.mountCallbackName](div, this.props.routing.location, patientViewPageStore, autorun, client, tab.customParameters || {});
         } else {
             alert(`Tab mount callback not implemented for ${tab.title}`);
         }

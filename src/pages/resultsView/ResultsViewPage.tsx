@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import * as _ from 'lodash';
 import $ from 'jquery';
 import {observer, inject, Observer} from "mobx-react";
-import {reaction, computed, observable, runInAction} from "mobx";
+import {reaction, computed, observable, runInAction, autorun} from "mobx";
 import validateParameters from 'shared/lib/validateParameters';
 import ValidationAlert from "shared/components/ValidationAlert";
 import AjaxErrorModal from "shared/components/AjaxErrorModal";
@@ -258,7 +258,7 @@ export default class ResultsViewPage extends React.Component<IResultsViewPagePro
     @autobind
     private customTabMountCallback(div:HTMLDivElement,tab:any){
         if (typeof win[tab.mountCallbackName] === 'function'){
-            win[tab.mountCallbackName](div, this.props.routing.location, this.resultsViewPageStore, client, tab.customParameters || {});
+            win[tab.mountCallbackName](div, this.props.routing.location, this.resultsViewPageStore, autorun, client, tab.customParameters || {});
         } else {
             alert(`Tab mount callback not implemented for ${tab.title}`)
         }
