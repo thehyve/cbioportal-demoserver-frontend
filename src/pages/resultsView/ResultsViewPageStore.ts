@@ -87,7 +87,9 @@ import {
     AlterationEnrichment,
     CosmicMutation,
     ExpressionEnrichment,
-    Geneset, GenesetDataFilterCriteria
+    Geneset, 
+    GenesetDataFilterCriteria,
+    GenesetMolecularData
 } from "../../shared/api/generated/CBioPortalAPIInternal";
 import internalClient from "../../shared/api/cbioportalInternalClientInstance";
 import {IndicatorQueryResp} from "../../shared/api/generated/OncoKbAPI";
@@ -130,7 +132,8 @@ import {
     populateSampleSpecificationsFromVirtualStudies, ResultsViewTab,
     substitutePhysicalStudiesForVirtualStudies
 } from "./ResultsViewPageHelpers";
-import {filterAndSortProfiles} from "./coExpression/CoExpressionTabUtils";
+import {filterAndSortProfiles, filterAndSortSubjectProfiles, 
+    filterAndSortQueryProfiles} from "./coExpression/CoExpressionTabUtils";
 import {isRecurrentHotspot} from "../../shared/lib/AnnotationUtils";
 import {makeProfiledInClinicalAttributes} from "../../shared/components/oncoprint/ResultsViewOncoprintUtils";
 import {ResultsViewQuery} from "./ResultsViewQuery";
@@ -234,6 +237,14 @@ interface IQueriedMergedTrackCaseData {
     cases: CaseAggregatedData<AnnotatedExtendedAlteration>;
     oql: UnflattenedOQLLineFilterOutput<AnnotatedExtendedAlteration>;
     list?: IQueriedCaseData<object>[];
+}
+
+export type GeneticEntity = {
+    geneticEntityName: string,
+    geneticEntityType: "gene"|"geneset",
+    geneticEntityId: string|number,
+    cytoband: string,
+    geneticEntityData: Gene|Geneset
 }
 
 export function buildDefaultOQLProfile(profilesTypes: string[], zScoreThreshold: number, rppaScoreThreshold: number) {
@@ -740,9 +751,19 @@ export class ResultsViewPageStore {
         }
     });
 
-    readonly coexpressionTabMolecularProfiles = remoteData<MolecularProfile[]>({
+    readonly coexpressionTabMolecularSubjectProfilesGene = remoteData<MolecularProfile[]>({
         await:()=>[this.molecularProfilesWithData],
-        invoke:()=>Promise.resolve(filterAndSortProfiles(this.molecularProfilesWithData.result!))
+        invoke:()=>Promise.resolve(filterAndSortSubjectProfiles("gene", this.molecularProfilesWithData.result!))
+    });
+
+    readonly coexpressionTabMolecularSubjectProfilesGeneset = remoteData<MolecularProfile[]>({
+        await:()=>[this.molecularProfilesWithData],
+        invoke:()=>Promise.resolve(filterAndSortSubjectProfiles("geneset", this.molecularProfilesWithData.result!))
+    });
+
+    readonly coexpressionTabMolecularQueryProfiles = remoteData<MolecularProfile[]>({
+        await:()=>[this.molecularProfilesWithData],
+        invoke:()=>Promise.resolve(filterAndSortQueryProfiles(this.molecularProfilesWithData.result!))
     });
 
     readonly isThereDataForCoExpressionTab = remoteData<boolean>({
@@ -2130,6 +2151,23 @@ export class ResultsViewPageStore {
         }
     });
 
+    @computed get geneticEntities():GeneticEntity[]|undefined {
+        if (this.genes.isComplete && this.genesets.isComplete) {
+            let res: GeneticEntity[] = [];
+            for (const gene of this.genes.result) {
+                res.push({geneticEntityName: gene.hugoGeneSymbol, geneticEntityType: "gene", 
+                    geneticEntityId: gene.entrezGeneId, cytoband: gene.cytoband, geneticEntityData: gene});
+            }
+            for (const geneset of this.genesets.result) {
+                res.push({geneticEntityName: geneset.name, geneticEntityType: "geneset", 
+                    geneticEntityId: geneset.genesetId, cytoband: "-", geneticEntityData: geneset});
+            }
+            return res;
+        } else {
+            return undefined;
+        }
+    }
+
     readonly entrezGeneIdToGene = remoteData<{[entrezGeneId:number]:Gene}>({
         await: ()=>[this.genes],
         invoke: ()=>Promise.resolve(_.keyBy(this.genes.result!, gene=>gene.entrezGeneId))
@@ -2922,6 +2960,28 @@ export class ResultsViewPageStore {
             )
         )
     });
+
+    public numericGenesetMolecularDataCache = new MobxPromiseCache<{genesetId:string, molecularProfileId:string}, GenesetMolecularData[]>(
+        q=>({
+            await: ()=>[
+                this.molecularProfileIdToDataQueryFilter
+            ],
+            invoke: ()=>{
+                const dqf = this.molecularProfileIdToDataQueryFilter.result![q.molecularProfileId];
+                if (dqf) {
+                    return internalClient.fetchGeneticDataItemsUsingPOST({
+                        geneticProfileId: q.molecularProfileId,
+                        genesetDataFilterCriteria: {
+                            genesetIds: [q.genesetId],
+                            ...dqf
+                        } as GenesetDataFilterCriteria
+                    });
+                } else {
+                    return Promise.resolve([]);
+                }
+            }
+        })
+    );
 
     readonly genesetCorrelatedGeneCache = remoteData({
         await:() => [

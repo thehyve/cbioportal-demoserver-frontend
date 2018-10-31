@@ -1,5 +1,6 @@
 import * as React from "react";
-import {CoExpression} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {CoExpression, MolecularProfileCorrelation, Geneset} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {Gene} from "../../../shared/api/generated/CBioPortalAPI";
 import {correlationColor, correlationSortBy} from "./CoExpressionTableUtils";
 import LazyMobXTable from "../../../shared/components/lazyMobXTable/LazyMobXTable";
 import {ILazyMobXTableApplicationDataStore} from "../../../shared/lib/ILazyMobXTableApplicationDataStore";
@@ -17,8 +18,8 @@ import {PLOT_SIDELENGTH} from "../plots/PlotsTabUtils";
 import { toConditionalPrecision } from "shared/lib/NumberUtils";
 import { formatSignificanceValueWithStyle } from "shared/lib/FormatUtils";
 
-export interface ICoExpressionTableProps {
-    referenceGene:{hugoGeneSymbol:string, cytoband:string};
+export interface ICoExpressionTableGenesetsProps {
+    referenceGeneticEntity:Gene|Geneset;
     dataStore:CoExpressionDataStore;
     tableMode:TableMode;
     onSelectTableMode:(t:TableMode)=>void;
@@ -30,30 +31,24 @@ const Q_VALUE_COLUMN_NAME = "q-Value";
 
 const COLUMNS = [
     {
-        name: "Correlated Gene",
-        render: (d:CoExpression)=>(<span style={{fontWeight:"bold"}}>{d.hugoGeneSymbol}</span>),
-        filter:(d:CoExpression, f:string, filterStringUpper:string)=>(d.hugoGeneSymbol.indexOf(filterStringUpper) > -1),
-        download:(d:CoExpression)=>d.hugoGeneSymbol,
-        sortBy:(d:CoExpression)=>d.hugoGeneSymbol,
-        width:"30%"
-    },
-    {
-        name:"Cytoband",
-        render:(d:CoExpression)=>(<span>{d.cytoband}</span>),
-        filter:cytobandFilter,
-        download:(d:CoExpression)=>d.cytoband,
-        sortBy:(d:CoExpression)=>d.cytoband,
-        width:"30%"
+        name: "Correlated Gene Set",
+        render: (d:MolecularProfileCorrelation)=>(<span style={{fontWeight:"bold"}}>{d.geneticEntityName.length > 28 ? 
+            d.geneticEntityName.substring(0, 28 - 3) + "..." : 
+            d.geneticEntityName}</span>),
+        filter:(d:MolecularProfileCorrelation, f:string, filterStringUpper:string)=>(d.geneticEntityName.indexOf(filterStringUpper) > -1),
+        download:(d:MolecularProfileCorrelation)=>d.geneticEntityName,
+        sortBy:(d:MolecularProfileCorrelation)=>d.geneticEntityName,
+        width:"60%"
     },
     makeNumberColumn(SPEARMANS_CORRELATION_COLUMN_NAME, "spearmansCorrelation", true, false),
     makeNumberColumn(P_VALUE_COLUMN_NAME, "pValue", false, false),
     Object.assign(makeNumberColumn(Q_VALUE_COLUMN_NAME, "qValue", false, true), {sortBy:(d:CoExpression) => [d.qValue, d.pValue]}),
 ];
 
-function makeNumberColumn(name:string, key:keyof CoExpression, colorByValue:boolean, formatSignificance: boolean) {
+function makeNumberColumn(name:string, key:keyof MolecularProfileCorrelation, colorByValue:boolean, formatSignificance: boolean) {
     return {
         name:name,
-        render:(d:CoExpression)=>{
+        render:(d:MolecularProfileCorrelation)=>{
             return (
                 <span
                     style={{
@@ -65,17 +60,17 @@ function makeNumberColumn(name:string, key:keyof CoExpression, colorByValue:bool
                 >{formatSignificance? formatSignificanceValueWithStyle(d[key] as number) : toConditionalPrecision((d[key] as number), 3, 0.01)}</span>
             );
         },
-        download:(d:CoExpression)=>(d[key] as number).toString()+"",
-        sortBy:(d:CoExpression)=>correlationSortBy(d[key] as number),
+        download:(d:MolecularProfileCorrelation)=>(d[key] as number).toString()+"",
+        sortBy:(d:MolecularProfileCorrelation)=>correlationSortBy(d[key] as number),
         align: "right" as "right"
     };
 }
 
 @observer
-export default class CoExpressionTable extends React.Component<ICoExpressionTableProps, {}> {
+export default class CoExpressionTableGenesets extends React.Component<ICoExpressionTableGenesetsProps, {}> {
 
     @bind
-    private onRowClick(d:CoExpression) {
+    private onRowClick(d:MolecularProfileCorrelation) {
         this.props.dataStore.setHighlighted(d);
     }
 
@@ -132,7 +127,7 @@ export default class CoExpressionTable extends React.Component<ICoExpressionTabl
                     showColumnVisibility={false}
                     dataStore={this.props.dataStore}
                     onRowClick={this.onRowClick}
-                    filterPlaceholder="Enter gene or cytoband.."
+                    filterPlaceholder="Enter gene set.."
                     paginationProps={this.paginationProps}
                     initialItemsPerPage={25}
                     copyDownloadProps={{

@@ -6,8 +6,71 @@ export const correlationInformation = "Pearson correlations are computed first. 
 
 export const tableSearchInformation = "Coexpression data can be filtered by gene, or by cytoband. To exclude all genes "+
                                         "from a cytoband, prefix with a dash -. For example, to exclude all genes on "+
-                                        "1p, search '-1p'."
+                                        "1p, search '-1p'.";
 
+export function getGeneProfiles(profiles:MolecularProfile[]) {
+    const profs = profiles.filter(profile=>{
+        // we want a profile which is mrna or protein, and among them we want any profile,
+        // except zscore profiles that are not merged_median_zscores
+
+        let good = false;
+        if (profile.molecularAlterationType === AlterationTypeConstants.MRNA_EXPRESSION ||
+            profile.molecularAlterationType === AlterationTypeConstants.PROTEIN_LEVEL) {
+
+            const profileId = profile.molecularProfileId.toLowerCase();
+            good = (profileId.indexOf("merged_median_zscores") > -1) ||
+                (profileId.indexOf("zscores") === -1);
+        }
+        return good;
+    });
+    return profs;
+}
+
+export function getGenesetProfiles(profiles:MolecularProfile[]) {
+    const profs = profiles.filter(profile=>{
+        // we want a profile which is mrna or protein, and among them we want any profile,
+        // except zscore profiles that are not merged_median_zscores
+
+        let good = false;
+        if (profile.molecularAlterationType === AlterationTypeConstants.GENESET_SCORE) {
+
+            const profileId = profile.molecularProfileId.toLowerCase();
+            good = profileId.indexOf("gsva_pvalues") === -1;
+        }
+        return good;
+    });
+    return profs;
+}
+
+export function sortProfiles(profs: MolecularProfile[]) {
+    profs.sort(function(profA, profB) {
+        // sort rna seq to the top
+        const rnaSeqA = profA.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1;
+        const rnaSeqB = profB.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1;
+        if (rnaSeqA === rnaSeqB) {
+            return 0;
+        } else if (rnaSeqA) {
+            return -1;
+        } else {
+            return 1;
+        }
+    });
+    return profs;
+}
+
+export function filterAndSortQueryProfiles(profiles:MolecularProfile[]) {
+    const allProfs = getGeneProfiles(profiles).concat(getGenesetProfiles(profiles));
+    return sortProfiles(allProfs);
+}
+
+export function filterAndSortSubjectProfiles(geneticEntity:"gene"|"geneset", profiles:MolecularProfile[]) {
+    if (geneticEntity === "gene") {
+        const profs = getGeneProfiles(profiles);
+        return sortProfiles(profs);
+    } else {
+        return getGenesetProfiles(profiles);
+    }
+}
 
 export function filterAndSortProfiles(profiles:MolecularProfile[]) {
     const profs = profiles.filter(profile=>{

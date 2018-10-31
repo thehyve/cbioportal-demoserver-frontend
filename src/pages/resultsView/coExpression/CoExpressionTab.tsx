@@ -2,14 +2,19 @@ import * as React from "react";
 import {Gene, MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
 import {action, computed, observable} from "mobx";
 import {observer, Observer} from "mobx-react";
-import {AlterationTypeConstants, ResultsViewPageStore} from "../ResultsViewPageStore";
+import {AlterationTypeConstants, ResultsViewPageStore, GeneticEntity} from "../ResultsViewPageStore";
+import Select from "react-select";
+import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
+import {remoteData} from "../../../shared/api/remoteData";
 import internalClient from "../../../shared/api/cbioportalInternalClientInstance";
-import {CoExpression, CoExpressionFilter} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {MobxPromise} from "mobxpromise";
+import {CoExpression, CoExpressionFilter, MolecularProfileCorrelation} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import _ from "lodash";
 import {MSKTab, MSKTabs} from "../../../shared/components/MSKTabs/MSKTabs";
 import CoExpressionViz from "./CoExpressionViz";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
-import {filterAndSortProfiles} from "./CoExpressionTabUtils";
+import MutationDataCache from "../../../shared/cache/MutationDataCache";
+import InfoIcon from "../../../shared/components/InfoIcon";
 import MobxPromiseCache from "../../../shared/lib/MobxPromiseCache";
 import {ICoExpressionPlotProps} from "./CoExpressionPlot";
 import {bind} from "bind-decorator";
@@ -21,28 +26,64 @@ export interface ICoExpressionTabProps {
     store:ResultsViewPageStore;
 }
 
-export class CoExpressionCache extends MobxPromiseCache<{entrezGeneId:number, molecularProfile:MolecularProfile, allData:boolean}, CoExpression[]> {};
+export class CoExpressionCache extends MobxPromiseCache<{subjectProfile: MolecularProfile, 
+    queryProfile: MolecularProfile, geneticEntityId: string,
+    geneticEntityType: string, allData:boolean}, MolecularProfileCorrelation[]> {}
 
 @observer
 export default class CoExpressionTab extends React.Component<ICoExpressionTabProps, {}> {
-    @observable _selectedMolecularProfile:MolecularProfile|undefined; // only undefined initially, until molecular profiles downloaded
-    @observable _selectedEntrezGeneId:number | undefined; // only undefined initially, until genes downloaded
+    @observable _selectedSubjectProfileGene:MolecularProfile|undefined; // only undefined initially, until molecular profiles downloaded
+    @observable _selectedSubjectProfileGeneset:MolecularProfile|undefined; // only undefined initially, until molecular profiles downloaded
+    @observable _selectedQueryProfile:MolecularProfile|undefined; // only undefined initially, until molecular profiles downloaded
+    @observable _selectedGeneticEntityId:string | undefined; // only undefined initially, until genes and gene sets downloaded
+    @observable _geneticEntities:GeneticEntity[] | undefined; // only undefined initially, until genes and gene sets downloaded
+    @observable _isSelectedGeneticEntityAGeneSet = false;
 
-    @computed get selectedMolecularProfile():MolecularProfile|undefined {
-        if (!this._selectedMolecularProfile && this.props.store.coexpressionTabMolecularProfiles.isComplete
-            && this.props.store.coexpressionTabMolecularProfiles.result.length > 0) {
-            return this.props.store.coexpressionTabMolecularProfiles.result[0];
+    @computed get selectedSubjectProfileGene():MolecularProfile|undefined {
+        if (!this._selectedSubjectProfileGene && this.props.store.coexpressionTabMolecularSubjectProfilesGene.isComplete
+                && this.props.store.coexpressionTabMolecularSubjectProfilesGene.result.length > 0) {
+                    return this.props.store.coexpressionTabMolecularSubjectProfilesGene.result[0];
         } else {
-            return this._selectedMolecularProfile;
+            return this._selectedSubjectProfileGene;
         }
     }
 
-    @computed get selectedEntrezGeneId():number | undefined {
-        if (this._selectedEntrezGeneId === undefined && this.props.store.genes.isComplete &&
-                this.props.store.genes.result.length > 0) {
-            return this.props.store.genes.result[0].entrezGeneId;
+    @computed get selectedSubjectProfileGeneset():MolecularProfile|undefined {
+        if (!this._selectedSubjectProfileGeneset && this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.isComplete
+                && this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.result.length > 0) {
+                    return this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.result[0];
         } else {
-            return this._selectedEntrezGeneId;
+            return this._selectedSubjectProfileGeneset;
+        }
+    }
+
+    @computed get selectedQueryProfile():MolecularProfile|undefined {
+        if (!this._selectedQueryProfile && this.props.store.coexpressionTabMolecularQueryProfiles.isComplete
+            && this.props.store.coexpressionTabMolecularQueryProfiles.result.length > 0) {
+            return this.props.store.coexpressionTabMolecularQueryProfiles.result[0];
+        } else {
+            return this._selectedQueryProfile;
+        }
+    }
+
+    @computed get selectedGeneticEntityId():string | undefined {
+        if (!this._selectedGeneticEntityId && this.props.store.geneticEntities !== undefined) {
+            return String(this.props.store.geneticEntities[0].geneticEntityId);
+        } else {
+            return this._selectedGeneticEntityId;
+        }
+    }
+
+    @computed get isSelectedGeneticEntityAGeneSet(): boolean {
+        if (this._selectedGeneticEntityId !== undefined) {
+            for (const geneticEntity of this.props.store.geneticEntities!) {
+                if (geneticEntity.geneticEntityType === "geneset" && String(geneticEntity.geneticEntityId) === this._selectedGeneticEntityId) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return this._isSelectedGeneticEntityAGeneSet;
         }
     }
 
@@ -68,19 +109,30 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
         };
     }
 
-    @computed public get onSelectDataSet() {
+    @bind
+    public onSelectSubjectProfileGene(option:any) {
         if (this.props.store.molecularProfileIdToMolecularProfile.isComplete) {
-            return (option:any)=>{
-                this._selectedMolecularProfile = this.props.store.molecularProfileIdToMolecularProfile.result[option.value];
-            }
-        } else {
-            return (option:any)=>{};
+            this._selectedSubjectProfileGene = this.props.store.molecularProfileIdToMolecularProfile.result[option.value];
         }
     }
 
     @bind
-    private onSelectGene(entrezGeneId:string) {
-        this._selectedEntrezGeneId = parseInt(entrezGeneId, 10);
+    public onSelectSubjectProfileGeneset(option:any) {
+        if (this.props.store.molecularProfileIdToMolecularProfile.isComplete) {
+            this._selectedSubjectProfileGeneset = this.props.store.molecularProfileIdToMolecularProfile.result[option.value];
+        }
+    }
+
+    @bind
+    public onSelectQueryProfile(option:any) {
+        if (this.props.store.molecularProfileIdToMolecularProfile.isComplete) {
+            this._selectedQueryProfile = this.props.store.molecularProfileIdToMolecularProfile.result[option.value];
+        }
+    }
+
+    @bind
+    private onSelectGeneticEntity(geneticEntityId:string) {
+        this._selectedGeneticEntityId = geneticEntityId;
     }
 
     @computed get hasMutationData() {
@@ -90,6 +142,11 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
         );
     }
 
+    @bind
+    private isSelectedGeneticEntityAGeneset(geneticEntity:GeneticEntity) {
+        this._isSelectedGeneticEntityAGeneSet = this.isSelectedGeneticEntityAGeneSet;
+    }
+
     private coExpressionCache:CoExpressionCache = new CoExpressionCache(
         q=>({
             invoke: ()=>{
@@ -97,15 +154,17 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 if (q.allData) {
                     threshold = 0;
                 }
-                const dataQueryFilter = this.props.store.studyToDataQueryFilter.result![q.molecularProfile.studyId];
+                const dataQueryFilter = this.props.store.studyToDataQueryFilter.result![q.subjectProfile.studyId];
                 if (dataQueryFilter) {
                     // TODO: this sorts by p value asc first, so we can fake
                     // multi column sort when sorting by q value afterwards. We
                     // can remove this after implementing multi-sort
-                    return internalClient.fetchCoExpressionsUsingPOST({
-                        molecularProfileId: q.molecularProfile.molecularProfileId,
+                    return internalClient.fetchCoExpressionsUsingPOST_1({
+                        subjectProfileId: q.subjectProfile.molecularProfileId,
+                        queryProfileId: q.queryProfile.molecularProfileId,
                         coExpressionFilter: dataQueryFilter as CoExpressionFilter,
-                        entrezGeneId: q.entrezGeneId,
+                        geneticEntityId: q.geneticEntityId,
+                        geneticEntityType: q.geneticEntityType,
                         threshold
                     })
                 } else {
@@ -113,30 +172,82 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 }
             }
         }),
-        q=>`${q.entrezGeneId},${q.molecularProfile.molecularProfileId}`
+        q=>`${q.geneticEntityId},${q.subjectProfile.molecularProfileId},${q.queryProfile.molecularProfileId}`
     );
 
-    private get dataSetSelector() {
-        if (this.selectedMolecularProfile &&
+    private get profilesSelector() {
+        if (this.selectedSubjectProfileGene &&
+            this.selectedSubjectProfileGeneset &&
+            this.selectedQueryProfile &&
+            this.selectedGeneticEntityId &&
             this.props.store.molecularProfileIdToProfiledSampleCount.isComplete &&
-            this.props.store.coexpressionTabMolecularProfiles.isComplete) {
+            this.props.store.coexpressionTabMolecularSubjectProfilesGene.isComplete &&
+            this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.isComplete &&
+            this.props.store.coexpressionTabMolecularQueryProfiles.isComplete &&
+            this.props.store.coexpressionTabMolecularQueryProfiles.isComplete) {
+            const subjectOptionsGene = this.props.store.coexpressionTabMolecularSubjectProfilesGene.result.map(profile=>{
+                const profiledSampleCount = this.props.store.molecularProfileIdToProfiledSampleCount.result![profile.molecularProfileId];
+                return {
+                    label: `${profile.name} (${profiledSampleCount} sample${profiledSampleCount !== 1 ? "s" : ""})`,
+                    value: profile.molecularProfileId
+                };
+            });
+            const subjectOptionsGeneset = this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.result.map(profile=>{
+                const profiledSampleCount = this.props.store.molecularProfileIdToProfiledSampleCount.result![profile.molecularProfileId];
+                return {
+                    label: `${profile.name} (${profiledSampleCount} sample${profiledSampleCount !== 1 ? "s" : ""})`,
+                    value: profile.molecularProfileId
+                };
+            });
+            const queryOptions = this.props.store.coexpressionTabMolecularQueryProfiles.result.map(profile=>{
+                    const profiledSampleCount = this.props.store.molecularProfileIdToProfiledSampleCount.result![profile.molecularProfileId];
+                    return {
+                        label: `${profile.name} (${profiledSampleCount} sample${profiledSampleCount !== 1 ? "s" : ""})`,
+                        value: profile.molecularProfileId
+                    };
+                });
             return (
-                <div
+                <div>
+                    <div
+                        style = {{
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "5px"
+                        }}
+                    >
+                        <span>Subject Profile:</span>
+                        <div style={{display:"inline-block", width:376, marginLeft:4, marginRight:4, zIndex:15 /* so that on top when opened*/}}>
+                            <Select
+                                name="subject-profile-select"
+                                value={this.isSelectedGeneticEntityAGeneSet ? this.selectedSubjectProfileGeneset.molecularProfileId : this.selectedSubjectProfileGene.molecularProfileId}
+                                onChange={this.isSelectedGeneticEntityAGeneSet ? this.onSelectSubjectProfileGeneset : this.onSelectSubjectProfileGene}
+                                options={this.isSelectedGeneticEntityAGeneSet ? subjectOptionsGeneset : subjectOptionsGene}
+                                searchable={false}
+                                clearable={false}
+                                disabled={this.isSelectedGeneticEntityAGeneSet ? true : false}
+                                className="coexpression-select-subject-profile"
+                            />
+                        </div>
+                    </div>
+                    <div
                     style = {{
                         display: "flex",
-                        alignItems: "center"
+                        alignItems: "center",
+                        padding: "5px"
                     }}
-                >
-                    <span>Profile:</span>
-                    <div style={{display:"inline-block", width:376, marginLeft:4, marginRight:4, zIndex:10 /* so that on top when opened*/}}>
-                        <MolecularProfileSelector
-                            name="data-set-select"
-                            value={this.selectedMolecularProfile.molecularProfileId}
-                            onChange={this.onSelectDataSet}
-                            molecularProfiles={this.props.store.coexpressionTabMolecularProfiles.result}
-                            molecularProfileIdToProfiledSampleCount={this.props.store.molecularProfileIdToProfiledSampleCount.result}
-                            className="coexpression-select-profile"
-                        />
+                    >
+                        <span>Query Profile:</span>
+                        <div style={{display:"inline-block", width:376, marginLeft:4, marginRight:4, zIndex:10 /* so that on top when opened*/}}>
+                            <Select
+                                name="query-profile-select"
+                                value={this.selectedQueryProfile.molecularProfileId}
+                                onChange={this.onSelectQueryProfile}
+                                options={queryOptions}
+                                searchable={false}
+                                clearable={false}
+                                className="coexpression-select-query-profile"
+                            />
+                        </div>
                     </div>
                 </div>
             );
@@ -149,56 +260,69 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
     private header() {
         return (
             <div style={{marginBottom:20}}>
-                {this.dataSetSelector}
+                {this.profilesSelector}
             </div>
         );
     }
 
     @bind
     private geneTabs() {
-        if (this.selectedMolecularProfile && this.selectedEntrezGeneId !== undefined && this.props.store.coexpressionTabMolecularProfiles.isComplete) {
+        if (this.selectedSubjectProfileGene && this.selectedSubjectProfileGeneset &&
+            this.selectedQueryProfile && this.selectedGeneticEntityId !== undefined &&
+            this.props.store.geneticEntities && 
+            this.props.store.coexpressionTabMolecularSubjectProfilesGene.isComplete &&
+            this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.isComplete &&
+            this.props.store.coexpressionTabMolecularQueryProfiles.isComplete) {
             const coExpressionVizElements = [];
-            for (const gene of this.props.store.genes.result!) {
-                for (const profile of this.props.store.coexpressionTabMolecularProfiles.result) {
-                    coExpressionVizElements.push(
-                        <CoExpressionViz
-                            key={`${gene.entrezGeneId},${profile.molecularProfileId}`}
-                            coExpressionCache={this.coExpressionCache}
-                            gene={gene}
-                            molecularProfile={profile}
-                            numericGeneMolecularDataCache={this.props.store.numericGeneMolecularDataCache}
-                            mutationCache={this.hasMutationData ? this.props.store.mutationCache : undefined}
-                            hidden={
-                                (profile.molecularProfileId !== this.selectedMolecularProfile!.molecularProfileId) ||
-                                (gene.entrezGeneId !== this.selectedEntrezGeneId!)
-                            }
-                            plotState={this.plotState}
-                            plotHandlers={this.plotHandlers}
-                            coverageInformation={this.props.store.coverageInformation}
-                            studyToMutationMolecularProfile={this.props.store.studyToMutationMolecularProfile}
-                        />
-                    );
+            for (const geneticEntity of this.props.store.geneticEntities) {
+                for (const subjectProfile of (geneticEntity.geneticEntityType === "gene" ? this.props.store.coexpressionTabMolecularSubjectProfilesGene.result :
+                this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.result)) {
+                    for (const queryProfile of this.props.store.coexpressionTabMolecularQueryProfiles.result) {
+                        coExpressionVizElements.push(
+                            <CoExpressionViz
+                                key={`${geneticEntity.geneticEntityId},${subjectProfile.molecularProfileId},${queryProfile.molecularProfileId}`}
+                                coExpressionCache={this.coExpressionCache}
+                                geneticEntity={geneticEntity}
+                                subjectProfile={subjectProfile}
+                                queryProfile={queryProfile}
+                                numericGeneMolecularDataCache={this.props.store.numericGeneMolecularDataCache}
+                                numericGenesetMolecularDataCache={this.props.store.numericGenesetMolecularDataCache}
+                                mutationCache={this.hasMutationData ? this.props.store.mutationCache : undefined}
+                                hidden={
+                                    (subjectProfile.molecularProfileId !== (geneticEntity.geneticEntityType === "gene" ?this.selectedSubjectProfileGene!.molecularProfileId : 
+                                        this.selectedSubjectProfileGeneset!.molecularProfileId)) ||
+                                    (queryProfile.molecularProfileId !== this.selectedQueryProfile!.molecularProfileId) ||
+                                    (String(geneticEntity.geneticEntityId) !== this.selectedGeneticEntityId!)
+                                }
+                                plotState={this.plotState}
+                                plotHandlers={this.plotHandlers}
+                                coverageInformation={this.props.store.coverageInformation}
+                                studyToMutationMolecularProfile={this.props.store.studyToMutationMolecularProfile}
+                            />
+                        );
+                    }
                 }
+                
             }
 
             return (
                 <div>
                     <MSKTabs
                         id="coexpressionTabGeneTabs"
-                        activeTabId={this.selectedEntrezGeneId + ""}
-                        onTabClick={this.onSelectGene}
+                        activeTabId={this.selectedGeneticEntityId}
+                        onTabClick={this.onSelectGeneticEntity}
                         className="coexpressionTabGeneTabs pillTabs"
                         unmountOnHide={true}
                         tabButtonStyle="pills"
                         enablePagination={false}
-                        arrowStyle={{'line-height':.8}}
+                        arrowStyle={{'line-height':0.8}}
                     >
-                        {this.props.store.genes.result!.map((gene:Gene, i:number)=>{
+                        {this.props.store.geneticEntities!.map((geneticEntity:GeneticEntity, i:number)=>{
                             return (
                                 <MSKTab
                                     key={i}
-                                    id={gene.entrezGeneId+""}
-                                    linkText={gene.hugoGeneSymbol}
+                                    id={String(geneticEntity.geneticEntityId)}
+                                    linkText={geneticEntity.geneticEntityName}
                                 >
                                 </MSKTab>
                             );
@@ -220,8 +344,12 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
 
     render() {
         let divContents = null;
-        if (this.props.store.coexpressionTabMolecularProfiles.isComplete &&
-            this.props.store.coexpressionTabMolecularProfiles.result.length > 0) {
+        if (this.props.store.coexpressionTabMolecularSubjectProfilesGene.isComplete &&
+            this.props.store.coexpressionTabMolecularSubjectProfilesGene.result.length > 0 &&
+            this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.isComplete &&
+            this.props.store.coexpressionTabMolecularSubjectProfilesGeneset.result.length > 0 &&
+            this.props.store.coexpressionTabMolecularQueryProfiles.isComplete &&
+            this.props.store.coexpressionTabMolecularQueryProfiles.result.length > 0) {
             divContents = (
                 <div>
                     <Observer>
@@ -240,7 +368,9 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
         const status = getMobxPromiseGroupStatus(
           this.props.store.genes,
           this.props.store.molecularProfileIdToProfiledSampleCount,
-          this.props.store.coexpressionTabMolecularProfiles
+          this.props.store.coexpressionTabMolecularSubjectProfilesGene,
+          this.props.store.coexpressionTabMolecularSubjectProfilesGeneset,
+          this.props.store.coexpressionTabMolecularQueryProfiles
         );
 
         return (
