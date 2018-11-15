@@ -259,7 +259,7 @@ export default class ResultsViewPage extends React.Component<IResultsViewPagePro
             {
                 id:ResultsViewTab.FUSION,
                 getTab: () => {
-                    return <MSKTab key={3} id={ResultsViewTab.FUSION} linkText="Fusion">
+                    return <MSKTab key={13} id={ResultsViewTab.FUSION} linkText="Fusion">
                         <Fusion store={store}/>
                     </MSKTab>
                 }
