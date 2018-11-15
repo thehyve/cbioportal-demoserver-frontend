@@ -195,6 +195,8 @@ const allTranscripts = [
         hugoSymbols: ["TMPRSS2"],
         proteinId: "ENSP00000330330",
         proteinLength: 492,
+        refseqMrnaId: "",
+        ccdsId: "",
         pfamDomains: <PfamDomainRangeExt[]> [
             {
                 pfamDomainId: "PF00089",
@@ -388,6 +390,8 @@ const allTranscripts = [
         hugoSymbols: ["TMPRSS2"],
         proteinId: "ENSP00000397846",
         proteinLength: 219,
+        refseqMrnaId: "",
+        ccdsId: "",
         pfamDomains: [
             {
                 pfamDomainId: "PF15494",
@@ -571,6 +575,8 @@ const allTranscripts = [
         hugoSymbols: ["ERG"],
         proteinId: "ENSP00000394694",
         proteinLength: 462,
+        refseqMrnaId: "",
+        ccdsId: "",
         pfamDomains: [
             {
                 pfamDomainId: "PF00178",
@@ -764,6 +770,8 @@ const allTranscripts = [
         hugoSymbols: ["KRAS"],
         proteinId: "ENSP00000452512",
         proteinLength: 75,
+        refseqMrnaId: "",
+        ccdsId: "",
         pfamDomains: [
             {
                 pfamDomainId: "PF00041",
@@ -947,6 +955,8 @@ const allTranscripts = [
         hugoSymbols: ["KRAS"],
         proteinId: "ENSP00000452512",
         proteinLength: 75,
+        refseqMrnaId: "",
+        ccdsId: "",
         pfamDomains: [
             {
                 pfamDomainId: "PF00041",
@@ -1267,6 +1277,8 @@ describe("ExonsChartStore", () => {
             hugoSymbols: ["KRAS"],
             proteinId: "ENSP00000452512",
             proteinLength: 75,
+            refseqMrnaId: "",
+            ccdsId: "",
             pfamDomains: [],
             exons: [
                 {

@@ -24,7 +24,8 @@ import {
     SampleIdentifier,
     SampleList,
     SampleMolecularIdentifier,
-    StructuralVariant
+    StructuralVariant,
+    StructuralVariantFilter
 } from "shared/api/generated/CBioPortalAPI";
 import client from "shared/api/cbioportalClientInstance";
 import {action, computed, observable, ObservableMap} from "mobx";
