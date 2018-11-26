@@ -258,6 +258,14 @@ export default class ResultsViewPage extends React.Component<IResultsViewPagePro
 
             {
                 id:ResultsViewTab.FUSION,
+                hide:()=>{
+                    if (!this.resultsViewPageStore.fusions.isComplete) {
+                        return true;
+                    } else {
+                        const noData = !(this.resultsViewPageStore.fusions.result.length > 0);
+                        return noData;
+                    }
+                },
                 getTab: () => {
                     return <MSKTab key={13} id={ResultsViewTab.FUSION} linkText="Fusion">
                         <Fusion store={store}/>
