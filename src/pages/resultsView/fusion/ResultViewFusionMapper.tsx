@@ -50,7 +50,7 @@ export default class ResultViewFusionMapper extends React.Component<IFusionMappe
 
         return (
             <div>
-                <div style={{display: 'flex', flexWrap: 'wrap', width: '1800px'}}>
+                <div style={{display: 'flex', flexWrap: 'wrap'}}>
                     <ExonsChart store={exonChartStore}/>
                     <FusionPieChart dataStore={store} fusionCounts={occurence}/>
                     <FusionPieChartLegend fusionCounts={occurence}/>
