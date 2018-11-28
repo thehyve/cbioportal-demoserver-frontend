@@ -61,7 +61,7 @@ export default class ExonsChart extends React.Component<IExonsChartProps, {}> {
 
     render() {
         return (
-            <div style={{width: '75%', overflow: 'auto', marginRight: '5px'}} className='borderedChart'>
+            <div style={{width: '70vw', overflow: 'auto', marginRight: '5px'}} className='borderedChart'>
                 <LoadingIndicator isLoading={this.props.store.isLoadingEnsemblTranscripts}/>
                 {this.renderReferenceGenes()}
             </div>
