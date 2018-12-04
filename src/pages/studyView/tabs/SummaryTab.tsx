@@ -25,7 +25,6 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import {observer} from 'mobx-react';
 import UserSelections from "../UserSelections";
-import AddChartButton from "../addChartButton/AddChartButton";
 import {ChartTypeEnum, STUDY_VIEW_CONFIG} from "../StudyViewConfig";
 
 export interface IStudySummaryTabProps {
@@ -384,7 +383,6 @@ export class StudySummaryTab extends React.Component<IStudySummaryTabProps, {}> 
                     } size={"big"} center={false}/>
 
                 </div>
-                <AddChartButton store={this.store}/>
             </div>
         )
     }
