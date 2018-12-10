@@ -68,7 +68,7 @@ export function computePlotData(
             targetData[datum.uniqueSampleKey] = datum;
             addSampleInfo(datum);
         } else {
-            const targetData = ((datum as GenesetMolecularData).genesetId === String(xGeneticEntityId) ? xData : yData);
+            const targetData = ((datum as GenesetMolecularData).genesetId === xGeneticEntityId.toString() ? xData : yData);
             targetData[datum.uniqueSampleKey] = datum;
             addSampleInfo(datum);
         }

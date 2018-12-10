@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import {MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
 import {AlterationTypeConstants} from "../ResultsViewPageStore";
 export const correlationInformation = "Pearson correlations are computed first. For genes with a correlation greater "+
@@ -43,27 +44,16 @@ export function getGenesetProfiles(profiles:MolecularProfile[]) {
 }
 
 export function sortProfiles(profs: MolecularProfile[]) {
-    profs.sort(function(profA, profB) {
-        // sort rna seq to the top
-        const rnaSeqA = profA.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1;
-        const rnaSeqB = profB.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1;
-        if (rnaSeqA === rnaSeqB) {
-            return 0;
-        } else if (rnaSeqA) {
-            return -1;
-        } else {
-            return 1;
-        }
-    });
-    return profs;
+    // sort rna seq to the top
+    return _.sortBy(profs, profile=>(profile.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1) ? 0 : 1);
 }
 
-export function filterAndSortQueryProfiles(profiles:MolecularProfile[]) {
+export function filterAndSortProfilesY(profiles:MolecularProfile[]) {
     const allProfs = getGeneProfiles(profiles).concat(getGenesetProfiles(profiles));
     return sortProfiles(allProfs);
 }
 
-export function filterAndSortSubjectProfiles(geneticEntity:"gene"|"geneset", profiles:MolecularProfile[]) {
+export function filterAndSortProfilesX(geneticEntity:"gene"|"geneset", profiles:MolecularProfile[]) {
     if (geneticEntity === "gene") {
         const profs = getGeneProfiles(profiles);
         return sortProfiles(profs);
@@ -87,17 +77,7 @@ export function filterAndSortProfiles(profiles:MolecularProfile[]) {
         }
         return good;
     });
-    profs.sort(function(profA, profB) {
-        // sort rna seq to the top
-        const rnaSeqA = profA.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1;
-        const rnaSeqB = profB.molecularProfileId.toLowerCase().indexOf("rna_seq") > -1;
-        if (rnaSeqA === rnaSeqB) {
-            return 0;
-        } else if (rnaSeqA) {
-            return -1;
-        } else {
-            return 1;
-        }
-    });
-    return profs;
+
+    // sort rna seq to the top
+    return sortProfiles(profs);
 }

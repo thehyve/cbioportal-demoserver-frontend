@@ -1858,23 +1858,23 @@ export default class CBioPortalAPIInternal {
     fetchCoExpressionsUsingPOST_1URL(parameters: {
         'geneticEntityId': string,
         'geneticEntityType': string,
-        'subjectProfileId': string,
-        'queryProfileId': string,
+        'molecularProfileIdA': string,
+        'molecularProfileIdB': string,
         'coExpressionFilter': CoExpressionFilter,
         'threshold' ? : number,
         $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
-        let path = '/molecular-profiles/correlations/{geneticEntityId}/{subjectProfileId}/{queryProfileId}/fetch';
+        let path = '/molecular-profiles/correlations/{geneticEntityId}/{molecularProfileIdA}/{molecularProfileIdB}/fetch';
 
         path = path.replace('{geneticEntityId}', parameters['geneticEntityId'] + '');
         if (parameters['geneticEntityType'] !== undefined) {
             queryParameters['geneticEntityType'] = parameters['geneticEntityType'];
         }
 
-        path = path.replace('{subjectProfileId}', parameters['subjectProfileId'] + '');
+        path = path.replace('{molecularProfileIdA}', parameters['molecularProfileIdA'] + '');
 
-        path = path.replace('{queryProfileId}', parameters['queryProfileId'] + '');
+        path = path.replace('{molecularProfileIdB}', parameters['molecularProfileIdB'] + '');
 
         if (parameters['threshold'] !== undefined) {
             queryParameters['threshold'] = parameters['threshold'];
@@ -1896,16 +1896,16 @@ export default class CBioPortalAPIInternal {
      * @name CBioPortalAPIInternal#fetchCoExpressionsUsingPOST_1
      * @param {string} geneticEntityId - Genetic Entity ID (Entrez Gene ID or Gene set ID)
      * @param {string} geneticEntityType - Genetic Entity type (gene or geneset)
-     * @param {string} subjectProfileId - Molecular Profile ID from the Genetic Entity ID e.g. acc_tcga_rna_seq_v2_mrna
-     * @param {string} queryProfileId - Molecular Profile ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {string} molecularProfileIdA - Molecular Profile ID from the Genetic Entity ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {string} molecularProfileIdB - Molecular Profile ID e.g. acc_tcga_rna_seq_v2_mrna
      * @param {} coExpressionFilter - List of Sample IDs/Sample List ID
      * @param {number} threshold - Threshold
      */
     fetchCoExpressionsUsingPOST_1WithHttpInfo(parameters: {
         'geneticEntityId': string,
         'geneticEntityType': string,
-        'subjectProfileId': string,
-        'queryProfileId': string,
+        'molecularProfileIdA': string,
+        'molecularProfileIdB': string,
         'coExpressionFilter': CoExpressionFilter,
         'threshold' ? : number,
         $queryParameters ? : any,
@@ -1914,7 +1914,7 @@ export default class CBioPortalAPIInternal {
         const domain = parameters.$domain ? parameters.$domain : this.domain;
         const errorHandlers = this.errorHandlers;
         const request = this.request;
-        let path = '/molecular-profiles/correlations/{geneticEntityId}/{subjectProfileId}/{queryProfileId}/fetch';
+        let path = '/molecular-profiles/correlations/{geneticEntityId}/{molecularProfileIdA}/{molecularProfileIdB}/fetch';
         let body: any;
         let queryParameters: any = {};
         let headers: any = {};
@@ -1939,17 +1939,17 @@ export default class CBioPortalAPIInternal {
                 return;
             }
 
-            path = path.replace('{subjectProfileId}', parameters['subjectProfileId'] + '');
+            path = path.replace('{molecularProfileIdA}', parameters['molecularProfileIdA'] + '');
 
-            if (parameters['subjectProfileId'] === undefined) {
-                reject(new Error('Missing required  parameter: subjectProfileId'));
+            if (parameters['molecularProfileIdA'] === undefined) {
+                reject(new Error('Missing required  parameter: molecularProfileIdA'));
                 return;
             }
 
-            path = path.replace('{queryProfileId}', parameters['queryProfileId'] + '');
+            path = path.replace('{molecularProfileIdB}', parameters['molecularProfileIdB'] + '');
 
-            if (parameters['queryProfileId'] === undefined) {
-                reject(new Error('Missing required  parameter: queryProfileId'));
+            if (parameters['molecularProfileIdB'] === undefined) {
+                reject(new Error('Missing required  parameter: molecularProfileIdB'));
                 return;
             }
 
@@ -1984,16 +1984,16 @@ export default class CBioPortalAPIInternal {
      * @name CBioPortalAPIInternal#fetchCoExpressionsUsingPOST_1
      * @param {string} geneticEntityId - Genetic Entity ID (Entrez Gene ID or Gene set ID)
      * @param {string} geneticEntityType - Genetic Entity type (gene or geneset)
-     * @param {string} subjectProfileId - Molecular Profile ID from the Genetic Entity ID e.g. acc_tcga_rna_seq_v2_mrna
-     * @param {string} queryProfileId - Molecular Profile ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {string} molecularProfileIdA - Molecular Profile ID from the Genetic Entity ID e.g. acc_tcga_rna_seq_v2_mrna
+     * @param {string} molecularProfileIdB - Molecular Profile ID e.g. acc_tcga_rna_seq_v2_mrna
      * @param {} coExpressionFilter - List of Sample IDs/Sample List ID
      * @param {number} threshold - Threshold
      */
     fetchCoExpressionsUsingPOST_1(parameters: {
             'geneticEntityId': string,
             'geneticEntityType': string,
-            'subjectProfileId': string,
-            'queryProfileId': string,
+            'molecularProfileIdA': string,
+            'molecularProfileIdB': string,
             'coExpressionFilter': CoExpressionFilter,
             'threshold' ? : number,
             $queryParameters ? : any,

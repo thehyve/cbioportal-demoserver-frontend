@@ -132,8 +132,8 @@ import {
     populateSampleSpecificationsFromVirtualStudies, ResultsViewTab,
     substitutePhysicalStudiesForVirtualStudies
 } from "./ResultsViewPageHelpers";
-import {filterAndSortProfiles, filterAndSortSubjectProfiles, 
-    filterAndSortQueryProfiles} from "./coExpression/CoExpressionTabUtils";
+import {filterAndSortProfiles, filterAndSortProfilesX, 
+    filterAndSortProfilesY} from "./coExpression/CoExpressionTabUtils";
 import {isRecurrentHotspot} from "../../shared/lib/AnnotationUtils";
 import {makeProfiledInClinicalAttributes} from "../../shared/components/oncoprint/ResultsViewOncoprintUtils";
 import {ResultsViewQuery} from "./ResultsViewQuery";
@@ -751,19 +751,19 @@ export class ResultsViewPageStore {
         }
     });
 
-    readonly coexpressionTabMolecularSubjectProfilesGene = remoteData<MolecularProfile[]>({
+    readonly coexpressionTabMolecularProfilesXGene = remoteData<MolecularProfile[]>({
         await:()=>[this.molecularProfilesWithData],
-        invoke:()=>Promise.resolve(filterAndSortSubjectProfiles("gene", this.molecularProfilesWithData.result!))
+        invoke:()=>Promise.resolve(filterAndSortProfilesX("gene", this.molecularProfilesWithData.result!))
     });
 
-    readonly coexpressionTabMolecularSubjectProfilesGeneset = remoteData<MolecularProfile[]>({
+    readonly coexpressionTabMolecularProfilesXGeneset = remoteData<MolecularProfile[]>({
         await:()=>[this.molecularProfilesWithData],
-        invoke:()=>Promise.resolve(filterAndSortSubjectProfiles("geneset", this.molecularProfilesWithData.result!))
+        invoke:()=>Promise.resolve(filterAndSortProfilesX("geneset", this.molecularProfilesWithData.result!))
     });
 
-    readonly coexpressionTabMolecularQueryProfiles = remoteData<MolecularProfile[]>({
+    readonly coexpressionTabMolecularProfilesY = remoteData<MolecularProfile[]>({
         await:()=>[this.molecularProfilesWithData],
-        invoke:()=>Promise.resolve(filterAndSortQueryProfiles(this.molecularProfilesWithData.result!))
+        invoke:()=>Promise.resolve(filterAndSortProfilesY(this.molecularProfilesWithData.result!))
     });
 
     readonly isThereDataForCoExpressionTab = remoteData<boolean>({

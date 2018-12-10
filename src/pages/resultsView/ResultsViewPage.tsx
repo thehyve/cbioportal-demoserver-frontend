@@ -263,16 +263,16 @@ export default class ResultsViewPage extends React.Component<IResultsViewPagePro
             {
                 id:ResultsViewTab.COEXPRESSION,
                 hide:()=>{
-                    if (!this.resultsViewPageStore.coexpressionTabMolecularSubjectProfilesGene.isComplete ||
-                        !this.resultsViewPageStore.coexpressionTabMolecularSubjectProfilesGeneset.isComplete || 
-                        !this.resultsViewPageStore.coexpressionTabMolecularQueryProfiles.isComplete ||
+                    if (!this.resultsViewPageStore.coexpressionTabMolecularProfilesXGene.isComplete ||
+                        !this.resultsViewPageStore.coexpressionTabMolecularProfilesXGeneset.isComplete || 
+                        !this.resultsViewPageStore.coexpressionTabMolecularProfilesY.isComplete ||
                         !this.resultsViewPageStore.studies.isComplete) {
                         return true;
                     } else {
                         const tooManyStudies = this.resultsViewPageStore.studies.result!.length > 1;
-                        const noData = (this.resultsViewPageStore.coexpressionTabMolecularSubjectProfilesGene.result.length === 0 ||
-                            this.resultsViewPageStore.coexpressionTabMolecularSubjectProfilesGeneset.result.length === 0 ||
-                            this.resultsViewPageStore.coexpressionTabMolecularQueryProfiles.result.length === 0);
+                        const noData = (this.resultsViewPageStore.coexpressionTabMolecularProfilesXGene.result.length === 0 ||
+                            this.resultsViewPageStore.coexpressionTabMolecularProfilesXGeneset.result.length === 0 ||
+                            this.resultsViewPageStore.coexpressionTabMolecularProfilesY.result.length === 0);
                         return tooManyStudies || noData;
                     }
                 },

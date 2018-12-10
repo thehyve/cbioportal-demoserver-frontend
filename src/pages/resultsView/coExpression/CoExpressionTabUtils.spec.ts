@@ -1,6 +1,6 @@
 import {assert} from "chai";
 import {getGeneProfiles, getGenesetProfiles, sortProfiles, 
-        filterAndSortSubjectProfiles, filterAndSortQueryProfiles,
+        filterAndSortProfilesX, filterAndSortProfilesY,
         filterAndSortProfiles} from "./CoExpressionTabUtils";
 import {MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
 
@@ -90,42 +90,42 @@ describe("CoExpressionTabUtils", ()=>{
                 [profiles[1], profiles[2]]);
         });
     });
-    describe("filterAndSortSubjectProfiles", ()=>{
+    describe("filterAndSortProfilesX", ()=>{
         it("returns empty if no profiles given", ()=>{
-            assert.equal(filterAndSortSubjectProfiles("gene", []).length, 0);
-            assert.equal(filterAndSortSubjectProfiles("geneset", []).length, 0);
+            assert.equal(filterAndSortProfilesX("gene", []).length, 0);
+            assert.equal(filterAndSortProfilesX("geneset", []).length, 0);
         });
         it("returns empty if no valid profiles", ()=>{
-            assert.equal(filterAndSortSubjectProfiles("gene", [profiles[0]]).length, 0);
-            assert.equal(filterAndSortSubjectProfiles("gene", [profiles[3]]).length, 0);
-            assert.equal(filterAndSortSubjectProfiles("gene", [profiles[0], profiles[5], profiles[6]]).length, 0);
-            assert.equal(filterAndSortSubjectProfiles("geneset", [profiles[0]]).length, 0);
-            assert.equal(filterAndSortSubjectProfiles("geneset", [profiles[3]]).length, 0);
-            assert.equal(filterAndSortSubjectProfiles("geneset", [profiles[0], profiles[3], profiles[6]]).length, 0);
+            assert.equal(filterAndSortProfilesX("gene", [profiles[0]]).length, 0);
+            assert.equal(filterAndSortProfilesX("gene", [profiles[3]]).length, 0);
+            assert.equal(filterAndSortProfilesX("gene", [profiles[0], profiles[5], profiles[6]]).length, 0);
+            assert.equal(filterAndSortProfilesX("geneset", [profiles[0]]).length, 0);
+            assert.equal(filterAndSortProfilesX("geneset", [profiles[3]]).length, 0);
+            assert.equal(filterAndSortProfilesX("geneset", [profiles[0], profiles[3], profiles[6]]).length, 0);
         });
         it("returns valid profiles, with rna seq sorted to the top (if applicable)", ()=>{
             assert.deepEqual(
-                filterAndSortSubjectProfiles("gene", profiles),
+                filterAndSortProfilesX("gene", profiles),
                 [profiles[1], profiles[2]]
             );
             assert.deepEqual(
-                filterAndSortSubjectProfiles("geneset", profiles),
+                filterAndSortProfilesX("geneset", profiles),
                 [profiles[5]]
             );
         });
     });
-    describe("filterAndSortQueryProfiles", ()=>{
+    describe("filterAndSortProfilesY", ()=>{
         it("returns empty if no profiles given", ()=>{
-            assert.equal(filterAndSortQueryProfiles([]).length, 0);
+            assert.equal(filterAndSortProfilesY([]).length, 0);
         });
         it("returns empty if no valid profiles", ()=>{
-            assert.equal(filterAndSortQueryProfiles([profiles[0]]).length, 0);
-            assert.equal(filterAndSortQueryProfiles([profiles[3]]).length, 0);
-            assert.equal(filterAndSortQueryProfiles([profiles[0], profiles[3], profiles[6]]).length, 0);
+            assert.equal(filterAndSortProfilesY([profiles[0]]).length, 0);
+            assert.equal(filterAndSortProfilesY([profiles[3]]).length, 0);
+            assert.equal(filterAndSortProfilesY([profiles[0], profiles[3], profiles[6]]).length, 0);
         });
         it("returns valid profiles, with rna seq sorted to the top (if applicable)", ()=>{
             assert.deepEqual(
-                filterAndSortQueryProfiles(profiles),
+                filterAndSortProfilesY(profiles),
                 [profiles[1], profiles[2], profiles[5]]
             );
         });
