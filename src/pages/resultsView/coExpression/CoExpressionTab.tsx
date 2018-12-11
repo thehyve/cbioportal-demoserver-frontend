@@ -236,7 +236,7 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                             float: "right"
                         }}
                     >
-                        { <span> {this.selectedGeneticEntityName!.length > 28 ? this.selectedGeneticEntityName!.substring(0, 28 - 3) + "..." : 
+                        { <span> {this.selectedGeneticEntityName!.length > 27 ? this.selectedGeneticEntityName!.substring(0, 27 - 3) + "..." : 
                             this.selectedGeneticEntityName} Profile:</span>}
                         <div style={{display:"inline-block", width:376, marginLeft:4, marginRight:4, zIndex:15 /* so that on top when opened*/}}>
                             <Select

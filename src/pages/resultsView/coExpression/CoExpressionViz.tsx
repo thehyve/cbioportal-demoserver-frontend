@@ -324,8 +324,8 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
                     { (this.plotData.isComplete && this.highlightedCorrelation) && (
                         <div style={{marginLeft:10}}>
                             <CoExpressionPlot
-                                xAxisGene={this.props.geneticEntity}
-                                yAxisGene={this.highlightedCorrelation}
+                                xAxisGeneticEntity={this.props.geneticEntity}
+                                yAxisGeneticEntity={this.highlightedCorrelation}
                                 data={this.plotData.result}
                                 coExpression={this.highlightedCorrelation}
                                 showLogScaleControls={this.showLogScaleControls}
@@ -333,8 +333,8 @@ export default class CoExpressionViz extends React.Component<ICoExpressionVizPro
                                 showMutations={this.plotShowMutations}
                                 logScale={this.plotLogScale}
                                 handlers={this.props.plotHandlers}
-                                queryMolecularProfile={this.props.profileY}
-                                subjectMolecularProfile={this.props.profileX}
+                                molecularProfileY={this.props.profileY}
+                                molecularProfileX={this.props.profileX}
 
                                 height={530}
                                 width={530}

@@ -242,8 +242,8 @@ interface IQueriedMergedTrackCaseData {
 export type GeneticEntity = {
     geneticEntityName: string,
     geneticEntityType: "gene"|"geneset",
-    geneticEntityId: string|number,
-    cytoband: string,
+    geneticEntityId: string|number, //entrezGeneId (number) for "gene", genesetId (string) for "geneset"
+    cytoband: string, //will be "" for "geneset"
     geneticEntityData: Gene|Geneset
 }
 
