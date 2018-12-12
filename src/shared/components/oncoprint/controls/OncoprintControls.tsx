@@ -1,13 +1,13 @@
 import * as React from "react";
-import {observer, Observer} from "mobx-react";
-import {Button, ButtonGroup} from "react-bootstrap";
+import { observer, Observer } from "mobx-react";
+import { Button, ButtonGroup } from "react-bootstrap";
 import CustomDropdown from "./CustomDropdown";
 import ReactSelect from "react-select";
-import {MobxPromise} from "mobxpromise";
-import {computed, IObservableObject, observable, ObservableMap, reaction} from "mobx";
+import { MobxPromise } from "mobxpromise";
+import { computed, IObservableObject, observable, ObservableMap, reaction } from "mobx";
 import _ from "lodash";
-import {OncoprintClinicalAttribute, SortMode} from "../ResultsViewOncoprint";
-import {MolecularProfile} from "shared/api/generated/CBioPortalAPI";
+import { OncoprintClinicalAttribute, SortMode } from "../ResultsViewOncoprint";
+import { MolecularProfile } from "shared/api/generated/CBioPortalAPI";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import DefaultTooltip from "shared/components/defaultTooltip/DefaultTooltip";
 import Slider from "react-rangeslider";
@@ -19,7 +19,7 @@ import classNames from "classnames";
 import {SpecialAttribute} from "../../../cache/OncoprintClinicalDataCache";
 import autobind from "autobind-decorator";
 import ClinicalAttributeSelector from "../../clinicalAttributeSelector/ClinicalAttributeSelector";
-import {ResultsViewPageStore} from "../../../../pages/resultsView/ResultsViewPageStore";
+import { ResultsViewPageStore } from "../../../../pages/resultsView/ResultsViewPageStore";
 
 export interface IOncoprintControlsHandlers {
     onSelectColumnType?:(type:"sample"|"patient")=>void,
@@ -97,17 +97,18 @@ export interface IOncoprintControlsState {
     selectedHeatmapProfile?:string;
     heatmapIsDynamicallyQueried?:boolean;
     heatmapGeneInputValue?: string;
-    clusterHeatmapButtonActive?:boolean;
-    hideClusterHeatmapButton?:boolean;
-    hideHeatmapMenu?:boolean;
+    addToHeatmapButtonName?:string;
+    clusterHeatmapButtonActive?: boolean;
+    hideClusterHeatmapButton?: boolean;
+    hideHeatmapMenu?: boolean;
 
-    customDriverAnnotationBinaryMenuLabel?:string;
-    customDriverAnnotationTiersMenuLabel?:string;
-    customDriverAnnotationTiers?:string[];
-    selectedCustomDriverAnnotationTiers?:ObservableMap<boolean>;
-    annotateCustomDriverBinary?:boolean;
+    customDriverAnnotationBinaryMenuLabel?: string;
+    customDriverAnnotationTiersMenuLabel?: string;
+    customDriverAnnotationTiers?: string[];
+    selectedCustomDriverAnnotationTiers?: ObservableMap<boolean>;
+    annotateCustomDriverBinary?: boolean;
 
-    columnMode?:"sample"|"patient";
+    columnMode?: "sample" | "patient";
 
     horzZoom:number;
 };
@@ -126,16 +127,16 @@ const EVENT_KEY = {
     showWhitespaceBetweenColumns: "3",
     showClinicalTrackLegends: "4",
     onlyShowClinicalLegendForAlteredCases: "4.1",
-    showOqlInLabels:"4.2",
+    showOqlInLabels: "4.2",
     distinguishMutationType: "5",
     distinguishGermlineMutations:"5.1",
     sortByMutationType: "6",
     sortAlphabetical: "7",
     sortCaseListOrder: "8",
-    sortByData:"9",
-    sortByDrivers:"10",
-    sortByHeatmapClustering:"11",
-    heatmapGeneInput:"12",
+    sortByData: "9",
+    sortByDrivers: "10",
+    sortByHeatmapClustering: "11",
+    heatmapGeneInput: "12",
     addGenesToHeatmap: "13",
     removeHeatmap: "14",
     distinguishDrivers: "15",
@@ -159,9 +160,9 @@ const EVENT_KEY = {
 
 @observer
 export default class OncoprintControls extends React.Component<IOncoprintControlsProps, {}> {
-    @observable horzZoomSliderState:number;
+    @observable horzZoomSliderState: number;
 
-    constructor(props:IOncoprintControlsProps) {
+    constructor(props: IOncoprintControlsProps) {
         super(props);
 
         this.getHeatmapMenu = this.getHeatmapMenu.bind(this);
@@ -185,8 +186,8 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         this.onSetHorzZoomTextInput = this.onSetHorzZoomTextInput.bind(this);
 
         this.horzZoomSliderState = props.state.horzZoom;
-        reaction(()=>this.props.state.horzZoom,
-            z=>(this.horzZoomSliderState = z)); // when horz zoom changes, set slider state
+        reaction(() => this.props.state.horzZoom,
+            z => (this.horzZoomSliderState = z)); // when horz zoom changes, set slider state
     }
 
     private onZoomInClick() {
@@ -197,49 +198,49 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         this.props.handlers.onClickZoomOut();
     }
 
-    private onSetHorzZoomTextInput(val:string) {
+    private onSetHorzZoomTextInput(val: string) {
         const percentage = parseFloat(val);
-        const zoom = percentage/100;
+        const zoom = percentage / 100;
         this.props.handlers.onSetHorzZoom(zoom);
     }
 
-    private onSelect(eventKey:any) {
+    private onSelect(eventKey: any) {
         if (eventKey === EVENT_KEY.distinguishMutationType) {
             this.props.handlers.onSelectDistinguishMutationType &&
-            this.props.handlers.onSelectDistinguishMutationType(!this.props.state.distinguishMutationType);
+                this.props.handlers.onSelectDistinguishMutationType(!this.props.state.distinguishMutationType);
         }
     }
     private onHeatmapProfileSelect(option:{label:string, value:string}) {
         this.props.handlers.onSelectHeatmapProfile &&
-        this.props.handlers.onSelectHeatmapProfile(option.value);
+            this.props.handlers.onSelectHeatmapProfile(option.value);
     }
 
-    private toggleShowMinimap(eventKey:any) {
+    private toggleShowMinimap(eventKey: any) {
         this.props.handlers.onSelectShowMinimap &&
-        this.props.handlers.onSelectShowMinimap(!this.props.state.showMinimap);
+            this.props.handlers.onSelectShowMinimap(!this.props.state.showMinimap);
     }
 
-    private onInputClick(event:React.MouseEvent<HTMLInputElement>) {
+    private onInputClick(event: React.MouseEvent<HTMLInputElement>) {
         switch ((event.target as HTMLInputElement).value) {
             case EVENT_KEY.showUnalteredColumns:
                 this.props.handlers.onSelectShowUnalteredColumns &&
-                this.props.handlers.onSelectShowUnalteredColumns(!this.props.state.showUnalteredColumns);
+                    this.props.handlers.onSelectShowUnalteredColumns(!this.props.state.showUnalteredColumns);
                 break;
             case EVENT_KEY.showWhitespaceBetweenColumns:
                 this.props.handlers.onSelectShowWhitespaceBetweenColumns &&
-                this.props.handlers.onSelectShowWhitespaceBetweenColumns(!this.props.state.showWhitespaceBetweenColumns);
+                    this.props.handlers.onSelectShowWhitespaceBetweenColumns(!this.props.state.showWhitespaceBetweenColumns);
                 break;
             case EVENT_KEY.showClinicalTrackLegends:
                 this.props.handlers.onSelectShowClinicalTrackLegends &&
-                this.props.handlers.onSelectShowClinicalTrackLegends(!this.props.state.showClinicalTrackLegends);
+                    this.props.handlers.onSelectShowClinicalTrackLegends(!this.props.state.showClinicalTrackLegends);
                 break;
             case EVENT_KEY.onlyShowClinicalLegendForAlteredCases:
                 this.props.handlers.onSelectOnlyShowClinicalLegendForAlteredCases &&
-                this.props.handlers.onSelectOnlyShowClinicalLegendForAlteredCases(!this.props.state.onlyShowClinicalLegendForAlteredCases);
+                    this.props.handlers.onSelectOnlyShowClinicalLegendForAlteredCases(!this.props.state.onlyShowClinicalLegendForAlteredCases);
                 break;
             case EVENT_KEY.showOqlInLabels:
                 this.props.handlers.onSelectShowOqlInLabels &&
-                this.props.handlers.onSelectShowOqlInLabels(!this.props.state.showOqlInLabels);
+                    this.props.handlers.onSelectShowOqlInLabels(!this.props.state.showOqlInLabels);
                 break;
             case EVENT_KEY.columnTypeSample:
                 this.props.handlers.onSelectColumnType &&
@@ -260,19 +261,19 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 break;
             case EVENT_KEY.sortByMutationType:
                 this.props.handlers.onSelectSortByMutationType &&
-                this.props.handlers.onSelectSortByMutationType(!this.props.state.sortByMutationType);
+                    this.props.handlers.onSelectSortByMutationType(!this.props.state.sortByMutationType);
                 break;
             case EVENT_KEY.sortByDrivers:
                 this.props.handlers.onSelectSortByDrivers &&
-                this.props.handlers.onSelectSortByDrivers(!this.props.state.sortByDrivers);
+                    this.props.handlers.onSelectSortByDrivers(!this.props.state.sortByDrivers);
                 break;
             case EVENT_KEY.distinguishDrivers:
                 this.props.handlers.onSelectDistinguishDrivers &&
-                this.props.handlers.onSelectDistinguishDrivers(!this.props.state.distinguishDrivers);
+                    this.props.handlers.onSelectDistinguishDrivers(!this.props.state.distinguishDrivers);
                 break;
             case EVENT_KEY.distinguishMutationType:
                 this.props.handlers.onSelectDistinguishMutationType &&
-                this.props.handlers.onSelectDistinguishMutationType(!this.props.state.distinguishMutationType);
+                    this.props.handlers.onSelectDistinguishMutationType(!this.props.state.distinguishMutationType);
                 break;
             case EVENT_KEY.distinguishGermlineMutations:
                 this.props.handlers.onSelectDistinguishGermlineMutations &&
@@ -280,23 +281,23 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 break;
             case EVENT_KEY.annotateOncoKb:
                 this.props.handlers.onSelectAnnotateOncoKb &&
-                this.props.handlers.onSelectAnnotateOncoKb(!this.props.state.annotateDriversOncoKb);
+                    this.props.handlers.onSelectAnnotateOncoKb(!this.props.state.annotateDriversOncoKb);
                 break;
             case EVENT_KEY.annotateHotspots:
                 this.props.handlers.onSelectAnnotateHotspots &&
-                this.props.handlers.onSelectAnnotateHotspots(!this.props.state.annotateDriversHotspots);
+                    this.props.handlers.onSelectAnnotateHotspots(!this.props.state.annotateDriversHotspots);
                 break;
             case EVENT_KEY.annotateCBioPortal:
                 this.props.handlers.onSelectAnnotateCBioPortal &&
-                this.props.handlers.onSelectAnnotateCBioPortal(!this.props.state.annotateDriversCBioPortal);
+                    this.props.handlers.onSelectAnnotateCBioPortal(!this.props.state.annotateDriversCBioPortal);
                 break;
             case EVENT_KEY.annotateCOSMIC:
                 this.props.handlers.onSelectAnnotateCOSMIC &&
-                this.props.handlers.onSelectAnnotateCOSMIC(!this.props.state.annotateDriversCOSMIC);
+                    this.props.handlers.onSelectAnnotateCOSMIC(!this.props.state.annotateDriversCOSMIC);
                 break;
             case EVENT_KEY.hidePutativePassengers:
                 this.props.handlers.onSelectHidePutativePassengers &&
-                this.props.handlers.onSelectHidePutativePassengers(!this.props.state.hidePutativePassengers);
+                    this.props.handlers.onSelectHidePutativePassengers(!this.props.state.hidePutativePassengers);
                 break;
             case EVENT_KEY.hideGermlineMutations:
                 this.props.handlers.onSelectHideGermlineMutations &&
@@ -304,12 +305,12 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 break;
             case EVENT_KEY.customDriverBinaryAnnotation:
                 this.props.handlers.onSelectCustomDriverAnnotationBinary &&
-                this.props.handlers.onSelectCustomDriverAnnotationBinary(!this.props.state.annotateCustomDriverBinary);
+                    this.props.handlers.onSelectCustomDriverAnnotationBinary(!this.props.state.annotateCustomDriverBinary);
                 break;
         }
     }
 
-    private onHorzZoomSliderChange(z:number) {
+    private onHorzZoomSliderChange(z: number) {
         this.horzZoomSliderState = z;
     }
 
@@ -318,73 +319,74 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         this.horzZoomSliderState = this.props.state.horzZoom; // set it back in case it doesnt change
     }
 
-    private onCustomDriverTierCheckboxClick(event:React.MouseEvent<HTMLInputElement>) {
+    private onCustomDriverTierCheckboxClick(event: React.MouseEvent<HTMLInputElement>) {
         this.props.handlers.onSelectCustomDriverAnnotationTier &&
-        this.props.handlers.onSelectCustomDriverAnnotationTier(
-            (event.target as HTMLInputElement).value,
-            !(this.props.state.selectedCustomDriverAnnotationTiers && this.props.state.selectedCustomDriverAnnotationTiers.get((event.target as HTMLInputElement).value))
-        );
+            this.props.handlers.onSelectCustomDriverAnnotationTier(
+                (event.target as HTMLInputElement).value,
+                !(this.props.state.selectedCustomDriverAnnotationTiers && this.props.state.selectedCustomDriverAnnotationTiers.get((event.target as HTMLInputElement).value))
+            );
     }
 
-    private onButtonClick(event:React.MouseEvent<HTMLButtonElement>) {
+    private onButtonClick(event: React.MouseEvent<HTMLButtonElement>) {
         switch ((event.target as HTMLButtonElement).name) {
             case EVENT_KEY.addGenesToHeatmap:
                 this.props.handlers.onClickAddGenesToHeatmap &&
-                this.props.handlers.onClickAddGenesToHeatmap();
+                    this.props.handlers.onClickAddGenesToHeatmap();
                 break;
             case EVENT_KEY.removeHeatmap:
                 this.props.handlers.onClickRemoveHeatmap &&
-                this.props.handlers.onClickRemoveHeatmap();
+                    this.props.handlers.onClickRemoveHeatmap();
                 break;
             case EVENT_KEY.downloadSVG:
                 this.props.handlers.onClickDownload &&
-                this.props.handlers.onClickDownload("svg");
+                    this.props.handlers.onClickDownload("svg");
                 break;
             case EVENT_KEY.downloadPNG:
                 this.props.handlers.onClickDownload &&
-                this.props.handlers.onClickDownload("png");
+                    this.props.handlers.onClickDownload("png");
                 break;
             case EVENT_KEY.downloadPDF:
                 this.props.handlers.onClickDownload &&
-                this.props.handlers.onClickDownload("pdf");
+                    this.props.handlers.onClickDownload("pdf");
                 break;
             case EVENT_KEY.downloadOrder:
                 this.props.handlers.onClickDownload &&
-                this.props.handlers.onClickDownload("order");
+                    this.props.handlers.onClickDownload("order");
                 break;
             case EVENT_KEY.downloadTabular:
                 this.props.handlers.onClickDownload &&
-                this.props.handlers.onClickDownload("tabular");
+                    this.props.handlers.onClickDownload("tabular");
                 break;
             case EVENT_KEY.sortByHeatmapClustering:
                 this.props.handlers.onClickClusterHeatmap &&
-                this.props.handlers.onClickClusterHeatmap();
+                    this.props.handlers.onClickClusterHeatmap();
                 break;
         }
     }
 
-    private onType(event:React.ChangeEvent<HTMLTextAreaElement>) {
+    private onType(event: React.ChangeEvent<HTMLTextAreaElement>) {
         switch ((event.target as HTMLTextAreaElement).name) {
             case EVENT_KEY.heatmapGeneInput:
                 this.props.handlers.onChangeHeatmapGeneInputValue &&
-                this.props.handlers.onChangeHeatmapGeneInputValue(event.target.value);
+                    this.props.handlers.onChangeHeatmapGeneInputValue(event.target.value);
                 break;
             case EVENT_KEY.annotateCBioPortalInput:
                 this.props.handlers.onChangeAnnotateCBioPortalInputValue &&
-                this.props.handlers.onChangeAnnotateCBioPortalInputValue(event.target.value);
+                    this.props.handlers.onChangeAnnotateCBioPortalInputValue(event.target.value);
                 break;
             case EVENT_KEY.annotateCOSMICInput:
                 this.props.handlers.onChangeAnnotateCOSMICInputValue &&
-                this.props.handlers.onChangeAnnotateCOSMICInputValue(event.target.value);
+                    this.props.handlers.onChangeAnnotateCOSMICInputValue(event.target.value);
                 break;
         }
     }
 
     @computed get heatmapProfileOptions() {
         if (this.props.state.heatmapProfilesPromise && this.props.state.heatmapProfilesPromise.result) {
-            return _.map(this.props.state.heatmapProfilesPromise.result, profile=>({
+            return _.map(this.props.state.heatmapProfilesPromise.result, profile => ({
                 label: profile.name,
-                value: profile.molecularProfileId
+                value: profile.molecularProfileId,
+                type: profile.molecularAlterationType
             }));
         } else {
             return [];
@@ -416,10 +418,10 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         if (this.props.oncoprinterMode || this.props.state.hideHeatmapMenu || !this.props.state.heatmapProfilesPromise) {
             return <span/>;
         }
-        let menu = <LoadingIndicator isLoading={true}/>;
+        let menu = <LoadingIndicator isLoading={true} />;
         if (this.props.state.heatmapProfilesPromise.isComplete) {
             if (!this.props.state.heatmapProfilesPromise.result!.length) {
-                return <span/>;
+                return <span />;
             } else {
                 menu = (
                     <div className="oncoprint__controls__heatmap_menu">
@@ -446,7 +448,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 className="btn btn-sm btn-default"
                                 name={EVENT_KEY.addGenesToHeatmap}
                                 onClick={this.onButtonClick}
-                             >Add Genes to Heatmap</button>,
+                            >{this.props.state.addToHeatmapButtonName}</button>,
 
                             <button
                                 key="removeHeatmapButton"
@@ -459,10 +461,10 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                         {!this.props.state.hideClusterHeatmapButton &&
                             (<button
                                 data-test="clusterHeatmapBtn"
-                                 className={classNames("btn", "btn-sm", "btn-default", {active:this.props.state.clusterHeatmapButtonActive})}
-                                 name={EVENT_KEY.sortByHeatmapClustering}
-                                 onClick={this.onButtonClick}
-                             >Cluster Heatmap</button>)
+                                className={classNames("btn", "btn-sm", "btn-default", { active: this.props.state.clusterHeatmapButtonActive })}
+                                name={EVENT_KEY.sortByHeatmapClustering}
+                                onClick={this.onButtonClick}
+                            >Cluster Heatmap</button>)
                         }
                     </div>
                 );
@@ -508,7 +510,18 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         return (
             <CustomDropdown bsStyle="default" title="Sort" id="sortDropdown">
                 <div className="oncoprint__controls__sort_menu" data-test="oncoprintSortDropdownMenu">
-                        <div className="radio"><label>
+                    <div className="radio"><label>
+                        <input
+                            data-test="sortByData"
+                            type="radio"
+                            name="sortBy"
+                            value={EVENT_KEY.sortByData}
+                            checked={this.props.state.sortMode!.type === "data"}
+                            onClick={this.onInputClick}
+                        /> Sort by data
+                        </label></div>
+                    <div style={{ marginLeft: "10px" }}>
+                        <div className="checkbox"><label>
                             <input
                                 data-test="sortByData"
                                 type="radio"
@@ -545,7 +558,18 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 value={EVENT_KEY.sortAlphabetical}
                                 checked={this.props.state.sortMode!.type === "alphabetical"}
                                 onClick={this.onInputClick}
-                            /> Sort by case id (alphabetical)
+                                disabled={this.props.state.sortMode!.type !== "data" || !this.props.state.distinguishDrivers}
+                            /> Driver/Passenger
+                            </label></div>
+                    </div>
+                    <div className="radio"><label>
+                        <input
+                            type="radio"
+                            name="sortBy"
+                            value={EVENT_KEY.sortAlphabetical}
+                            checked={this.props.state.sortMode!.type === "alphabetical"}
+                            onClick={this.onInputClick}
+                        /> Sort by case id (alphabetical)
                         </label></div>
                         <div className="radio"><label>
                             <input
@@ -558,9 +582,9 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 disabled={!!this.props.state.sortByCaseListDisabled}
                             /> Sort by case list order
                         </label></div>
-                        {(this.props.state.heatmapProfilesPromise &&
-                                !(this.props.state.heatmapProfilesPromise.isComplete
-                                    && !this.props.state.heatmapProfilesPromise.result!.length))
+                    {(this.props.state.heatmapProfilesPromise &&
+                        !(this.props.state.heatmapProfilesPromise.isComplete
+                            && !this.props.state.heatmapProfilesPromise.result!.length))
                         && (<div className="radio"><label>
                             <input
                                 data-test="sortByHeatmapClustering"
@@ -619,14 +643,14 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                         data-test="annotateOncoKb"
                                         disabled={this.props.state.annotateDriversOncoKbError}
                                     />
-                                    {this.props.state.annotateDriversOncoKbError && <ErrorIcon style={{marginRight:4}} tooltip={<span>Error loading OncoKb data. Please refresh the page or try again later.</span>}/>}
+                                    {this.props.state.annotateDriversOncoKbError && <ErrorIcon style={{ marginRight: 4 }} tooltip={<span>Error loading OncoKb data. Please refresh the page or try again later.</span>} />}
                                     <DefaultTooltip
                                         overlay={<span>Oncogenicity from OncoKB</span>}
                                         placement="top"
                                     >
                                         <img
                                             src={require("../../../../rootImages/oncokb.png")}
-                                            style={{maxHeight:"12px", cursor:"pointer", marginRight:"5px"}}
+                                            style={{ maxHeight: "12px", cursor: "pointer", marginRight: "5px" }}
                                         />
                                     </DefaultTooltip>
                                     driver annotation
@@ -642,31 +666,31 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                         data-test="annotateHotspots"
                                         disabled={this.props.state.annotateDriversHotspotsError}
                                     />
-                                    {this.props.state.annotateDriversHotspotsError && <ErrorIcon style={{marginRight:4}} tooltip={<span>Error loading Hotspots data. Please refresh the page or try again later.</span>}/>}
+                                    {this.props.state.annotateDriversHotspotsError && <ErrorIcon style={{ marginRight: 4 }} tooltip={<span>Error loading Hotspots data. Please refresh the page or try again later.</span>} />}
                                     Hotspots
                                     <DefaultTooltip
-                                        overlay={<div style={{maxWidth:"400px"}}>Identified as a recurrent hotspot (statistically significant) in a population-scale cohort of tumor samples of various cancer types using methodology based in part on <a href="http://www.ncbi.nlm.nih.gov/pubmed/26619011" target="_blank">Chang et al., Nat Biotechnol, 2016.</a>
+                                        overlay={<div style={{ maxWidth: "400px" }}>Identified as a recurrent hotspot (statistically significant) in a population-scale cohort of tumor samples of various cancer types using methodology based in part on <a href="http://www.ncbi.nlm.nih.gov/pubmed/26619011" target="_blank">Chang et al., Nat Biotechnol, 2016.</a>
                                             Explore all mutations at <a href="http://www.cancerhotspots.org" target="_blank">http://cancerhotspots.org</a></div>}
                                         placement="top"
                                     >
                                         <img
                                             src={require("../../../../rootImages/cancer-hotspots.svg")}
-                                            style={{height:"15px", width:"15px", cursor:"pointer", marginLeft:"5px"}}
+                                            style={{ height: "15px", width: "15px", cursor: "pointer", marginLeft: "5px" }}
                                         />
                                     </DefaultTooltip>
                                 </label></div>
                             )}
                             {this.props.handlers.onChangeAnnotateCBioPortalInputValue && (
-                            <div className="checkbox">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        value={EVENT_KEY.annotateCBioPortal}
-                                        checked={this.props.state.annotateDriversCBioPortal}
-                                        onClick={this.onInputClick}
-                                        data-test="annotateCBioPortalCount"
-                                    />
-                                    cBioPortal  >=
+                                <div className="checkbox">
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            value={EVENT_KEY.annotateCBioPortal}
+                                            checked={this.props.state.annotateDriversCBioPortal}
+                                            onClick={this.onInputClick}
+                                            data-test="annotateCBioPortalCount"
+                                        />
+                                        cBioPortal  >=
                                 </label>
                                 <EditableSpan
                                     value={this.props.state.annotateCBioPortalInputValue || ""}
@@ -678,16 +702,16 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                             </div>
                             )}
                             {this.props.handlers.onChangeAnnotateCOSMICInputValue && (
-                            <div className="checkbox">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        value={EVENT_KEY.annotateCOSMIC}
-                                        checked={this.props.state.annotateDriversCOSMIC}
-                                        onClick={this.onInputClick}
-                                        data-test="annotateCOSMICCount"
-                                    />
-                                    COSMIC  >=
+                                <div className="checkbox">
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            value={EVENT_KEY.annotateCOSMIC}
+                                            checked={this.props.state.annotateDriversCOSMIC}
+                                            onClick={this.onInputClick}
+                                            data-test="annotateCOSMICCount"
+                                        />
+                                        COSMIC  >=
                                 </label>
                                 <EditableSpan
                                     value={this.props.state.annotateCOSMICInputValue || ""}
@@ -698,7 +722,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 />
                             </div>
                             )}
-                            { !!this.props.state.customDriverAnnotationBinaryMenuLabel && (
+                            {!!this.props.state.customDriverAnnotationBinaryMenuLabel && (
                                 <div className="checkbox"><label>
                                     <input
                                         type="checkbox"
@@ -706,16 +730,16 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                         value={EVENT_KEY.customDriverBinaryAnnotation}
                                         onClick={this.onInputClick}
                                     /> {this.props.state.customDriverAnnotationBinaryMenuLabel}
-                                    <img src={require("../../../../rootImages/driver.png")} alt="driver filter" style={{height:"15px", width:"15px", cursor:"pointer", marginLeft:"5px"}}/>
+                                    <img src={require("../../../../rootImages/driver.png")} alt="driver filter" style={{ height: "15px", width: "15px", cursor: "pointer", marginLeft: "5px" }} />
                                 </label></div>
                             )}
                             {!!this.props.state.customDriverAnnotationTiersMenuLabel && (
                                 <span>
-                                    <span className="caret"/>&nbsp;&nbsp;
+                                    <span className="caret" />&nbsp;&nbsp;
                                     <span>{this.props.state.customDriverAnnotationTiersMenuLabel}</span>&nbsp;
-                                    <img src={require("../../../../rootImages/driver_tiers.png")} alt="driver tiers filter" style={{height:"15px", width:"15px", cursor:"pointer", marginLeft:"5px"}}/>
-                                    <div style={{marginLeft:"30px"}}>
-                                        {(this.props.state.customDriverAnnotationTiers || []).map((tier)=>(
+                                    <img src={require("../../../../rootImages/driver_tiers.png")} alt="driver tiers filter" style={{ height: "15px", width: "15px", cursor: "pointer", marginLeft: "5px" }} />
+                                    <div style={{ marginLeft: "30px" }}>
+                                        {(this.props.state.customDriverAnnotationTiers || []).map((tier) => (
                                             <div className="checkbox"><label>
                                                 <input
                                                     type="checkbox"
@@ -836,7 +860,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                         onClick={this.onInputClick}
                     /> Show legends for clinical tracks
                 </label></div>
-                <div className="checkbox" style={{marginLeft:20, maxWidth: 220}}><label>
+                <div className="checkbox" style={{ marginLeft: 20, maxWidth: 220 }}><label>
                     <input
                         data-test="onlyShowClinicalLegendsForAltered"
                         type="checkbox"
@@ -905,7 +929,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 <DefaultTooltip
                     overlay={<span>Zoom in/out of oncoprint.</span>}
                 >
-                    <div style={{width:"90px"}}>
+                    <div style={{ width: "90px" }}>
                         <Slider
                             value={this.horzZoomSliderState}
                             onChange={this.onHorzZoomSliderChange}
@@ -919,21 +943,21 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 </DefaultTooltip>
 
                 <EditableSpan
-                    value={(100*this.horzZoomSliderState).toFixed()}
+                    value={(100 * this.horzZoomSliderState).toFixed()}
                     setValue={this.onSetHorzZoomTextInput}
                     maxChars={3}
                     numericOnly={true}
                     textFieldAppearance={true}
                     style={{
-                        background:"white",
-                        minWidth:"30px",
+                        background: "white",
+                        minWidth: "30px",
                         fontSize: "14px",
                         fontFamily: "arial",
-                        border:'none',
-                        padding:0,
-                        marginTop:0,
-                        marginBottom:0,
-                        marginRight:2
+                        border: 'none',
+                        padding: 0,
+                        marginTop: 0,
+                        marginBottom: 0,
+                        marginRight: 2
                     }}
                 />
                 <div>%</div>
@@ -944,7 +968,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                     <div
                         onClick={this.onZoomInClick}
                     >
-                          <i className="fa fa-search-plus"></i>
+                        <i className="fa fa-search-plus"></i>
                     </div>
                 </DefaultTooltip>
             </div>
@@ -958,17 +982,17 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     private get minimapButton() {
         return (
             <div className="btn-group">
-            <DefaultTooltip
-                overlay={<span>Toggle minimap panel.</span>}
-            >
-                <Button
-                    active={this.showMinimap}
-                    onClick={this.toggleShowMinimap}
-                    className="oncoprint__controls__minimap_button"
+                <DefaultTooltip
+                    overlay={<span>Toggle minimap panel.</span>}
                 >
-                    <img src={require("./toggle-minimap.svg")} alt="icon" style={{width:15, height:15, margin:2}}/>
-                </Button>
-            </DefaultTooltip>
+                    <Button
+                        active={this.showMinimap}
+                        onClick={this.toggleShowMinimap}
+                        className="oncoprint__controls__minimap_button"
+                    >
+                        <img src={require("./toggle-minimap.svg")} alt="icon" style={{ width: 15, height: 15, margin: 2 }} />
+                    </Button>
+                </DefaultTooltip>
             </div>
         );
     }
@@ -985,7 +1009,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     render() {
         return (
             <div className="oncoprint__controls">
-                <div style={{width:220}}>
+                <div style={{ width: 220 }}>
                     <Observer>
                         {this.getClinicalTracksMenu}
                     </Observer>
