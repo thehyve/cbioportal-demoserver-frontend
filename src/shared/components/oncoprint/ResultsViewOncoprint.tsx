@@ -7,7 +7,7 @@ import OncoprintControls, {
     IOncoprintControlsHandlers,
     IOncoprintControlsState
 } from "shared/components/oncoprint/controls/OncoprintControls";
-import {ResultsViewPageStore} from "../../../pages/resultsView/ResultsViewPageStore";
+import {ResultsViewPageStore, AlterationTypeConstants} from "../../../pages/resultsView/ResultsViewPageStore";
 import {ClinicalAttribute, Gene, MolecularProfile, Sample} from "../../api/generated/CBioPortalAPI";
 import {
     makeClinicalTracksMobxPromise,
@@ -98,6 +98,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     @observable selectedHeatmapProfile = "";
     @observable heatmapGeneInputValue = "";
+    @observable addToHeatmapButtonName = "Add Genes to Heatmap";
 
     @observable horzZoom:number = 0.5;
 
@@ -162,6 +163,11 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             // select first initially
             if (profiles.length) {
                 this.selectedHeatmapProfile = profiles[0].molecularProfileId;
+                if (profiles[0].molecularAlterationType == AlterationTypeConstants.TREATMENT_RESPONSE) {
+                    this.addToHeatmapButtonName = "Add Treatments to Heatmap";
+                } else {
+                    this.addToHeatmapButtonName = "Add Genes to Heatmap";
+                };
             }
         });
 
@@ -281,6 +287,9 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             },
             get selectedHeatmapProfile() {
                 return self.selectedHeatmapProfile;
+            },
+            get addToHeatmapButtonName() {
+                return self.addToHeatmapButtonName;
             },
             get heatmapIsDynamicallyQueried () {
                 return self.heatmapIsDynamicallyQueried;
@@ -467,7 +476,15 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 this.heatmapGeneInputValue = s;
                 this.heatmapGeneInputValueUpdater(); // stop updating heatmap input if user has typed
             }),
-            onSelectHeatmapProfile:(id:string)=>{this.selectedHeatmapProfile = id;},
+            onSelectHeatmapProfile:(id:string)=>{
+                this.selectedHeatmapProfile = id;
+                let selectedMolecularProfileObj = this.props.store.molecularProfileIdToMolecularProfile.result[id];
+                if (selectedMolecularProfileObj.molecularAlterationType == AlterationTypeConstants.TREATMENT_RESPONSE) {
+                    this.addToHeatmapButtonName = "Add Treatments to Heatmap";
+                } else {
+                    this.addToHeatmapButtonName = "Add Genes to Heatmap";
+                };
+            },
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
             },
