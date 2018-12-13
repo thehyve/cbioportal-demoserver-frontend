@@ -63,7 +63,6 @@ import {toSampleUuid} from "../../shared/lib/UuidUtils";
 import MutationDataCache from "../../shared/cache/MutationDataCache";
 import accessors, {SimplifiedMutationType} from "../../shared/lib/oql/accessors";
 import {AugmentedData, CacheData} from "../../shared/lib/LazyMobXCache";
-import {IAlterationData} from "./cancerSummary/CancerSummaryContent";
 import {PatientSurvival} from "../../shared/model/PatientSurvival";
 import {
     doesQueryContainMutationOQL,
@@ -112,7 +111,6 @@ import {
     initializeCustomDriverAnnotationSettings,
     isRNASeqProfile
 } from "./ResultsViewPageStoreUtils";
-import {getAlterationCountsForCancerTypesForAllGenes} from "../../shared/lib/alterationCountHelpers";
 import MobxPromiseCache from "../../shared/lib/MobxPromiseCache";
 import {
     isSampleProfiledInMultiple

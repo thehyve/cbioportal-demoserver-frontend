@@ -2,7 +2,6 @@ import {assert} from "chai";
 import {getGeneProfiles, getGenesetProfiles, sortProfiles, 
         filterAndSortProfilesX, filterAndSortProfilesY,
         filterAndSortProfiles} from "./CoExpressionTabUtils";
-import {MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
 
 const profiles = [
     {

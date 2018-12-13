@@ -1,5 +1,5 @@
 import * as React from "react";
-import {MolecularProfileCorrelation} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {CoExpression} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import {computed} from "mobx";
 import {observer, Observer} from "mobx-react";
 import {MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
@@ -15,9 +15,9 @@ import {scatterPlotSize} from "../../../shared/components/plots/PlotUtils";
 
 export interface ICoExpressionPlotProps {
     xAxisGeneticEntity:GeneticEntity;
-    yAxisGeneticEntity:MolecularProfileCorrelation;
+    yAxisGeneticEntity:CoExpression;
     data:CoExpressionPlotData[];
-    coExpression:MolecularProfileCorrelation;
+    coExpression:CoExpression;
     molecularProfileY:MolecularProfile;
     molecularProfileX:MolecularProfile;
 

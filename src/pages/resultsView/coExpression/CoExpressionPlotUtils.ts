@@ -1,5 +1,4 @@
 import _ from "lodash";
-import {CoExpressionPlotData} from "./CoExpressionPlot";
 
 export function getUniquePrecision(value:number, allValues:number[], maxPrecision:number=3) {
     if (!allValues.length)

@@ -1,26 +1,21 @@
 import * as React from "react";
-import {Gene, MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
+import {MolecularProfile} from "../../../shared/api/generated/CBioPortalAPI";
 import {action, computed, observable} from "mobx";
 import {observer, Observer} from "mobx-react";
 import {AlterationTypeConstants, ResultsViewPageStore, GeneticEntity} from "../ResultsViewPageStore";
 import Select from "react-select";
-import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
-import {remoteData} from "../../../shared/api/remoteData";
 import internalClient from "../../../shared/api/cbioportalInternalClientInstance";
-import {MobxPromise} from "mobxpromise";
-import {CoExpression, CoExpressionFilter, MolecularProfileCorrelation} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {CoExpression, CoExpressionFilter} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import _ from "lodash";
 import {MSKTab, MSKTabs} from "../../../shared/components/MSKTabs/MSKTabs";
 import CoExpressionViz from "./CoExpressionViz";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
-import MutationDataCache from "../../../shared/cache/MutationDataCache";
-import InfoIcon from "../../../shared/components/InfoIcon";
 import MobxPromiseCache from "../../../shared/lib/MobxPromiseCache";
 import {ICoExpressionPlotProps} from "./CoExpressionPlot";
 import {bind} from "bind-decorator";
 import OqlStatusBanner from "../../../shared/components/oqlStatusBanner/OqlStatusBanner";
 import {getMobxPromiseGroupStatus} from "../../../shared/lib/getMobxPromiseGroupStatus";
-import MolecularProfileSelector from "../../../shared/components/MolecularProfileSelector";
+import {IDataQueryFilter} from "shared/lib/StoreUtils";
 
 export interface ICoExpressionTabProps {
     store:ResultsViewPageStore;
@@ -28,7 +23,7 @@ export interface ICoExpressionTabProps {
 
 export class CoExpressionCache extends MobxPromiseCache<{profileX: MolecularProfile, 
     profileY: MolecularProfile, geneticEntityId: string,
-    geneticEntityType: string, allData:boolean}, MolecularProfileCorrelation[]> {}
+    geneticEntityType: string, allData:boolean}, CoExpression[]> {}
 
 @observer
 export default class CoExpressionTab extends React.Component<ICoExpressionTabProps, {}> {
@@ -160,6 +155,21 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
         );
     }
 
+    /** 
+     * We need a different "dataQueryFilter" from the rest of the functions in ResultsViewPageStore,
+     * so this function is building a new object based on the dataQueryFilter obtained from
+     * this.props.store.studyToDataQueryFilter.result. 
+     */
+    private createDataQueryFilterForCoExpression(studyToDataQueryFilter: IDataQueryFilter, geneticEntityId: string, geneticEntityType: string) {
+        let dataQueryFilter: {'entrezGeneId'?: number; 'genesetId'?: string; 'sampleIds'?: string[]; 'sampleListId'?: string}|undefined = undefined;
+        if (geneticEntityType == "gene") {
+            dataQueryFilter = {...studyToDataQueryFilter, entrezGeneId: parseFloat(geneticEntityId)};
+        } else if (geneticEntityType == "geneset") {
+            dataQueryFilter = {...studyToDataQueryFilter, genesetId: geneticEntityId};
+        }
+        return dataQueryFilter;
+    }
+
     private coExpressionCache:CoExpressionCache = new CoExpressionCache(
         q=>({
             invoke: ()=>{
@@ -167,17 +177,22 @@ export default class CoExpressionTab extends React.Component<ICoExpressionTabPro
                 if (q.allData) {
                     threshold = 0;
                 }
-                const dataQueryFilter = this.props.store.studyToDataQueryFilter.result![q.profileX.studyId];
-                if (dataQueryFilter) {
+                const dataQueryFilter = this.createDataQueryFilterForCoExpression(
+                    this.props.store.studyToDataQueryFilter.result![q.profileX.studyId], q.geneticEntityId, q.geneticEntityType);
+                // let newdataQueryFilter: {'entrezGeneId'?: number; 'genesetId'?: string; 'sampleIds'?: string[]; 'sampleListId'?: string}|undefined = undefined;
+                // if (q.geneticEntityType == "gene") {
+                //     newdataQueryFilter = {...dataQueryFilter, entrezGeneId: parseFloat(q.geneticEntityId)};
+                // } else if (q.geneticEntityType == "geneset") {
+                //     newdataQueryFilter = {...dataQueryFilter, genesetId: q.geneticEntityId};
+                // }
+                if (dataQueryFilter != undefined) {
                     // TODO: this sorts by p value asc first, so we can fake
                     // multi column sort when sorting by q value afterwards. We
                     // can remove this after implementing multi-sort
-                    return internalClient.fetchCoExpressionsUsingPOST_1({
+                    return internalClient.fetchCoExpressionsUsingPOST({
                         molecularProfileIdA: q.profileX.molecularProfileId,
                         molecularProfileIdB: q.profileY.molecularProfileId,
                         coExpressionFilter: dataQueryFilter as CoExpressionFilter,
-                        geneticEntityId: q.geneticEntityId,
-                        geneticEntityType: q.geneticEntityType,
                         threshold
                     })
                 } else {
