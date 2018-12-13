@@ -80,6 +80,7 @@ import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCa
 import GenesetCorrelatedGeneCache from "../../shared/cache/GenesetCorrelatedGeneCache";
 import GeneCache from "../../shared/cache/GeneCache";
 import GenesetCache from "../../shared/cache/GenesetCache";
+import TreatmentCache from "../../shared/cache/TreatmentCache";
 import {IHotspotIndex} from "../../shared/model/CancerHotspots";
 import {IOncoKbData} from "../../shared/model/OncoKB";
 import {generateQueryVariantId} from "../../shared/lib/OncoKbUtils";
@@ -87,7 +88,8 @@ import {
     AlterationEnrichment,
     CosmicMutation,
     ExpressionEnrichment,
-    Geneset, GenesetDataFilterCriteria
+    Geneset, GenesetDataFilterCriteria,
+    Treatment
 } from "../../shared/api/generated/CBioPortalAPIInternal";
 import internalClient from "../../shared/api/cbioportalInternalClientInstance";
 import {IndicatorQueryResp} from "../../shared/api/generated/OncoKbAPI";
@@ -753,7 +755,8 @@ export class ResultsViewPageStore {
             this.molecularProfilesInStudies,
             this.studyToDataQueryFilter,
             this.genes,
-            this.genesets
+            this.genesets,
+            this.treatments
         ],
         invoke:async()=>{
             const ret:MolecularProfile[] = [];
@@ -787,7 +790,9 @@ export class ResultsViewPageStore {
                             ret.push(profile);
                         }
                     }));
-                } else if (profile.molecularAlterationType === AlterationTypeConstants.GENESET_SCORE) {
+                } else if (profile.molecularAlterationType === AlterationTypeConstants.GENESET_SCORE
+                            || profile.molecularAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE
+                    ) {
                     // geneset profile, we dont have the META projection for geneset data, so just add it
                     /*promises.push(internalClient.fetchGeneticDataItemsUsingPOST({
                         geneticProfileId: molecularProfileId,
@@ -2102,6 +2107,19 @@ export class ResultsViewPageStore {
         }
     });
 
+    readonly treatments = remoteData<Treatment[]>({
+        invoke: () => {
+            if (this.rvQuery.treatmentIds && this.rvQuery.treatmentIds.length > 0) {
+                return internalClient.fetchTreatmentsUsingPOST({treatmentIds: this.rvQuery.treatmentIds.slice()});
+            } else {
+                return Promise.resolve([]);
+            }
+        },
+        onResult:(treatments:Treatment[])=>{
+            this.treatmentCache.addData(treatments);
+        }
+    });
+
     readonly entrezGeneIdToGene = remoteData<{[entrezGeneId:number]:Gene}>({
         await: ()=>[this.genes],
         invoke: ()=>Promise.resolve(_.keyBy(this.genes.result!, gene=>gene.entrezGeneId))
@@ -2912,6 +2930,10 @@ export class ResultsViewPageStore {
 
     @cached get genesetCache() {
         return new GenesetCache();
+    }
+
+    @cached get treatmentCache() {
+        return new TreatmentCache();
     }
 
     public numericGeneMolecularDataCache = new MobxPromiseCache<{entrezGeneId:number, molecularProfileId:string}, NumericGeneMolecularData[]>(

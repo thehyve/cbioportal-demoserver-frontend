@@ -42,7 +42,8 @@ export const dataTypeToDisplayType:{[s:string]:string} = {
     [AlterationTypeConstants.PROTEIN_LEVEL]: "Protein Level",
     [AlterationTypeConstants.METHYLATION]: "DNA Methylation",
     [CLIN_ATTR_DATA_TYPE]:"Clinical Attribute",
-    [GENESET_DATA_TYPE]:"Gene Sets"
+    [GENESET_DATA_TYPE]:"Gene Sets",
+    [AlterationTypeConstants.TREATMENT_RESPONSE]: "Treatment"
 };
 
 export const mutationTypeToDisplayName:{[oncoprintMutationType:string]:string} = {
@@ -56,7 +57,8 @@ export const mutationTypeToDisplayName:{[oncoprintMutationType:string]:string} =
 
 export const dataTypeDisplayOrder = [
     CLIN_ATTR_DATA_TYPE, AlterationTypeConstants.MUTATION_EXTENDED, AlterationTypeConstants.COPY_NUMBER_ALTERATION,
-    AlterationTypeConstants.MRNA_EXPRESSION, GENESET_DATA_TYPE, AlterationTypeConstants.PROTEIN_LEVEL, AlterationTypeConstants.METHYLATION
+    AlterationTypeConstants.MRNA_EXPRESSION, GENESET_DATA_TYPE, AlterationTypeConstants.PROTEIN_LEVEL,
+    AlterationTypeConstants.METHYLATION, AlterationTypeConstants.TREATMENT_RESPONSE
 ];
 export function sortMolecularProfilesForDisplay(profiles:MolecularProfile[]) {
     if (!profiles.length) {
