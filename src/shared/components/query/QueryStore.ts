@@ -52,6 +52,7 @@ export type CancerStudyQueryUrlParams = {
 	genetic_profile_ids_PROFILE_METHYLATION: string,
 	genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION: string,
 	genetic_profile_ids_PROFILE_GENESET_SCORE: string,
+	genetic_profile_ids_TREATMENT_RESPONSE: string,
 	Z_SCORE_THRESHOLD: string,
 	RPPA_SCORE_THRESHOLD: string,
 	data_priority: '0'|'1'|'2',
@@ -59,6 +60,7 @@ export type CancerStudyQueryUrlParams = {
 	case_ids: string,
 	gene_list: string,
 	geneset_list?: string,
+	treatment_list?: string,
 	tab_index: 'tab_download'|'tab_visualize',
 	transpose_matrix?: 'on',
 	Action: 'Submit',
@@ -91,7 +93,8 @@ export type CancerStudyQueryParams = Pick<
 	'caseIds' |
 	'caseIdsMode' |
 	'geneQuery' |
-	'genesetQuery'
+	'genesetQuery' |
+	'treatmentQuery'
 >;
 export const QueryParamsKeys:(keyof CancerStudyQueryParams)[] = [
 	'searchText',
@@ -105,6 +108,7 @@ export const QueryParamsKeys:(keyof CancerStudyQueryParams)[] = [
 	'caseIdsMode',
 	'geneQuery',
 	'genesetQuery',
+	'treatmentQuery'
 ];
 
 type GenesetId = string;
@@ -381,6 +385,18 @@ export class QueryStore
         // clear error when gene query is modified
         this.genesetQueryErrorDisplayStatus = 'unfocused';
         this._genesetQuery = value;
+	}
+	
+	@observable _treatmentQuery = '';
+    get treatmentQuery()
+    {
+        return this._treatmentQuery;
+    }
+    set treatmentQuery(value:string)
+    {
+        // clear error when gene query is modified
+        this.treatmentQueryErrorDisplayStatus = 'unfocused';
+        this._treatmentQuery = value;
     }
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -389,6 +405,7 @@ export class QueryStore
 
 	@observable geneQueryErrorDisplayStatus:'unfocused'|'shouldFocus'|'focused' = 'unfocused';
     @observable genesetQueryErrorDisplayStatus: 'unfocused'|'shouldFocus'|'focused' = 'unfocused';
+    @observable treatmentQueryErrorDisplayStatus: 'unfocused'|'shouldFocus'|'focused' = 'unfocused';
 	@observable showMutSigPopup = false;
 	@observable showGisticPopup = false;
 	@observable showGenesetsHierarchyPopup = false;
@@ -1590,6 +1607,7 @@ export class QueryStore
 		this.caseIdsMode = 'sample'; // url always contains sample IDs
         this.geneQuery = normalizeQuery(decodeURIComponent(params.gene_list||''));
         this.genesetQuery = normalizeQuery(decodeURIComponent(params[QueryParameter.GENESET_LIST]||''));
+        this.treatmentQuery = decodeURIComponent(params[QueryParameter.TREATMENT_LIST]||''); // pvannierop: removed the conversion to uppercase
 		this.forDownloadTab = params.tab_index === 'tab_download';
 		this.initiallySelected.profileIds = true;
 		this.initiallySelected.sampleListId = true;
