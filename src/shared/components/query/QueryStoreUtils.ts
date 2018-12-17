@@ -93,7 +93,7 @@ export function molecularProfileParams(store:QueryStore, molecularProfileIds?:Re
         genetic_profile_ids_PROFILE_METHYLATION: store.getSelectedProfileIdFromMolecularAlterationType("METHYLATION", molecularProfileIds) || store.getSelectedProfileIdFromMolecularAlterationType("METHYLATION_BINARY", molecularProfileIds),
         genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION: store.getSelectedProfileIdFromMolecularAlterationType("PROTEIN_LEVEL", molecularProfileIds),
         genetic_profile_ids_PROFILE_GENESET_SCORE: store.getSelectedProfileIdFromMolecularAlterationType("GENESET_SCORE", molecularProfileIds),
-        genetic_profile_ids_TREATMENT_RESPONSE: store.getSelectedProfileIdFromMolecularAlterationType("TREATMENT_RESPONSE", molecularProfileIds)
+        genetic_profile_ids_PROFILE_TREATMENT_RESPONSE: store.getSelectedProfileIdFromMolecularAlterationType("TREATMENT_RESPONSE", molecularProfileIds)
     };
 }
 

@@ -52,7 +52,7 @@ export type CancerStudyQueryUrlParams = {
 	genetic_profile_ids_PROFILE_METHYLATION: string,
 	genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION: string,
 	genetic_profile_ids_PROFILE_GENESET_SCORE: string,
-	genetic_profile_ids_TREATMENT_RESPONSE: string,
+	genetic_profile_ids_PROFILE_TREATMENT_RESPONSE: string,
 	Z_SCORE_THRESHOLD: string,
 	RPPA_SCORE_THRESHOLD: string,
 	data_priority: '0'|'1'|'2',
