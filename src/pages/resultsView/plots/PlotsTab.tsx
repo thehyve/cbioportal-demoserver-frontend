@@ -596,7 +596,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         await:()=>[this.props.store.treatments],
         invoke:()=>{
             return Promise.resolve(
-                this.props.store.treatments.result!.map(treatment=>({ value: treatment.stableId, label: treatment.name }))
+                this.props.store.treatments.result!.map(treatment=>({ value: treatment.treatmentId, label: treatment.name }))
             );
         }
     });
