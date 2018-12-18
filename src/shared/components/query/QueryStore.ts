@@ -1592,6 +1592,7 @@ export class QueryStore
 			params.genetic_profile_ids_PROFILE_METHYLATION,
 			params.genetic_profile_ids_PROFILE_PROTEIN_EXPRESSION,
 			params.genetic_profile_ids_PROFILE_GENESET_SCORE,
+			params.genetic_profile_ids_PROFILE_TREATMENT_RESPONSE
 		];
 
 		let queriedStudies = params.cancer_study_list ? params.cancer_study_list.split(",") : (params.cancer_study_id ? [params.cancer_study_id] : []);
