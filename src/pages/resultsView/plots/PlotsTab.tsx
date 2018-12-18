@@ -1,47 +1,28 @@
-import * as React from "react";
-import {action, computed, observable} from "mobx";
-import {Observer, observer} from "mobx-react";
-import "./styles.scss";
-import {AlterationTypeConstants, DataTypeConstants, ResultsViewPageStore} from "../ResultsViewPageStore";
-import {FormControl} from "react-bootstrap";
-import LockIcon from "../../../shared/components/LockIcon";
-import ReactSelect from "react-select";
+import autobind from "autobind-decorator";
 import _ from "lodash";
-import {
-    getAxisDescription,
-    getAxisLabel, IScatterPlotData, isNumberData, isStringData, logScalePossible,
-    makeAxisDataPromise, makeScatterPlotData, makeScatterPlotPointAppearance, dataTypeDisplayOrder,
-    dataTypeToDisplayType, scatterPlotTooltip, scatterPlotLegendData, IStringAxisData, INumberAxisData,
-    makeBoxScatterPlotData, IScatterPlotSampleData, noMutationAppearance, IBoxScatterPlotPoint, boxPlotTooltip,
-    getCnaQueries, getMutationQueries, getScatterPlotDownloadData, getBoxPlotDownloadData,
-    mutationRenderPriority, mutationSummaryRenderPriority, MutationSummary, mutationSummaryToAppearance,
-    CNA_STROKE_WIDTH, PLOT_SIDELENGTH, CLIN_ATTR_DATA_TYPE,
-    sortMolecularProfilesForDisplay, scatterPlotZIndexSortBy, getMutationProfileDuplicateSamplesReport, GENESET_DATA_TYPE 
-} from "./PlotsTabUtils";
-import {
-    ClinicalAttribute, MolecularProfile, Mutation,
-    NumericGeneMolecularData
-} from "../../../shared/api/generated/CBioPortalAPI";
-import Timer = NodeJS.Timer;
+import { action, computed, observable } from "mobx";
+import { Observer, observer } from "mobx-react";
+import * as React from "react";
+import { FormControl } from "react-bootstrap";
+import fileDownload from 'react-file-download';
+import ReactSelect from "react-select";
+import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import ScatterPlot from "shared/components/plots/ScatterPlot";
 import TablePlot from "shared/components/plots/TablePlot";
-import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
-import InfoIcon from "../../../shared/components/InfoIcon";
-import {remoteData} from "../../../shared/api/remoteData";
-import {MobxPromise} from "mobxpromise";
-import BoxScatterPlot, {IBoxScatterPlotData} from "../../../shared/components/plots/BoxScatterPlot";
+import { ClinicalAttribute } from "../../../shared/api/generated/CBioPortalAPI";
+import { remoteData } from "../../../shared/api/remoteData";
 import DownloadControls from "../../../shared/components/downloadControls/DownloadControls";
-import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
-import setWindowVariable from "../../../shared/lib/setWindowVariable";
-import autobind from "autobind-decorator";
-import fileDownload from 'react-file-download';
-import onMobxPromise from "../../../shared/lib/onMobxPromise";
-import {SpecialAttribute} from "../../../shared/cache/OncoprintClinicalDataCache";
 import OqlStatusBanner from "../../../shared/components/oqlStatusBanner/OqlStatusBanner";
+import BoxScatterPlot, { IBoxScatterPlotData } from "../../../shared/components/plots/BoxScatterPlot";
+import { scatterPlotSize } from "../../../shared/components/plots/PlotUtils";
+import { getTablePlotDownloadData } from "../../../shared/components/plots/TablePlotUtils";
 import ScrollBar from "../../../shared/components/Scrollbar/ScrollBar";
-import {scatterPlotSize} from "../../../shared/components/plots/PlotUtils";
-import {getTablePlotDownloadData} from "../../../shared/components/plots/TablePlotUtils";
-import {getMobxPromiseGroupStatus} from "../../../shared/lib/getMobxPromiseGroupStatus";
+import { getMobxPromiseGroupStatus } from "../../../shared/lib/getMobxPromiseGroupStatus";
+import onMobxPromise from "../../../shared/lib/onMobxPromise";
+import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
+import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, dataTypeToDisplayType, GENESET_DATA_TYPE, TREATMENT_DATA_TYPE, getAxisLabel, getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IScatterPlotSampleData, isNumberData, isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, sortMolecularProfilesForDisplay } from "./PlotsTabUtils";
+import "./styles.scss";
+import Timer = NodeJS.Timer;
 
 enum EventKey {
     horz_logScale,
@@ -79,10 +60,10 @@ export enum MutationCountBy {
 export type AxisMenuSelection = {
     entrezGeneId?:number;
     genesetId?:string;
+    treatmentId?:string;
     selectedGeneOption?:{value:number, label:string}; // value is entrez id, label is hugo symbol
     selectedGenesetOption?:{value:string, label:string};
-    treatmentId?:string;
-    selectedTreatmentOption?:{value:number, label:string};
+    selectedTreatmentOption?:{value:string, label:string};
     dataType?:string;
     dataSourceId?:string;
     mutationCountBy:MutationCountBy;
@@ -100,9 +81,11 @@ class PlotsTabBoxPlot extends BoxScatterPlot<IBoxScatterPlotPoint> {}
 
 const SVG_ID = "plots-tab-plot-svg";
 
-export const SAME_GENE_OPTION_VALUE = "same";
-export const SAME_GENESET_OPTION_VALUE = "same";
-export const SAME_TREATMENT_OPTION_VALUE = "same";
+export const NONE_SELECTED_OPTION_STRING_VALUE = "none";
+export const NONE_SELECTED_OPTION_NUMERICAL_VALUE = -1;
+export const NONE_SELECTED_OPTION_LABEL = "None";
+export const SAME_SELECTED_OPTION_STRING_VALUE = "same";
+export const SAME_SELECTED_OPTION_NUMERICAL_VALUE = -2;
 
 const mutationCountByOptions = [
     { value: MutationCountBy.MutationType, label: "Mutation Type" },
@@ -114,6 +97,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
 
     private horzSelection:AxisMenuSelection;
     private vertSelection:AxisMenuSelection;
+
     private scrollPane:HTMLDivElement;
 
     @observable searchCaseInput:string;
@@ -204,7 +188,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         return observable({
             get entrezGeneId() {
                 if (this.dataType !== CLIN_ATTR_DATA_TYPE && this.selectedGeneOption) {
-                    if (this.selectedGeneOption.value === SAME_GENE_OPTION_VALUE) {
+                    if (this.selectedGeneOption.value === SAME_SELECTED_OPTION_NUMERICAL_VALUE) {
                         return self.horzSelection.entrezGeneId;
                     } else {
                         return this.selectedGeneOption.value;
@@ -214,11 +198,11 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 }
             },
             get selectedGeneOption() {
-                const geneOptions = (vertical ? self.vertGeneOptions : self.horzGeneOptions.result) || [];
+                const geneOptions = vertical ? self.vertGeneOptions : self.horzGeneOptions.result || [];
                 if (this._selectedGeneOption === undefined && geneOptions.length) {
                     // select default if _selectedGeneOption is undefined and theres defaults to choose from
                     return geneOptions[0];
-                } else if (vertical && this._selectedGeneOption && this._selectedGeneOption.value === SAME_GENE_OPTION_VALUE &&
+                } else if (vertical && this._selectedGeneOption && this._selectedGeneOption.value === SAME_SELECTED_OPTION_NUMERICAL_VALUE &&
                             self.horzSelection.dataType === CLIN_ATTR_DATA_TYPE) {
                     // if vertical gene option is "same as horizontal", and horizontal is clinical, then use the actual
                     //      gene option value instead of "Same gene" option value, because that would be slightly weird UX
@@ -301,7 +285,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             },
             get genesetId() {
                 if (this.selectedGenesetOption) {
-                    if (this.selectedGenesetOption.value === SAME_GENESET_OPTION_VALUE) {
+                    if (this.selectedGenesetOption.value === SAME_SELECTED_OPTION_STRING_VALUE) {
                         return self.horzSelection.genesetId;
                     } else {
                         return this.selectedGenesetOption.value;
@@ -311,11 +295,12 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 }
             },
             get selectedGenesetOption() {
-                const genesetOptions = (vertical ? self.vertGenesetOptions : self.horzGenesetOptions.result) || [];
+                const genesetOptions = (vertical ? self.vertGenesetOptions : self.horzGenesetOptions
+                    .result) || [];
                 if (this._selectedGenesetOption === undefined && genesetOptions.length) {
                     // select default if _selectedGenesetOption is undefined and theres defaults to choose from
                     return genesetOptions[0];
-                } else if (vertical && this._selectedGenesetOption && this._selectedGenesetOption.value === SAME_GENESET_OPTION_VALUE &&
+                } else if (vertical && this._selectedGenesetOption && this._selectedGenesetOption.value === SAME_SELECTED_OPTION_STRING_VALUE &&
                     self.horzSelection.dataType === CLIN_ATTR_DATA_TYPE) {
                         // if vertical gene set option is "same as horizontal", and horizontal is clinical, then use the actual
                         //      gene set option value instead of "Same gene" option value, because that would be slightly weird UX
@@ -330,7 +315,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 },
             get treatmentId() {
                 if (this.selectedTreatmentOption) {
-                    if (this.selectedTreatmentOption.value === SAME_TREATMENT_OPTION_VALUE) {
+                    if (this.selectedTreatmentOption.value === SAME_SELECTED_OPTION_STRING_VALUE) {
                         return self.horzSelection.treatmentId;
                     } else {
                         return this.selectedTreatmentOption.value;
@@ -344,8 +329,9 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 if (this._selectedTreatmentOption === undefined && treatmentOptions.length) {
                     // select default if _selectedTreatmentOption is undefined and theres defaults to choose from
                     return treatmentOptions[0];
-                } else if (vertical && this._selectedTreatmentOption && this._selectedTreatmentOption.value === SAME_TREATMENT_OPTION_VALUE &&
-                            self.horzSelection.dataType === CLIN_ATTR_DATA_TYPE) {
+                } else if (vertical && this._selectedTreatmentOption
+                    && this._selectedTreatmentOption.value === SAME_SELECTED_OPTION_STRING_VALUE
+                    && self.horzSelection.dataType === CLIN_ATTR_DATA_TYPE) {
                     // if vertical gene set option is "same as horizontal", and horizontal is clinical, then use the actual
                     //      gene set option value instead of "Same gene" option value, because that would be slightly weird UX
                     return self.horzSelection.selectedTreatmentOption;
@@ -469,6 +455,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         return ;
     }
 
+
+
     @autobind
     private getHorizontalAxisMenu() {
         if (!this.dataTypeOptions.isComplete ||
@@ -532,7 +520,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         // optionValue is either entrez id or the code for same gene
         let options:any[];
         if (vertical) {
-            options = this.vertGeneOptions;
+            options = this.vertGeneOptions || [];
         } else {
             options = this.horzGeneOptions.result || [];
         }
@@ -547,7 +535,25 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     }
 
-    readonly horzGeneOptions = remoteData({
+    @computed get horzDatatypeOptions() {
+        let noneDatatypeOption = undefined;
+        // listen to updates of `dataTypeOptions` and on the selected data type for the vertical axis
+        if (this.dataTypeOptions && this.vertSelection.dataType === TREATMENT_DATA_TYPE) {
+            noneDatatypeOption = [{ value: NONE_SELECTED_OPTION_STRING_VALUE, label: NONE_SELECTED_OPTION_LABEL}];
+        }
+        return (noneDatatypeOption || []).concat((this.dataTypeOptions.result || []) as any[]);
+    }
+
+    @computed get vertDatatypeOptions() {
+        let noneDatatypeOption = undefined;
+        // listen to updates of `dataTypeOptions` and on the selected data type for the horzontal axis
+        if (this.dataTypeOptions && this.horzSelection.dataType === TREATMENT_DATA_TYPE) {
+            noneDatatypeOption = [{ value: NONE_SELECTED_OPTION_STRING_VALUE, label: NONE_SELECTED_OPTION_LABEL}];
+        }
+        return (noneDatatypeOption || []).concat((this.dataTypeOptions.result || []) as any[]);
+    }
+
+    @observable readonly horzGeneOptions = remoteData({
         await:()=>[this.props.store.genes],
         invoke:()=>{
             return Promise.resolve(
@@ -557,20 +563,20 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     });
 
     @computed get vertGeneOptions() {
-        // computed instead of remoteData in order to make the rerender synchronous when the 'Same gene (HUGO SYMBOL)'
-        //  option changes. if its remoteData, theres setTimeout(0)'s in the way and it causes unnecessarily an extra
-        //  render which leads to a flash of the loading icon on the screen
         let sameGeneOption = undefined;
-        if (this.horzSelection.selectedGeneOption && this.horzSelection.dataType !== CLIN_ATTR_DATA_TYPE && this.horzSelection.dataType !== GENESET_DATA_TYPE) {
-            // show "Same gene" option as long as horzSelection has a selected option, and horz isnt clinical attribute or
-            // a gene set, bc in that case theres no selected gene displayed so its confusing UX to have "Same gene" as an option
-            sameGeneOption = [{ value: SAME_GENE_OPTION_VALUE, label: `Same gene (${this.horzSelection.selectedGeneOption.label})`}];
+        // listen to updates of `horzGeneOptions` or the selected data type for the horzontal axis
+        if (this.horzGeneOptions || this.horzSelection.dataType) {
+            // when the data type on the horizontal axis is a gene  profile
+            // add an option to select the same gene 
+            if (this.horzSelection.dataType && this.showGeneSelectBox(this.horzSelection.dataType)
+                && this.horzSelection.selectedGeneOption && this.horzSelection.selectedGeneOption.value !== NONE_SELECTED_OPTION_NUMERICAL_VALUE) {
+                sameGeneOption = [{ value: SAME_SELECTED_OPTION_NUMERICAL_VALUE, label: `Same gene (${this.horzSelection.selectedGeneOption.label})`}];
+            }
         }
         return (sameGeneOption || []).concat((this.horzGeneOptions.result || []) as any[]);
     }
 
-    //readonly horzGenesetOptions = this.props.store.genesetIds.map(genesetId=>({ value: genesetId, label: genesetId }));
-    readonly horzGenesetOptions = remoteData({
+    @observable readonly horzGenesetOptions = remoteData({
         await:()=>[this.props.store.genesets],
         invoke:()=>{
             return Promise.resolve(
@@ -580,19 +586,20 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     });
 
     @computed get vertGenesetOptions() {
-        // computed instead of remoteData in order to make the rerender synchronous when the 'Same gene set (GENE SET)'
-        //  option changes. if its remoteData, theres setTimeout(0)'s in the way and it causes unnecessarily an extra
-        //  render which leads to a flash of the loading icon on the screen
         let sameGenesetOption = undefined;
-        if (this.horzSelection.selectedGenesetOption && this.horzSelection.dataType === GENESET_DATA_TYPE) {
-            // show "Same gene set" option as long as horzSelection has a selected option, and horz is gene set attribute, bc
-            //  in that case theres no selected gene displayed so its confusing UX to have "Same gene" as an option
-            sameGenesetOption = [{ value: SAME_GENESET_OPTION_VALUE, label: `Same gene set (${this.horzSelection.selectedGenesetOption.label})`}];
+        // listen to updates of `horzGenesetOptions` or the selected data type for the horzontal axis
+        if (this.horzGenesetOptions || this.horzSelection.dataType) {
+            // when the data type on the horizontal axis is a gene  profile
+            // add an option to select the same gene 
+            if (this.horzSelection.dataType && this.showGenesetSelectBox(this.horzSelection.dataType)
+                && this.horzSelection.selectedGenesetOption && this.horzSelection.selectedGenesetOption.value !== NONE_SELECTED_OPTION_STRING_VALUE) {
+                sameGenesetOption = [{ value: SAME_SELECTED_OPTION_STRING_VALUE, label: `Same gene set (${this.horzSelection.selectedGenesetOption.label})`}];
+            }
         }
-        return (sameGenesetOption || []).concat((this.horzGenesetOptions.result || []) as {value:string, label:string}[]);
+        return (sameGenesetOption || []).concat((this.horzGenesetOptions.result || []) as any[]);
     }
 
-    readonly horzTreatmentOptions = remoteData({
+    @observable readonly horzTreatmentOptions = remoteData({
         await:()=>[this.props.store.treatments],
         invoke:()=>{
             return Promise.resolve(
@@ -602,17 +609,40 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     });
 
     @computed get vertTreatmentOptions() {
-        // computed instead of remoteData in order to make the rerender synchronous when the 'Same gene set (GENE SET)'
-        //  option changes. if its remoteData, theres setTimeout(0)'s in the way and it causes unnecessarily an extra
-        //  render which leads to a flash of the loading icon on the screen
         let sameTreatmentOption = undefined;
-        if (this.horzSelection.selectedTreatmentOption
-            && this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) {
-            // show "Same gene set" option as long as horzSelection has a selected option, and horz is gene set attribute, bc
-            //  in that case theres no selected gene displayed so its confusing UX to have "Same gene" as an option
-            sameTreatmentOption = [{ value: SAME_TREATMENT_OPTION_VALUE, label: `Same treatment (${this.horzSelection.selectedTreatmentOption.label})`}];
+        // listen to updates of `horzTreatmentOptions` or the selected data type for the horzontal axis
+        if (this.horzTreatmentOptions || this.horzSelection.dataType) {
+            if (this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) {
+                // when the data type on the horizontal axis is a treatment profile
+                // add an option to select the same treatment
+                if (this.horzSelection.dataType && this.showTreatmentSelectBox(this.horzSelection.dataType)
+                    && this.horzSelection.selectedTreatmentOption && this.horzSelection.selectedTreatmentOption.value !== NONE_SELECTED_OPTION_STRING_VALUE) {
+                    sameTreatmentOption = [{ value: SAME_SELECTED_OPTION_STRING_VALUE, label: `Same treatment (${this.horzSelection.selectedTreatmentOption.label})`}];
+                }
+            }
         }
         return (sameTreatmentOption || []).concat((this.horzTreatmentOptions.result || []) as {value:string, label:string}[]);
+    }
+
+    showGeneSelectBox(dataType:string):boolean {
+        return dataType !== NONE_SELECTED_OPTION_STRING_VALUE
+                && dataType !== GENESET_DATA_TYPE
+                && dataType !== CLIN_ATTR_DATA_TYPE
+                && dataType !== AlterationTypeConstants.TREATMENT_RESPONSE;
+    }
+
+    showGenesetSelectBox(dataType:string):boolean {
+        return dataType !== NONE_SELECTED_OPTION_STRING_VALUE
+                && dataType === GENESET_DATA_TYPE;
+    }
+
+    showTreatmentSelectBox(dataType:string):boolean {
+        return dataType !== NONE_SELECTED_OPTION_STRING_VALUE
+                && dataType === AlterationTypeConstants.TREATMENT_RESPONSE;
+    }
+    
+    showDatasourceBox(dataType:string):boolean {
+        return dataType !== NONE_SELECTED_OPTION_STRING_VALUE;
     }
 
     readonly clinicalAttributeIdToClinicalAttribute = remoteData<{[clinicalAttributeId:string]:ClinicalAttribute}>({
@@ -769,7 +799,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
 
         // only swap genes if vertSelection is not set to "Same gene"
-        if (!this.vertSelection.selectedGeneOption || (this.vertSelection.selectedGeneOption.value.toString() !== SAME_GENE_OPTION_VALUE)) {
+        if (!this.vertSelection.selectedGeneOption || (this.vertSelection.selectedGeneOption.value !== SAME_SELECTED_OPTION_NUMERICAL_VALUE)) {
             const horzOption = this.horzSelection.selectedGeneOption;
             const vertOption = this.vertSelection.selectedGeneOption;
             this.horzSelection.selectedGeneOption = vertOption;
@@ -777,11 +807,19 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
 
         // only swap gene sets if vertSelection is not set to "Same gene set"
-        if (!this.vertSelection.selectedGenesetOption || (this.vertSelection.selectedGenesetOption.value.toString() !== SAME_GENESET_OPTION_VALUE)) {
+        if (!this.vertSelection.selectedGenesetOption || (this.vertSelection.selectedGenesetOption.value !== SAME_SELECTED_OPTION_STRING_VALUE)) {
             const horzOption = this.horzSelection.selectedGenesetOption;
             const vertOption = this.vertSelection.selectedGenesetOption;
             this.horzSelection.selectedGenesetOption = vertOption;
             this.vertSelection.selectedGenesetOption = horzOption;
+        }
+
+        // only swap treatments if vertSelection is not set to "Same treatment"
+        if (!this.vertSelection.selectedTreatmentOption || (this.vertSelection.selectedTreatmentOption.value !== SAME_SELECTED_OPTION_STRING_VALUE)) {
+            const horzOption = this.horzSelection.selectedTreatmentOption;
+            const vertOption = this.vertSelection.selectedTreatmentOption;
+            this.horzSelection.selectedTreatmentOption = vertOption;
+            this.vertSelection.selectedTreatmentOption = horzOption;
         }
     }
 
@@ -856,7 +894,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.props.store.studyToMutationMolecularProfile,
             this.props.store.coverageInformation,
             this.props.store.samples,
-            this.props.store.genesetMolecularDataCache
+            this.props.store.genesetMolecularDataCache,
+            this.props.store.treatmentMolecularDataCache
         );
     }
 
@@ -873,7 +912,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.props.store.studyToMutationMolecularProfile,
             this.props.store.coverageInformation,
             this.props.store.samples,
-            this.props.store.genesetMolecularDataCache
+            this.props.store.genesetMolecularDataCache,
+            this.props.store.treatmentMolecularDataCache
         );
     }
 
@@ -1063,26 +1103,29 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                         <ReactSelect
                             name={`${vertical ? "v" : "h"}-profile-type-selector`}
                             value={axisSelection.dataType}
+                            isLoading={this.dataTypeOptions.isPending}
                             onChange={vertical ? this.onVerticalAxisDataTypeSelect : this.onHorizontalAxisDataTypeSelect}
-                            options={dataTypeOptions}
+                            options={this.horzDatatypeOptions && this.vertDatatypeOptions? (vertical ? this.vertDatatypeOptions : this.horzDatatypeOptions): []}
                             clearable={false}
                             searchable={false}
                         />
                     </div>
-                    <div className="form-group">
-                        <label>{dataSourceLabel}</label>
-                        <div style={{display:"flex", flexDirection:"row"}}>
-                            <ReactSelect
-                                className="data-source-id"
-                                name={`${vertical ? "v" : "h"}-profile-name-selector`}
-                                value={dataSourceValue}
-                                onChange={onDataSourceChange}
-                                options={dataSourceOptions}
-                                clearable={false}
-                                searchable={true}
-                            />
+                    {(axisSelection.dataType && this.showDatasourceBox(axisSelection.dataType)) && (
+                        <div className="form-group">
+                            <label>{dataSourceLabel}</label>
+                            <div style={{display:"flex", flexDirection:"row"}}>
+                                <ReactSelect
+                                    className="data-source-id"
+                                    name={`${vertical ? "v" : "h"}-profile-name-selector`}
+                                    value={dataSourceValue}
+                                    onChange={onDataSourceChange}
+                                    options={dataSourceOptions}
+                                    clearable={false}
+                                    searchable={true}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
                     { logScalePossible(axisSelection) && (
                         <div className="checkbox"><label>
                             <input
@@ -1095,9 +1138,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                             /> Apply Log Scale
                         </label></div>
                     )}
-                    {/* TODO: remove code duplication in three sections below */}
-                    {(axisSelection.dataType !== GENESET_DATA_TYPE && axisSelection.dataType !== AlterationTypeConstants.TREATMENT_RESPONSE)
-                         && (<div className="form-group" style={{opacity:(axisSelection.dataType === CLIN_ATTR_DATA_TYPE ? 0 : 1)}}>
+                    {(axisSelection.dataType && this.showGeneSelectBox(axisSelection.dataType))
+                        && (<div className="form-group" style={{opacity:(axisSelection.dataType === CLIN_ATTR_DATA_TYPE ? 0 : 1)}}>
                         <label>Gene</label>
                         <div style={{display:"flex", flexDirection:"row"}}>
                             <ReactSelect
@@ -1105,14 +1147,15 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 value={axisSelection.selectedGeneOption ? axisSelection.selectedGeneOption.value : undefined}
                                 onChange={vertical ? this.onVerticalAxisGeneSelect : this.onHorizontalAxisGeneSelect}
                                 isLoading={this.horzGeneOptions.isPending}
-                                options={this.horzGeneOptions.isComplete ? (vertical ? this.vertGeneOptions : this.horzGeneOptions.result) : []}
+                                options={this.vertGeneOptions && this.horzGeneOptions? (vertical ? this.vertGeneOptions : this.horzGeneOptions.result): []}
                                 clearable={false}
                                 searchable={false}
                                 disabled={axisSelection.dataType === CLIN_ATTR_DATA_TYPE || axisSelection.dataType === GENESET_DATA_TYPE}
                             />
                         </div>
                     </div>)}
-                    {(axisSelection.dataType === GENESET_DATA_TYPE) && (<div className="form-group" style={{opacity:1}}>
+                    {(axisSelection.dataType && this.showGenesetSelectBox(axisSelection.dataType))
+                        && (<div className="form-group" style={{opacity:1}}>
                         <label>Gene Set</label>
                         <div style={{display:"flex", flexDirection:"row"}}>
                             <ReactSelect
@@ -1120,14 +1163,15 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 value={axisSelection.selectedGenesetOption ? axisSelection.selectedGenesetOption.value : undefined}
                                 onChange={vertical ? this.onVerticalAxisGenesetSelect : this.onHorizontalAxisGenesetSelect}
                                 isLoading={this.horzGenesetOptions.isPending}
-                                options={this.horzGenesetOptions.isComplete ? (vertical ? this.vertGenesetOptions : this.horzGenesetOptions.result) : []}
+                                options={this.vertGenesetOptions && this.horzGenesetOptions? (vertical ? this.vertGenesetOptions : this.horzGenesetOptions.result): []}
                                 clearable={false}
                                 searchable={false}
                                 disabled={axisSelection.dataType !== GENESET_DATA_TYPE}
                             />
                         </div>
                     </div>)}
-                    {(axisSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) && (<div className="form-group" style={{opacity:1}}>
+                    {(axisSelection.dataType && this.showTreatmentSelectBox(axisSelection.dataType))
+                        && (<div className="form-group" style={{opacity:1}}>
                         <label>Treatment</label>
                         <div style={{display:"flex", flexDirection:"row"}}>
                             <ReactSelect
@@ -1135,7 +1179,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 value={axisSelection.selectedTreatmentOption ? axisSelection.selectedTreatmentOption.value : undefined}
                                 onChange={vertical ? this.onVerticalAxisTreatmentSelect : this.onHorizontalAxisTreatmentSelect}
                                 isLoading={this.horzTreatmentOptions.isPending}
-                                options={this.horzTreatmentOptions.isComplete ? (vertical ? this.vertTreatmentOptions : this.horzTreatmentOptions.result) : []}
+                                options={this.vertTreatmentOptions && this.horzTreatmentOptions? (vertical ? this.vertTreatmentOptions : this.horzTreatmentOptions.result): []}
                                 clearable={false}
                                 searchable={false}
                                 disabled={axisSelection.dataType === CLIN_ATTR_DATA_TYPE || axisSelection.dataType !== AlterationTypeConstants.TREATMENT_RESPONSE}
