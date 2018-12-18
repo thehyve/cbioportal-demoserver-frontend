@@ -1,4 +1,4 @@
-import {AxisMenuSelection, MutationCountBy, ViewType} from "./PlotsTab";
+import {AxisMenuSelection, MutationCountBy, ViewType, NONE_SELECTED_OPTION_NUMERICAL_VALUE, NONE_SELECTED_OPTION_STRING_VALUE } from "./PlotsTab";
 import {MobxPromise} from "mobxpromise";
 import {
     ClinicalAttribute, ClinicalData, Gene, MolecularProfile, Mutation, NumericGeneMolecularData,
@@ -30,11 +30,13 @@ import numeral from "numeral";
 import {getJitterForCase} from "../../../shared/components/plots/PlotUtils";
 import {isSampleProfiled} from "../../../shared/lib/isSampleProfiled";
 import GenesetMolecularDataCache from "../../../shared/cache/GenesetMolecularDataCache";
-import {GenesetMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import TreatmentMolecularDataCache from "../../../shared/cache/TreatmentMolecularDataCache";
+import {GenesetMolecularData, TreatmentMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import {MUTATION_COUNT} from "../../studyView/StudyViewPageStore";
 
 export const CLIN_ATTR_DATA_TYPE = "clinical_attribute";
 export const GENESET_DATA_TYPE = "GENESET_SCORE";
+export const TREATMENT_DATA_TYPE = "TREATMENT_RESPONSE";
 export const dataTypeToDisplayType:{[s:string]:string} = {
     [AlterationTypeConstants.MUTATION_EXTENDED]: "Mutation",
     [AlterationTypeConstants.COPY_NUMBER_ALTERATION]: "Copy Number",
@@ -603,6 +605,35 @@ function makeAxisDataPromise_Geneset(
     });
 }
 
+function makeAxisDataPromise_Treatment(
+    treatmentId:string,
+    molecularProfileId:string,
+    treatmentMolecularDataCachePromise:MobxPromise<TreatmentMolecularDataCache>,
+    molecularProfileIdToMolecularProfile:MobxPromise<{[molecularProfileId:string]:MolecularProfile}>
+):MobxPromise<IAxisData> {
+    return remoteData({
+        await:()=>[treatmentMolecularDataCachePromise, molecularProfileIdToMolecularProfile],
+        invoke: async () => {
+            const profile = molecularProfileIdToMolecularProfile.result![molecularProfileId];
+            const makeRequest = true;
+            await treatmentMolecularDataCachePromise.result!.getPromise(
+                 {treatmentId, molecularProfileId}, makeRequest);
+            const data:TreatmentMolecularData[] = treatmentMolecularDataCachePromise.result!.get({molecularProfileId, treatmentId})!.data!;
+            return Promise.resolve({
+                data: data.map(d=>{
+                    const value = d.value;
+                    return {
+                        uniqueSampleKey: d.uniqueSampleKey,
+                        value: Number(value)
+                    };
+                }),
+                datatype: "number",
+                treatmentId: treatmentId
+            });
+        }
+    });
+}
+
 export function makeAxisDataPromise(
     selection:AxisMenuSelection,
     clinicalAttributeIdToClinicalAttribute:MobxPromise<{[clinicalAttributeId:string]:ClinicalAttribute}>,
@@ -615,7 +646,8 @@ export function makeAxisDataPromise(
     studyToMutationMolecularProfile: MobxPromise<{[studyId: string]: MolecularProfile}>,
     coverageInformation:MobxPromise<CoverageInformation>,
     samples:MobxPromise<Sample[]>,
-    genesetMolecularDataCachePromise: MobxPromise<GenesetMolecularDataCache>
+    genesetMolecularDataCachePromise: MobxPromise<GenesetMolecularDataCache>,
+    treatmentMolecularDataCachePromise: MobxPromise<TreatmentMolecularDataCache>
 ):MobxPromise<IAxisData> {
 
     let ret:MobxPromise<IAxisData> = remoteData(()=>new Promise<IAxisData>(()=>0)); // always isPending
@@ -633,9 +665,18 @@ export function makeAxisDataPromise(
                     molecularProfileIdToMolecularProfile);
             }
             break;
+        case TREATMENT_DATA_TYPE:
+            if (selection.treatmentId !== undefined && selection.dataSourceId !== undefined) {
+                ret = makeAxisDataPromise_Treatment(
+                    selection.treatmentId, selection.dataSourceId, treatmentMolecularDataCachePromise,
+                    molecularProfileIdToMolecularProfile);
+            }
+            break;
         default:
             // molecular profile
-            if (selection.entrezGeneId !== undefined && selection.dataSourceId !== undefined) {
+            if (selection.entrezGeneId !== undefined
+                && selection.entrezGeneId !== NONE_SELECTED_OPTION_NUMERICAL_VALUE
+                && selection.dataSourceId !== undefined) {
                 ret = makeAxisDataPromise_Molecular(
                     selection.entrezGeneId, selection.dataSourceId, mutationCache, numericGeneMolecularDataCache,
                     entrezGeneIdToGene, molecularProfileIdToMolecularProfile, selection.mutationCountBy,
@@ -675,9 +716,16 @@ export function getAxisLabel(
                 ret = `${selection.genesetId}: ${profile.name}`;
             }
             break;
+        case TREATMENT_DATA_TYPE:
+            if (profile && selection.treatmentId !== undefined) {
+                ret = `${selection.treatmentId}: ${profile.name}`;
+            }
+            break;
         default:
             // molecular profile
-            if (profile && selection.entrezGeneId !== undefined) {
+            if (profile
+                && selection.entrezGeneId !== undefined
+                && selection.entrezGeneId !== NONE_SELECTED_OPTION_NUMERICAL_VALUE) {
                 ret = `${entrezGeneIdToGene[selection.entrezGeneId].hugoGeneSymbol}: ${profile.name}`;
             }
             break;
