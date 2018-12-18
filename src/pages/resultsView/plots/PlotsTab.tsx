@@ -20,7 +20,7 @@ import ScrollBar from "../../../shared/components/Scrollbar/ScrollBar";
 import { getMobxPromiseGroupStatus } from "../../../shared/lib/getMobxPromiseGroupStatus";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
-import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, dataTypeToDisplayType, GENESET_DATA_TYPE, getAxisLabel, getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IScatterPlotSampleData, isNumberData, isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, sortMolecularProfilesForDisplay } from "./PlotsTabUtils";
+import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, dataTypeToDisplayType, GENESET_DATA_TYPE, TREATMENT_DATA_TYPE, getAxisLabel, getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IScatterPlotSampleData, isNumberData, isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, sortMolecularProfilesForDisplay } from "./PlotsTabUtils";
 import "./styles.scss";
 import Timer = NodeJS.Timer;
 
@@ -857,7 +857,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.props.store.studyToMutationMolecularProfile,
             this.props.store.coverageInformation,
             this.props.store.samples,
-            this.props.store.genesetMolecularDataCache
+            this.props.store.genesetMolecularDataCache,
+            this.props.store.treatmentMolecularDataCache
         );
     }
 
@@ -874,7 +875,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.props.store.studyToMutationMolecularProfile,
             this.props.store.coverageInformation,
             this.props.store.samples,
-            this.props.store.genesetMolecularDataCache
+            this.props.store.genesetMolecularDataCache,
+            this.props.store.treatmentMolecularDataCache
         );
     }
 

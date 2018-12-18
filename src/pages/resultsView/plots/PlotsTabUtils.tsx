@@ -30,7 +30,8 @@ import numeral from "numeral";
 import {getJitterForCase} from "../../../shared/components/plots/PlotUtils";
 import {isSampleProfiled} from "../../../shared/lib/isSampleProfiled";
 import GenesetMolecularDataCache from "../../../shared/cache/GenesetMolecularDataCache";
-import {GenesetMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import TreatmentMolecularDataCache from "../../../shared/cache/TreatmentMolecularDataCache";
+import {GenesetMolecularData, TreatmentMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import {MUTATION_COUNT} from "../../studyView/StudyViewPageStore";
 
 export const CLIN_ATTR_DATA_TYPE = "clinical_attribute";
@@ -604,6 +605,35 @@ function makeAxisDataPromise_Geneset(
     });
 }
 
+function makeAxisDataPromise_Treatment(
+    treatmentId:string,
+    molecularProfileId:string,
+    treatmentMolecularDataCachePromise:MobxPromise<TreatmentMolecularDataCache>,
+    molecularProfileIdToMolecularProfile:MobxPromise<{[molecularProfileId:string]:MolecularProfile}>
+):MobxPromise<IAxisData> {
+    return remoteData({
+        await:()=>[treatmentMolecularDataCachePromise, molecularProfileIdToMolecularProfile],
+        invoke: async () => {
+            const profile = molecularProfileIdToMolecularProfile.result![molecularProfileId];
+            const makeRequest = true;
+            await treatmentMolecularDataCachePromise.result!.getPromise(
+                 {treatmentId, molecularProfileId}, makeRequest);
+            const data:TreatmentMolecularData[] = treatmentMolecularDataCachePromise.result!.get({molecularProfileId, treatmentId})!.data!;
+            return Promise.resolve({
+                data: data.map(d=>{
+                    const value = d.value;
+                    return {
+                        uniqueSampleKey: d.uniqueSampleKey,
+                        value: Number(value)
+                    };
+                }),
+                genesetId: treatmentId,
+                datatype: "number"
+            });
+        }
+    });
+}
+
 export function makeAxisDataPromise(
     selection:AxisMenuSelection,
     clinicalAttributeIdToClinicalAttribute:MobxPromise<{[clinicalAttributeId:string]:ClinicalAttribute}>,
@@ -616,7 +646,8 @@ export function makeAxisDataPromise(
     studyToMutationMolecularProfile: MobxPromise<{[studyId: string]: MolecularProfile}>,
     coverageInformation:MobxPromise<CoverageInformation>,
     samples:MobxPromise<Sample[]>,
-    genesetMolecularDataCachePromise: MobxPromise<GenesetMolecularDataCache>
+    genesetMolecularDataCachePromise: MobxPromise<GenesetMolecularDataCache>,
+    treatmentMolecularDataCachePromise: MobxPromise<TreatmentMolecularDataCache>
 ):MobxPromise<IAxisData> {
 
     let ret:MobxPromise<IAxisData> = remoteData(()=>new Promise<IAxisData>(()=>0)); // always isPending
@@ -631,6 +662,13 @@ export function makeAxisDataPromise(
             if (selection.genesetId !== undefined && selection.dataSourceId !== undefined) {
                 ret = makeAxisDataPromise_Geneset(
                     selection.genesetId, selection.dataSourceId, genesetMolecularDataCachePromise,
+                    molecularProfileIdToMolecularProfile);
+            }
+            break;
+        case TREATMENT_DATA_TYPE:
+            if (selection.treatmentId !== undefined && selection.dataSourceId !== undefined) {
+                ret = makeAxisDataPromise_Treatment(
+                    selection.treatmentId, selection.dataSourceId, treatmentMolecularDataCachePromise,
                     molecularProfileIdToMolecularProfile);
             }
             break;

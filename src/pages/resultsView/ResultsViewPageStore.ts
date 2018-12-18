@@ -78,6 +78,7 @@ import {
 import GeneMolecularDataCache from "../../shared/cache/GeneMolecularDataCache";
 import GenesetMolecularDataCache from "../../shared/cache/GenesetMolecularDataCache";
 import GenesetCorrelatedGeneCache from "../../shared/cache/GenesetCorrelatedGeneCache";
+import TreatmentMolecularDataCache from "../../shared/cache/TreatmentMolecularDataCache";
 import GeneCache from "../../shared/cache/GeneCache";
 import GenesetCache from "../../shared/cache/GenesetCache";
 import TreatmentCache from "../../shared/cache/TreatmentCache";
@@ -2919,6 +2920,17 @@ export class ResultsViewPageStore {
         ],
         invoke: () => Promise.resolve(
             new GenesetCorrelatedGeneCache(
+                this.molecularProfileIdToDataQueryFilter.result!
+            )
+        )
+    });
+
+    readonly treatmentMolecularDataCache = remoteData({
+        await:() => [
+            this.molecularProfileIdToDataQueryFilter
+        ],
+        invoke: () => Promise.resolve(
+            new TreatmentMolecularDataCache(
                 this.molecularProfileIdToDataQueryFilter.result!
             )
         )
