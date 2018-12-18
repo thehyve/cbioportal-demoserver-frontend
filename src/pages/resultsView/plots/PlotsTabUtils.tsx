@@ -35,6 +35,7 @@ import {MUTATION_COUNT} from "../../studyView/StudyViewPageStore";
 
 export const CLIN_ATTR_DATA_TYPE = "clinical_attribute";
 export const GENESET_DATA_TYPE = "GENESET_SCORE";
+export const TREATMENT_DATA_TYPE = "TREATMENT_RESPONSE";
 export const dataTypeToDisplayType:{[s:string]:string} = {
     [AlterationTypeConstants.MUTATION_EXTENDED]: "Mutation",
     [AlterationTypeConstants.COPY_NUMBER_ALTERATION]: "Copy Number",
@@ -673,6 +674,11 @@ export function getAxisLabel(
         case GENESET_DATA_TYPE:
             if (profile && selection.genesetId !== undefined) {
                 ret = `${selection.genesetId}: ${profile.name}`;
+            }
+            break;
+        case TREATMENT_DATA_TYPE:
+            if (profile && selection.treatmentId !== undefined) {
+                ret = `${selection.treatmentId}: ${profile.name}`;
             }
             break;
         default:

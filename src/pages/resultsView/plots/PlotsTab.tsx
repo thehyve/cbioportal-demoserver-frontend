@@ -1,47 +1,28 @@
-import * as React from "react";
-import {action, computed, observable} from "mobx";
-import {Observer, observer} from "mobx-react";
-import "./styles.scss";
-import {AlterationTypeConstants, DataTypeConstants, ResultsViewPageStore} from "../ResultsViewPageStore";
-import {FormControl} from "react-bootstrap";
-import LockIcon from "../../../shared/components/LockIcon";
-import ReactSelect from "react-select";
+import autobind from "autobind-decorator";
 import _ from "lodash";
-import {
-    getAxisDescription,
-    getAxisLabel, IScatterPlotData, isNumberData, isStringData, logScalePossible,
-    makeAxisDataPromise, makeScatterPlotData, makeScatterPlotPointAppearance, dataTypeDisplayOrder,
-    dataTypeToDisplayType, scatterPlotTooltip, scatterPlotLegendData, IStringAxisData, INumberAxisData,
-    makeBoxScatterPlotData, IScatterPlotSampleData, noMutationAppearance, IBoxScatterPlotPoint, boxPlotTooltip,
-    getCnaQueries, getMutationQueries, getScatterPlotDownloadData, getBoxPlotDownloadData,
-    mutationRenderPriority, mutationSummaryRenderPriority, MutationSummary, mutationSummaryToAppearance,
-    CNA_STROKE_WIDTH, PLOT_SIDELENGTH, CLIN_ATTR_DATA_TYPE,
-    sortMolecularProfilesForDisplay, scatterPlotZIndexSortBy, getMutationProfileDuplicateSamplesReport, GENESET_DATA_TYPE 
-} from "./PlotsTabUtils";
-import {
-    ClinicalAttribute, MolecularProfile, Mutation,
-    NumericGeneMolecularData
-} from "../../../shared/api/generated/CBioPortalAPI";
-import Timer = NodeJS.Timer;
+import { action, computed, observable } from "mobx";
+import { Observer, observer } from "mobx-react";
+import * as React from "react";
+import { FormControl } from "react-bootstrap";
+import fileDownload from 'react-file-download';
+import ReactSelect from "react-select";
+import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import ScatterPlot from "shared/components/plots/ScatterPlot";
 import TablePlot from "shared/components/plots/TablePlot";
-import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
-import InfoIcon from "../../../shared/components/InfoIcon";
-import {remoteData} from "../../../shared/api/remoteData";
-import {MobxPromise} from "mobxpromise";
-import BoxScatterPlot, {IBoxScatterPlotData} from "../../../shared/components/plots/BoxScatterPlot";
+import { ClinicalAttribute } from "../../../shared/api/generated/CBioPortalAPI";
+import { remoteData } from "../../../shared/api/remoteData";
 import DownloadControls from "../../../shared/components/downloadControls/DownloadControls";
-import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
-import setWindowVariable from "../../../shared/lib/setWindowVariable";
-import autobind from "autobind-decorator";
-import fileDownload from 'react-file-download';
-import onMobxPromise from "../../../shared/lib/onMobxPromise";
-import {SpecialAttribute} from "../../../shared/cache/OncoprintClinicalDataCache";
 import OqlStatusBanner from "../../../shared/components/oqlStatusBanner/OqlStatusBanner";
+import BoxScatterPlot, { IBoxScatterPlotData } from "../../../shared/components/plots/BoxScatterPlot";
+import { scatterPlotSize } from "../../../shared/components/plots/PlotUtils";
+import { getTablePlotDownloadData } from "../../../shared/components/plots/TablePlotUtils";
 import ScrollBar from "../../../shared/components/Scrollbar/ScrollBar";
-import {scatterPlotSize} from "../../../shared/components/plots/PlotUtils";
-import {getTablePlotDownloadData} from "../../../shared/components/plots/TablePlotUtils";
-import {getMobxPromiseGroupStatus} from "../../../shared/lib/getMobxPromiseGroupStatus";
+import { getMobxPromiseGroupStatus } from "../../../shared/lib/getMobxPromiseGroupStatus";
+import onMobxPromise from "../../../shared/lib/onMobxPromise";
+import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
+import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, dataTypeToDisplayType, GENESET_DATA_TYPE, getAxisLabel, getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IScatterPlotSampleData, isNumberData, isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, sortMolecularProfilesForDisplay } from "./PlotsTabUtils";
+import "./styles.scss";
+import Timer = NodeJS.Timer;
 
 enum EventKey {
     horz_logScale,
@@ -103,6 +84,8 @@ const SVG_ID = "plots-tab-plot-svg";
 export const SAME_GENE_OPTION_VALUE = "same";
 export const SAME_GENESET_OPTION_VALUE = "same";
 export const SAME_TREATMENT_OPTION_VALUE = "same";
+export const NONE_SELECTED_OPTION_VALUE = "none";
+export const NONE_SELECTED_OPTION_LABEL = "None";
 
 const mutationCountByOptions = [
     { value: MutationCountBy.MutationType, label: "Mutation Type" },
@@ -114,6 +97,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
 
     private horzSelection:AxisMenuSelection;
     private vertSelection:AxisMenuSelection;
+
     private scrollPane:HTMLDivElement;
 
     @observable searchCaseInput:string;
@@ -547,7 +531,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     }
 
-    readonly horzGeneOptions = remoteData({
+    @observable readonly horzGeneOptions = remoteData({
         await:()=>[this.props.store.genes],
         invoke:()=>{
             return Promise.resolve(
@@ -555,22 +539,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             );
         }
     });
-
-    @computed get vertGeneOptions() {
-        // computed instead of remoteData in order to make the rerender synchronous when the 'Same gene (HUGO SYMBOL)'
-        //  option changes. if its remoteData, theres setTimeout(0)'s in the way and it causes unnecessarily an extra
-        //  render which leads to a flash of the loading icon on the screen
-        let sameGeneOption = undefined;
-        if (this.horzSelection.selectedGeneOption && this.horzSelection.dataType !== CLIN_ATTR_DATA_TYPE && this.horzSelection.dataType !== GENESET_DATA_TYPE) {
-            // show "Same gene" option as long as horzSelection has a selected option, and horz isnt clinical attribute or
-            // a gene set, bc in that case theres no selected gene displayed so its confusing UX to have "Same gene" as an option
-            sameGeneOption = [{ value: SAME_GENE_OPTION_VALUE, label: `Same gene (${this.horzSelection.selectedGeneOption.label})`}];
-        }
-        return (sameGeneOption || []).concat((this.horzGeneOptions.result || []) as any[]);
-    }
-
-    //readonly horzGenesetOptions = this.props.store.genesetIds.map(genesetId=>({ value: genesetId, label: genesetId }));
-    readonly horzGenesetOptions = remoteData({
+    
+    @observable readonly horzGenesetOptions = remoteData({
         await:()=>[this.props.store.genesets],
         invoke:()=>{
             return Promise.resolve(
@@ -578,21 +548,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             );
         }
     });
-
-    @computed get vertGenesetOptions() {
-        // computed instead of remoteData in order to make the rerender synchronous when the 'Same gene set (GENE SET)'
-        //  option changes. if its remoteData, theres setTimeout(0)'s in the way and it causes unnecessarily an extra
-        //  render which leads to a flash of the loading icon on the screen
-        let sameGenesetOption = undefined;
-        if (this.horzSelection.selectedGenesetOption && this.horzSelection.dataType === GENESET_DATA_TYPE) {
-            // show "Same gene set" option as long as horzSelection has a selected option, and horz is gene set attribute, bc
-            //  in that case theres no selected gene displayed so its confusing UX to have "Same gene" as an option
-            sameGenesetOption = [{ value: SAME_GENESET_OPTION_VALUE, label: `Same gene set (${this.horzSelection.selectedGenesetOption.label})`}];
-        }
-        return (sameGenesetOption || []).concat((this.horzGenesetOptions.result || []) as {value:string, label:string}[]);
-    }
-
-    readonly horzTreatmentOptions = remoteData({
+    
+    @observable readonly horzTreatmentOptions = remoteData({
         await:()=>[this.props.store.treatments],
         invoke:()=>{
             return Promise.resolve(
@@ -601,18 +558,62 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     });
 
-    @computed get vertTreatmentOptions() {
-        // computed instead of remoteData in order to make the rerender synchronous when the 'Same gene set (GENE SET)'
-        //  option changes. if its remoteData, theres setTimeout(0)'s in the way and it causes unnecessarily an extra
-        //  render which leads to a flash of the loading icon on the screen
-        let sameTreatmentOption = undefined;
-        if (this.horzSelection.selectedTreatmentOption
-            && this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) {
-            // show "Same gene set" option as long as horzSelection has a selected option, and horz is gene set attribute, bc
-            //  in that case theres no selected gene displayed so its confusing UX to have "Same gene" as an option
-            sameTreatmentOption = [{ value: SAME_TREATMENT_OPTION_VALUE, label: `Same treatment (${this.horzSelection.selectedTreatmentOption.label})`}];
+    @computed get vertGeneOptions() {
+        let sameGeneOption = undefined;
+        let noGeneOption = undefined;
+        // listen to updates of `horzGeneOptions` or the selected data type for the horzontal axis
+        if (this.horzGeneOptions || this.horzSelection.dataType) {
+            // when the data type on the horizontal axis is a treatment profile
+            // add an option to vertical gene  option that allows to select `nothing`
+            if (this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) {
+                noGeneOption = [{ value: NONE_SELECTED_OPTION_VALUE, label: NONE_SELECTED_OPTION_LABEL}];
+            }
+            // when the data type on the horizontal axis is a gene  profile
+            // add an option to select the same gene 
+            if (this.horzSelection.selectedGeneOption) {
+                sameGeneOption = [{ value: SAME_GENE_OPTION_VALUE, label: `Same gene  (${this.horzSelection.selectedGeneOption.label})`}];
+            }
         }
-        return (sameTreatmentOption || []).concat((this.horzTreatmentOptions.result || []) as {value:string, label:string}[]);
+        return (noGeneOption || []).concat((sameGeneOption || [])).concat((this.horzGeneOptions.result || []) as any[]);
+    }
+
+    @computed get vertGenesetOptions() {
+        let sameGenesetOption = undefined;
+        let noGenesetOption = undefined;
+        // listen to updates of `horzGenesetOptions` or the selected data type for the horzontal axis
+        if (this.horzGenesetOptions || this.horzSelection.dataType) {
+            // when the data type on the horizontal axis is a treatment profile
+            // add an option to vertical gene set option that allows to select `nothing`
+            if (this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) {
+                noGenesetOption = [{ value: NONE_SELECTED_OPTION_VALUE, label: NONE_SELECTED_OPTION_LABEL}];
+            }
+            // when the data type on the horizontal axis is a gene set profile
+            // add an option to select the same gene set
+            if (this.horzSelection.selectedGenesetOption) {
+                sameGenesetOption = [{ value: SAME_GENESET_OPTION_VALUE, label: `Same gene set (${this.horzSelection.selectedGenesetOption.label})`}];
+            }
+        }
+        return (noGenesetOption || []).concat((sameGenesetOption || [])).concat((this.horzGenesetOptions.result || []) as {value:string, label:string}[]);
+    }
+
+    // todo 
+    @computed get vertTreatmentOptions() {
+        let sameTreatmentOption = undefined;
+        let noTreatmentOption = undefined;
+        // listen to updates of `horzTreatmentOptions` or the selected data type for the horzontal axis
+        if (this.horzTreatmentOptions || this.horzSelection.dataType) {
+            // when the data type on the horizontal axis is a treatment profile
+            // add an option to vertical treatment option that allows to select `nothing`
+            if (this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE) {
+                noTreatmentOption = [{ value: NONE_SELECTED_OPTION_VALUE, label: NONE_SELECTED_OPTION_LABEL}];
+                // when the data type on the horizontal axis is a treatment profile
+                // add an option to select the same treatment
+                if (this.horzSelection.selectedTreatmentOption) {
+                    sameTreatmentOption = [{ value: SAME_TREATMENT_OPTION_VALUE, label: `Same treatment (${this.horzSelection.selectedTreatmentOption.label})`}];
+                }
+            }
+        }
+        return (noTreatmentOption || []).concat((sameTreatmentOption || [])).concat((this.horzTreatmentOptions.result || []) as {value:string, label:string}[]);
     }
 
     readonly clinicalAttributeIdToClinicalAttribute = remoteData<{[clinicalAttributeId:string]:ClinicalAttribute}>({
@@ -1135,7 +1136,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 value={axisSelection.selectedTreatmentOption ? axisSelection.selectedTreatmentOption.value : undefined}
                                 onChange={vertical ? this.onVerticalAxisTreatmentSelect : this.onHorizontalAxisTreatmentSelect}
                                 isLoading={this.horzTreatmentOptions.isPending}
-                                options={this.horzTreatmentOptions.isComplete ? (vertical ? this.vertTreatmentOptions : this.horzTreatmentOptions.result) : []}
+                                options={this.horzTreatmentOptions.isComplete? (vertical ? this.vertTreatmentOptions : this.horzTreatmentOptions.result) : []}
                                 clearable={false}
                                 searchable={false}
                                 disabled={axisSelection.dataType === CLIN_ATTR_DATA_TYPE || axisSelection.dataType !== AlterationTypeConstants.TREATMENT_RESPONSE}
