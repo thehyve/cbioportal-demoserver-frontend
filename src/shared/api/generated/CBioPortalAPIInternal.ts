@@ -1,5 +1,9 @@
 import * as request from "superagent";
 
+export enum SortOrder {
+    ASC, DESC
+}
+
 type CallbackHandler = (err: any, res ? : request.Response) => void;
 export type AlterationEnrichment = {
     'alteredCount': number
@@ -288,6 +292,8 @@ export type TreatmentMolecularData = {
     'studyId': string
     'uniquePatientKey': string
     'uniqueSampleKey': string
+    'sortOrder': SortOrder
+    'pivotThreshold': number
     'value': string
 };
 export type Gistic = {

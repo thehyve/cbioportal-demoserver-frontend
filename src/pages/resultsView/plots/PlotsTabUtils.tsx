@@ -1,38 +1,26 @@
-import {AxisMenuSelection, MutationCountBy, ViewType, NONE_SELECTED_OPTION_NUMERICAL_VALUE, NONE_SELECTED_OPTION_STRING_VALUE } from "./PlotsTab";
-import {MobxPromise} from "mobxpromise";
-import {
-    ClinicalAttribute, ClinicalData, Gene, MolecularProfile, Mutation, NumericGeneMolecularData,
-    Sample
-} from "../../../shared/api/generated/CBioPortalAPI";
-import {remoteData} from "../../../shared/api/remoteData";
-import MobxPromiseCache from "../../../shared/lib/MobxPromiseCache";
-import {IBaseScatterPlotData} from "../../../shared/components/plots/ScatterPlot";
-import {getSampleViewUrl} from "../../../shared/api/urls";
 import _ from "lodash";
-import * as React from "react";
-import {
-    getOncoprintMutationType, OncoprintMutationType,
-    selectDisplayValue
-} from "../../../shared/components/oncoprint/DataUtils";
-import {stringListToIndexSet} from "../../../shared/lib/StringUtils";
-import {
-    CNA_COLOR_AMP,
-    CNA_COLOR_HOMDEL,
-    DEFAULT_GREY,
-    MUT_COLOR_FUSION, MUT_COLOR_INFRAME, MUT_COLOR_INFRAME_PASSENGER,
-    MUT_COLOR_MISSENSE, MUT_COLOR_MISSENSE_PASSENGER, MUT_COLOR_OTHER, MUT_COLOR_PROMOTER, MUT_COLOR_TRUNC,
-    MUT_COLOR_TRUNC_PASSENGER
-} from "../../../shared/components/oncoprint/geneticrules";
-import {CoverageInformation} from "../ResultsViewPageStoreUtils";
-import {IBoxScatterPlotData} from "../../../shared/components/plots/BoxScatterPlot";
-import {AlterationTypeConstants, AnnotatedMutation, AnnotatedNumericGeneMolecularData} from "../ResultsViewPageStore";
+import { MobxPromise } from "mobxpromise";
+import { fromPromise, FULFILLED } from "mobx-utils";
 import numeral from "numeral";
-import {getJitterForCase} from "../../../shared/components/plots/PlotUtils";
-import {isSampleProfiled} from "../../../shared/lib/isSampleProfiled";
+import * as React from "react";
+import { ClinicalAttribute, ClinicalData, Gene, MolecularProfile, Mutation, NumericGeneMolecularData, Sample } from "../../../shared/api/generated/CBioPortalAPI";
+import { GenesetMolecularData, TreatmentMolecularData, SortOrder } from "../../../shared/api/generated/CBioPortalAPIInternal";
+import { remoteData } from "../../../shared/api/remoteData";
+import { getSampleViewUrl } from "../../../shared/api/urls";
 import GenesetMolecularDataCache from "../../../shared/cache/GenesetMolecularDataCache";
 import TreatmentMolecularDataCache from "../../../shared/cache/TreatmentMolecularDataCache";
-import {GenesetMolecularData, TreatmentMolecularData} from "../../../shared/api/generated/CBioPortalAPIInternal";
-import {MUTATION_COUNT} from "../../studyView/StudyViewPageStore";
+import { getOncoprintMutationType, OncoprintMutationType, selectDisplayValue } from "../../../shared/components/oncoprint/DataUtils";
+import { CNA_COLOR_AMP, CNA_COLOR_HOMDEL, DEFAULT_GREY, MUT_COLOR_FUSION, MUT_COLOR_INFRAME, MUT_COLOR_INFRAME_PASSENGER, MUT_COLOR_MISSENSE, MUT_COLOR_MISSENSE_PASSENGER, MUT_COLOR_OTHER, MUT_COLOR_PROMOTER, MUT_COLOR_TRUNC, MUT_COLOR_TRUNC_PASSENGER } from "../../../shared/components/oncoprint/geneticrules";
+import { IBoxScatterPlotData } from "../../../shared/components/plots/BoxScatterPlot";
+import { getJitterForCase } from "../../../shared/components/plots/PlotUtils";
+import { IBaseScatterPlotData } from "../../../shared/components/plots/ScatterPlot";
+import { isSampleProfiled } from "../../../shared/lib/isSampleProfiled";
+import MobxPromiseCache from "../../../shared/lib/MobxPromiseCache";
+import { stringListToIndexSet } from "../../../shared/lib/StringUtils";
+import { MUTATION_COUNT } from "../../studyView/StudyViewPageStore";
+import { AlterationTypeConstants, AnnotatedMutation, AnnotatedNumericGeneMolecularData } from "../ResultsViewPageStore";
+import { CoverageInformation } from "../ResultsViewPageStoreUtils";
+import { AxisMenuSelection, MutationCountBy, NONE_SELECTED_OPTION_NUMERICAL_VALUE, NONE_SELECTED_OPTION_STRING_VALUE, ViewType } from "./PlotsTab";
 
 export const CLIN_ATTR_DATA_TYPE = "clinical_attribute";
 export const GENESET_DATA_TYPE = "GENESET_SCORE";
@@ -106,6 +94,8 @@ export interface INumberAxisData {
     data:{
         uniqueSampleKey:string;
         value:number | (number[]);
+        sortOrder?: SortOrder;
+        pivotThreshold?: number;
     }[];
     hugoGeneSymbol?:string;
     datatype:string;
@@ -148,6 +138,9 @@ export function isStringData(d:IAxisData): d is IStringAxisData {
 }
 export function isNumberData(d:IAxisData): d is INumberAxisData {
     return d.datatype === "number";
+}
+export function isNone(d:IAxisData): d is IAxisData {
+    return d.datatype === "none";
 }
 
 export function scatterPlotZIndexSortBy<D extends Pick<IScatterPlotSampleData, "dispMutationType" | "dispMutationSummary" | "profiledMutations" | "dispCna" | "profiledCna">>(
@@ -445,6 +438,15 @@ function makeAxisDataPromise_Molecular(
     coverageInformation:MobxPromise<CoverageInformation>,
     samples:MobxPromise<Sample[]>
 ):MobxPromise<IAxisData> {
+
+    // when no gene is selected, return a resolved Promise that is of the `none` datatype
+    if (entrezGeneId == NONE_SELECTED_OPTION_NUMERICAL_VALUE) {
+        return remoteData(() => Promise.resolve({
+            data: [],
+            datatype: "none"
+        } as IAxisData));
+    }
+
     let promise:MobxPromise<any>;/* = ;*/
     return remoteData({
         await:()=>{
@@ -580,6 +582,15 @@ function makeAxisDataPromise_Geneset(
     genesetMolecularDataCachePromise:MobxPromise<GenesetMolecularDataCache>,
     molecularProfileIdToMolecularProfile:MobxPromise<{[molecularProfileId:string]:MolecularProfile}>
 ):MobxPromise<IAxisData> {
+
+    // when no gene set is selected, return a resolved Promise that is of the `none` datatype
+    if (genesetId == NONE_SELECTED_OPTION_STRING_VALUE) {
+        return remoteData(() => Promise.resolve({
+            data: [],
+            datatype: "none"
+        } as IAxisData));
+    }
+    
     return remoteData({
         await:()=>[genesetMolecularDataCachePromise, molecularProfileIdToMolecularProfile],
         invoke: async () => {
@@ -611,6 +622,15 @@ function makeAxisDataPromise_Treatment(
     treatmentMolecularDataCachePromise:MobxPromise<TreatmentMolecularDataCache>,
     molecularProfileIdToMolecularProfile:MobxPromise<{[molecularProfileId:string]:MolecularProfile}>
 ):MobxPromise<IAxisData> {
+
+    // when no treatment is selected, return a resolved Promise that is of the `none` datatype
+    if (treatmentId == NONE_SELECTED_OPTION_STRING_VALUE) {
+        return remoteData(() => Promise.resolve({
+            data: [],
+            datatype: "none"
+        } as IAxisData));
+    }
+
     return remoteData({
         await:()=>[treatmentMolecularDataCachePromise, molecularProfileIdToMolecularProfile],
         invoke: async () => {
@@ -621,10 +641,11 @@ function makeAxisDataPromise_Treatment(
             const data:TreatmentMolecularData[] = treatmentMolecularDataCachePromise.result!.get({molecularProfileId, treatmentId})!.data!;
             return Promise.resolve({
                 data: data.map(d=>{
-                    const value = d.value;
                     return {
                         uniqueSampleKey: d.uniqueSampleKey,
-                        value: Number(value)
+                        sortOrder: d.sortOrder,
+                        pivotThreshold: d.pivotThreshold,
+                        value: Number(d.value)
                     };
                 }),
                 datatype: "number",
@@ -651,15 +672,16 @@ export function makeAxisDataPromise(
 ):MobxPromise<IAxisData> {
 
     let ret:MobxPromise<IAxisData> = remoteData(()=>new Promise<IAxisData>(()=>0)); // always isPending
+
     switch (selection.dataType) {
         case CLIN_ATTR_DATA_TYPE:
-            if (selection.dataSourceId !== undefined && clinicalAttributeIdToClinicalAttribute.isComplete) {
-                const attribute = clinicalAttributeIdToClinicalAttribute.result![selection.dataSourceId];
-                ret = makeAxisDataPromise_Clinical(attribute, clinicalDataCache, patientKeyToSamples, studyToMutationMolecularProfile);
-            }
-            break;
+        if (selection.dataSourceId !== undefined && clinicalAttributeIdToClinicalAttribute.isComplete) {
+            const attribute = clinicalAttributeIdToClinicalAttribute.result![selection.dataSourceId];
+            ret = makeAxisDataPromise_Clinical(attribute, clinicalDataCache, patientKeyToSamples, studyToMutationMolecularProfile);
+        }
+        break;
         case GENESET_DATA_TYPE:
-            if (selection.genesetId !== undefined && selection.dataSourceId !== undefined) {
+        if (selection.genesetId !== undefined && selection.dataSourceId !== undefined) {
                 ret = makeAxisDataPromise_Geneset(
                     selection.genesetId, selection.dataSourceId, genesetMolecularDataCachePromise,
                     molecularProfileIdToMolecularProfile);
@@ -675,7 +697,7 @@ export function makeAxisDataPromise(
         default:
             // molecular profile
             if (selection.entrezGeneId !== undefined
-                && selection.entrezGeneId !== NONE_SELECTED_OPTION_NUMERICAL_VALUE
+                // && selection.entrezGeneId !== NONE_SELECTED_OPTION_NUMERICAL_VALUE
                 && selection.dataSourceId !== undefined) {
                 ret = makeAxisDataPromise_Molecular(
                     selection.entrezGeneId, selection.dataSourceId, mutationCache, numericGeneMolecularDataCache,
