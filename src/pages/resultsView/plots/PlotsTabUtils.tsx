@@ -85,6 +85,9 @@ export interface IStringAxisData {
     data:{
         uniqueSampleKey:string;
         value:string | (string[]);
+        truncation?:string | undefined;
+        sortOrder?: SortOrder;
+        pivotThreshold?: number;
     }[];
     categoryOrder?:string[];
     hugoGeneSymbol?:string;
@@ -94,6 +97,7 @@ export interface INumberAxisData {
     data:{
         uniqueSampleKey:string;
         value:number | (number[]);
+        truncation?:string | undefined;
         sortOrder?: SortOrder;
         pivotThreshold?: number;
     }[];
@@ -123,6 +127,9 @@ export interface IScatterPlotSampleData {
     profiledMutations?:boolean;
     mutations: AnnotatedMutation[];
     copyNumberAlterations: AnnotatedNumericGeneMolecularData[];
+    xtruncation?: string; // truncation for x coordinate in scatter plot
+    ytruncation?: string; // truncation for y coordinate in scatter plot
+    truncation?: string; // truncation for continuous axis in box-scatter plot
 }
 
 export interface IScatterPlotData extends IScatterPlotSampleData, IBaseScatterPlotData {};
@@ -130,6 +137,7 @@ export interface IScatterPlotData extends IScatterPlotSampleData, IBaseScatterPl
 export interface IBoxScatterPlotPoint extends IScatterPlotSampleData {
     category:string;
     value:number;
+    truncation?:string,
     jitter:number;
 }
 
@@ -213,10 +221,18 @@ export function scatterPlotLegendData(
         return scatterPlotCnaLegendData(data);
     } else if (viewType === ViewType.MutationType && _mutationDataExists) {
         return scatterPlotMutationLegendData(data, driversAnnotated, true);
+    } else if (viewType === ViewType.TruncatedMutationType && _mutationDataExists) {
+        return scatterPlotMutationLegendData(data, driversAnnotated, true).concat(scatterPlotTruncatedLegendData(data));
     } else if (viewType === ViewType.MutationSummary && _mutationDataExists) {
         return scatterPlotMutationSummaryLegendData(data);
     } else if (viewType === ViewType.MutationTypeAndCopyNumber && _mutationDataExists && _cnaDataExists) {
         return scatterPlotMutationLegendData(data, driversAnnotated, false).concat(scatterPlotCnaLegendData(data));
+    } else if (viewType === ViewType.TruncatedMutationTypeAndCopyNumber && _mutationDataExists && _cnaDataExists) {
+        return scatterPlotMutationLegendData(data, driversAnnotated, false).concat(scatterPlotCnaLegendData(data)).concat(scatterPlotTruncatedLegendData(data));
+    } else if (viewType === ViewType.TruncatedCopyNumber && _cnaDataExists) {
+        return scatterPlotCnaLegendData(data).concat(scatterPlotTruncatedLegendData(data));;
+    } else if (viewType === ViewType.Truncated) {
+        return scatterPlotTruncatedLegendData(data);
     }
     return [];
 }
@@ -331,6 +347,32 @@ function scatterPlotMutationLegendData(
     return legendData;
 }
 
+function scatterPlotTruncatedLegendData(
+    data:IScatterPlotSampleData[]
+) {
+    
+    const hasTruncValues:boolean = _(data).some(dataPointIsTruncated);
+
+    let legendData:any[] = [];
+    if (hasTruncValues) {
+        legendData = [{
+            name: truncatedValueAppearance.legendLabel,
+            symbol: {
+                fillOpacity:0,
+                type: truncatedValueAppearance.symbol,
+            }
+        }]
+    }
+
+    return legendData;
+}
+
+export function dataPointIsTruncated(point:IBaseScatterPlotData) {
+    let o = (point.xtruncation !== undefined && point.xtruncation !== "")
+    || (point.ytruncation !== undefined && point.ytruncation !== "")
+    return o;
+}
+
 function scatterPlotCnaLegendData(
     data:IScatterPlotSampleData[]
 ) {
@@ -438,14 +480,6 @@ function makeAxisDataPromise_Molecular(
     coverageInformation:MobxPromise<CoverageInformation>,
     samples:MobxPromise<Sample[]>
 ):MobxPromise<IAxisData> {
-
-    // // when no gene is selected, return a resolved Promise that is of the `none` datatype
-    // if (entrezGeneId == NONE_SELECTED_OPTION_NUMERICAL_VALUE) {
-    //     return remoteData(() => Promise.resolve({
-    //         data: [],
-    //         datatype: "none"
-    //     } as IAxisData));
-    // }
 
     let promise:MobxPromise<any>;/* = ;*/
     return remoteData({
@@ -582,14 +616,6 @@ function makeAxisDataPromise_Geneset(
     genesetMolecularDataCachePromise:MobxPromise<GenesetMolecularDataCache>,
     molecularProfileIdToMolecularProfile:MobxPromise<{[molecularProfileId:string]:MolecularProfile}>
 ):MobxPromise<IAxisData> {
-
-    // // when no gene set is selected, return a resolved Promise that is of the `none` datatype
-    // if (genesetId == NONE_SELECTED_OPTION_STRING_VALUE) {
-    //     return remoteData(() => Promise.resolve({
-    //         data: [],
-    //         datatype: "none"
-    //     } as IAxisData));
-    // }
     
     return remoteData({
         await:()=>[genesetMolecularDataCachePromise, molecularProfileIdToMolecularProfile],
@@ -623,14 +649,6 @@ function makeAxisDataPromise_Treatment(
     molecularProfileIdToMolecularProfile:MobxPromise<{[molecularProfileId:string]:MolecularProfile}>
 ):MobxPromise<IAxisData> {
 
-    // // when no treatment is selected, return a resolved Promise that is of the `none` datatype
-    // if (treatmentId == NONE_SELECTED_OPTION_STRING_VALUE) {
-    //     return remoteData(() => Promise.resolve({
-    //         data: [],
-    //         datatype: "none"
-    //     } as IAxisData));
-    // }
-
     return remoteData({
         await:()=>[treatmentMolecularDataCachePromise, molecularProfileIdToMolecularProfile],
         invoke: async () => {
@@ -643,10 +661,11 @@ function makeAxisDataPromise_Treatment(
                 data: data.map(d=>{
                     return {
                         uniqueSampleKey: d.uniqueSampleKey,
+                        value: d.value,
+                        truncation: d.truncation,
                         sortOrder: d.sortOrder,
-                        pivotThreshold: d.pivotThreshold,
-                        value: Number(d.value)
-                    };
+                        pivotThreshold: d.pivotThreshold
+                    }
                 }),
                 datatype: "number",
                 treatmentId: treatmentId
@@ -979,6 +998,11 @@ const cnaToAppearance = {
     }
 };
 
+export const truncatedValueAppearance = {
+    legendLabel: "Truncated value",
+    symbol : "triangleUp"
+};
+
 const cnaCategoryOrder = ["-2", "-1", "0", "1", "2"].map(x=>(cnaToAppearance as any)[x].legendLabel);
 export const MUT_PROFILE_COUNT_MUTATED = "Mutated";
 export const MUT_PROFILE_COUNT_MULTIPLE = "Multiple";
@@ -1017,33 +1041,77 @@ function getCopyNumberAppearance(d:IScatterPlotSampleData) {
     }
 }
 
+function getTruncatedAppearance(d:IScatterPlotSampleData) {
+    if (d.xtruncation || d.ytruncation) {
+        return truncatedValueAppearance;
+    } else {
+        return {};
+    }
+}
+
 export function makeScatterPlotPointAppearance(
     viewType: ViewType,
     mutationDataExists: MobxPromise<boolean>,
     cnaDataExists: MobxPromise<boolean>,
     driversAnnotated: boolean
-):(d:IScatterPlotSampleData)=>{ stroke:string, strokeOpacity:number, fill?:string, symbol?:string} {
+):(d:IScatterPlotSampleData)=>{ stroke:string, strokeOpacity:number, fill?:string, fillOpacity?:number, symbol?:string} {
     const oncoprintMutationTypeToAppearance = driversAnnotated ? oncoprintMutationTypeToAppearanceDrivers: oncoprintMutationTypeToAppearanceDefault;
+    
     switch (viewType) {
         case ViewType.MutationTypeAndCopyNumber:
+        if (cnaDataExists.isComplete && cnaDataExists.result && mutationDataExists.isComplete && mutationDataExists.result) {
+            return (d:IScatterPlotSampleData)=>{
+                const cnaAppearance = getCopyNumberAppearance(d);
+                const mutAppearance = getMutationTypeAppearance(d, oncoprintMutationTypeToAppearance);
+                return Object.assign({}, mutAppearance, cnaAppearance); // overwrite with cna stroke
+            };
+        }
+        break;
+        case ViewType.CopyNumber:
+        if (cnaDataExists.isComplete && cnaDataExists.result) {
+            return getCopyNumberAppearance;
+        }
+        break;
+        case ViewType.MutationType:
+            if (mutationDataExists.isComplete && mutationDataExists.result) {
+                return (d:IScatterPlotSampleData)=>{
+                    return getMutationTypeAppearance(d, oncoprintMutationTypeToAppearance);
+                }
+            }
+            break;
+        case ViewType.TruncatedMutationTypeAndCopyNumber:
             if (cnaDataExists.isComplete && cnaDataExists.result && mutationDataExists.isComplete && mutationDataExists.result) {
                 return (d:IScatterPlotSampleData)=>{
                     const cnaAppearance = getCopyNumberAppearance(d);
                     const mutAppearance = getMutationTypeAppearance(d, oncoprintMutationTypeToAppearance);
                     return Object.assign({}, mutAppearance, cnaAppearance); // overwrite with cna stroke
-                };
+                }
             }
             break;
-        case ViewType.CopyNumber:
+        case ViewType.TruncatedCopyNumber:
             if (cnaDataExists.isComplete && cnaDataExists.result) {
-                return getCopyNumberAppearance;
+                return (d:IScatterPlotSampleData)=>{
+                    const truncAppearance = getTruncatedAppearance(d);
+                    const cnaAppearance = getCopyNumberAppearance(d);
+                    return Object.assign({}, cnaAppearance, truncAppearance);
+                }
             }
             break;
-        case ViewType.MutationType:
+        case ViewType.TruncatedMutationType:
             if (mutationDataExists.isComplete && mutationDataExists.result) {
-                return (d:IScatterPlotSampleData)=>getMutationTypeAppearance(d, oncoprintMutationTypeToAppearance);
+                return (d:IScatterPlotSampleData)=>{
+                    const truncAppearance = getTruncatedAppearance(d);
+                    const mutAppearance = getMutationTypeAppearance(d, oncoprintMutationTypeToAppearance);
+                    return Object.assign({}, mutAppearance, truncAppearance); // overwrite with appearance for truncated values
+                }
             }
             break;
+        case ViewType.Truncated:
+            return (d:IScatterPlotSampleData)=>{
+                const truncAppearance = getTruncatedAppearance(d);
+                const defaultAppearance = mutationSummaryToAppearance[MutationSummary.Neither];
+                return Object.assign({}, defaultAppearance, truncAppearance);
+            }
         case ViewType.MutationSummary:
             if (mutationDataExists.isComplete && mutationDataExists.result) {
                 return (d:IScatterPlotSampleData)=>{
@@ -1135,7 +1203,9 @@ export function tooltipCnaSection(
 function generalScatterPlotTooltip<D extends IScatterPlotSampleData>(
     d:D,
     horizontalKey:keyof D,
-    verticalKey:keyof D
+    verticalKey:keyof D,
+    horzKeyTrunc:keyof D,
+    vertKeyTrunc:keyof D
 ) {
     let mutationsSection:any = null;
     if (d.mutations.length > 0) {
@@ -1145,11 +1215,14 @@ function generalScatterPlotTooltip<D extends IScatterPlotSampleData>(
     if (d.copyNumberAlterations.length > 0) {
         cnaSection = tooltipCnaSection(d.copyNumberAlterations);
     }
+    
+    let horzLabel = horzKeyTrunc? `${d[horzKeyTrunc]}${d[horizontalKey]}` : d[horizontalKey];
+    let vertLabel = vertKeyTrunc? `${d[vertKeyTrunc]}${d[verticalKey]}` : d[verticalKey];
     return (
         <div>
             <a href={getSampleViewUrl(d.studyId, d.sampleId)} target="_blank">{d.sampleId}</a>
-            <div>Horizontal: <span style={{fontWeight:"bold"}}>{d[horizontalKey] as any}</span></div>
-            <div>Vertical: <span style={{fontWeight:"bold"}}>{d[verticalKey] as any}</span></div>
+            <div>Horizontal: <span style={{fontWeight:"bold"}}> {horzLabel}</span></div>
+            <div>Vertical: <span style={{fontWeight:"bold"}}> {vertLabel}</span></div>
             {mutationsSection}
             {!!mutationsSection && <br/>}
             {cnaSection}
@@ -1158,14 +1231,18 @@ function generalScatterPlotTooltip<D extends IScatterPlotSampleData>(
 }
 
 export function scatterPlotTooltip(d:IScatterPlotData) {
-    return generalScatterPlotTooltip(d, "x", "y");
+    return generalScatterPlotTooltip(d, "x", "y", "xtruncation", "ytruncation");
 }
 
 export function boxPlotTooltip(
     d:IBoxScatterPlotPoint,
     horizontal:boolean
 ) {
-    return generalScatterPlotTooltip(d, horizontal ? "value" : "category", horizontal ? "category" : "value");
+    let horzAxisKey = horizontal ? "value" : "category" as any;
+    let vertAxisKey = horizontal ? "category" : "value" as any;
+    let horzTruncationKey = horizontal ? "truncation" : undefined as any;
+    let vertTruncationKey = horizontal ? undefined : "truncation" as any;
+    return generalScatterPlotTooltip(d, horzAxisKey, vertAxisKey, horzTruncationKey, vertTruncationKey);
 }
 
 export function logScalePossible(
@@ -1263,7 +1340,7 @@ export function makeScatterPlotData(
         mutations ? _.groupBy(mutations.data, m=>m.uniqueSampleKey) : {};
     const cnaMap:{[uniqueSampleKey:string]:AnnotatedNumericGeneMolecularData[]} =
         copyNumberAlterations? _.groupBy(copyNumberAlterations.data, d=>d.uniqueSampleKey) : {};
-    const dataMap:{[uniqueSampleKey:string]:Partial<IScatterPlotSampleData & { horzValues:string[]|number[], vertValues:number[], jitter:number }>} = {};
+    const dataMap:{[uniqueSampleKey:string]:Partial<IScatterPlotSampleData & { horzValues:string[]|number[], horzTruncations:string[], vertValues:number[], vertTruncations:string[], jitter:number }>} = {};
     for (const d of horzData.data) {
         const sample = uniqueSampleKeyToSample[d.uniqueSampleKey];
         const sampleCopyNumberAlterations:AnnotatedNumericGeneMolecularData[] | undefined = cnaMap[d.uniqueSampleKey];
@@ -1328,6 +1405,7 @@ export function makeScatterPlotData(
             sampleId: sample.sampleId,
             studyId: sample.studyId,
             horzValues: ([] as string[]).concat(d.value as string),
+            horzTruncations: ([] as string[]).concat(d.truncation || ""),
             mutations: sampleMutations || [],
             copyNumberAlterations:sampleCopyNumberAlterations || [],
             dispCna,
@@ -1343,6 +1421,7 @@ export function makeScatterPlotData(
         if (datum) {
             // we only care about cases with both x and y data
             datum.vertValues = ([] as number[]).concat(d.value);
+            datum.vertTruncations = ([] as string[]).concat(d.truncation || "");
             datum.jitter = getJitterForCase(d.uniqueSampleKey);
             data.push(datum);
         }
@@ -1350,16 +1429,23 @@ export function makeScatterPlotData(
     // expand horz and vert values in case theres multiple
     const expandedData:any[] = [];
     for (const d of data) {
-        for (const horzValue of d.horzValues) {
-            for (const vertValue of d.vertValues) {
+        for (let h_cnt = 0; h_cnt < d.horzValues.length; h_cnt++) {
+            let horzValue = d.horzValues[h_cnt];
+            for (let v_cnt = 0; v_cnt < d.vertValues.length; v_cnt++) {
+                let vertValue = d.vertValues[v_cnt];
                 // filter out NaN number values
                 if (!Number.isNaN(horzValue as any) && !Number.isNaN(vertValue as any)) {
+                    let h_trunc = d.horzTruncations[h_cnt];
+                    let v_trunc = d.vertTruncations[v_cnt];
                     expandedData.push(
                         Object.assign({}, d, {
-                            x: horzValue as string,
+                            x: horzValue as number,
+                            xtruncation: h_trunc as string,
                             category: horzValue as string,
                             y: vertValue as number,
-                            value: vertValue as number
+                            ytruncation: v_trunc as string,
+                            value: vertValue as number,
+                            truncation: v_trunc as string
                         })
                     );
                 }
@@ -1518,7 +1604,7 @@ export function getMutationProfileDuplicateSamplesReport(
             if (Array.isArray(d.value) && d.value.length > 1) {
                 // only samples with more than one point are entered
 
-                // we combine the contribution from horz and vert data - we multiply them, bc a point is created
+                // we combine the contribution from horz and vert data - we multiply them, bc a point is `create`d
                 //  for each horz value for each vert value
                 sampleToNumPoints[d.uniqueSampleKey] = (sampleToNumPoints[d.uniqueSampleKey] || 1)*d.value.length;
             }

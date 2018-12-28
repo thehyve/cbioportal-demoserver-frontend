@@ -294,7 +294,8 @@ export type TreatmentMolecularData = {
     'uniqueSampleKey': string
     'sortOrder': SortOrder
     'pivotThreshold': number
-    'value': string
+    'value': any
+    'truncation': string | undefined
 };
 export type Gistic = {
     'amp': boolean

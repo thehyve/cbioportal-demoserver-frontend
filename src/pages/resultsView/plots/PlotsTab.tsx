@@ -29,6 +29,7 @@ enum EventKey {
     vert_logScale,
     utilities_viewMutationType,
     utilities_viewCopyNumber,
+    utilities_viewTruncatedValues
 }
 
 
@@ -37,13 +38,21 @@ export enum ViewType {
     MutationTypeAndCopyNumber,
     CopyNumber,
     MutationSummary,
+    Truncated,
+    TruncatedMutationSummary,
+    TruncatedMutationType,
+    TruncatedCopyNumber,
+    TruncatedMutationTypeAndCopyNumber,
     None
 }
 
 export enum PotentialViewType {
     MutationTypeAndCopyNumber,
     MutationSummary,
-    None
+    None,
+    TruncatedMutationTypeAndCopyNumber,
+    TruncatedMutationSummary,
+    Truncated
 }
 
 export enum PlotType {
@@ -104,6 +113,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @observable searchMutationInput:string;
     @observable viewMutationType:boolean = true;
     @observable viewCopyNumber:boolean = false;
+    @observable viewTruncatedValues:boolean = true;
 
     @observable searchCase:string = "";
     @observable searchMutation:string = "";
@@ -114,6 +124,9 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         return this.scrollPane;
     }
 
+    // determine whether formatting for points in the scatter plot (based on
+    // mutations type, CNA, ...) will actually be shown in the plot (depends
+    // on user choice via check boxes).
     @computed get viewType():ViewType {
         let ret:ViewType = ViewType.None;
         switch (this.potentialViewType) {
@@ -135,29 +148,82 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                     ret = ViewType.None;
                 }
                 break;
+            case PotentialViewType.TruncatedMutationTypeAndCopyNumber:
+                if (this.viewMutationType && this.viewCopyNumber && this.viewTruncatedValues) {
+                    ret = ViewType.TruncatedMutationTypeAndCopyNumber;
+                } else if (this.viewMutationType && this.viewCopyNumber) {
+                    ret = ViewType.MutationTypeAndCopyNumber;
+                } else if (this.viewMutationType && this.viewTruncatedValues) {
+                    ret = ViewType.TruncatedMutationType;
+                } else if (this.viewCopyNumber && this.viewTruncatedValues) {
+                    ret = ViewType.TruncatedCopyNumber;
+                } else if (this.viewMutationType) {
+                    ret = ViewType.MutationType;
+                } else if (this.viewCopyNumber) {
+                    ret = ViewType.CopyNumber;
+                } else if (this.viewTruncatedValues) {
+                    ret = ViewType.Truncated;
+                } else {
+                    ret = ViewType.None;
+                }
+            break;
+            case PotentialViewType.TruncatedMutationSummary:
+            if (this.viewMutationType && this.viewTruncatedValues) {
+                ret = ViewType.TruncatedMutationSummary;
+            } else if (this.viewMutationType) {
+                ret = ViewType.MutationSummary;
+            } else if (this.viewTruncatedValues) {
+                ret = ViewType.Truncated;
+            } else {
+                ret = ViewType.None;
+            }
+            break;
+            case PotentialViewType.Truncated:
+                if (this.viewTruncatedValues) {
+                    ret = ViewType.Truncated;
+                }
+            break;
         }
         return ret;
     }
 
+    // determine whether the selected DataTypes support formatting options
+    // for points in the scatter plot (based on mutations type, CNA, ...)
+    // NOTE1: the order of these statements is critical for correct resolution
+    // NOTE2: truncted values are only supported for treatment outcome profiles
     @computed get potentialViewType():PotentialViewType {
+        // cant show either in table
         if (this.plotType.result === PlotType.Table) {
-            // cant show either in table
             return PotentialViewType.None;
         }
+        // both axes molecular profile, same gene
         if (this.sameGeneInBothAxes) {
-            // both axes molecular profile, same gene
             return PotentialViewType.MutationTypeAndCopyNumber;
-        } else if (this.bothAxesMolecularProfile) {
-            // both axes molecular profile, different gene
-            return PotentialViewType.MutationSummary;
-        } else if (this.horzSelection.dataType !== CLIN_ATTR_DATA_TYPE ||
-            this.vertSelection.dataType !== CLIN_ATTR_DATA_TYPE) {
-            // one axis molecular profile
-            return PotentialViewType.MutationTypeAndCopyNumber;
-        } else {
-            // neither axis gene
-            return PotentialViewType.None;
         }
+        // both axes molecular profile, different gene
+        if (this.bothAxesMolecularProfile) {
+            return PotentialViewType.MutationSummary;
+        }
+        // one axis molecular profile
+        if (this.horzSelection.dataType !== CLIN_ATTR_DATA_TYPE ||
+            this.vertSelection.dataType !== CLIN_ATTR_DATA_TYPE) {
+            //  establish whether data may contain truncated values 
+            // (for now only supported for treatment data) 
+            if (this.truncatedValuesCanBeShown) {
+                return PotentialViewType.TruncatedMutationTypeAndCopyNumber;
+            }
+            return PotentialViewType.MutationTypeAndCopyNumber;
+        }
+        
+        
+        //  establish whether data may contain truncated values
+        // (for now only supported for treatment data) 
+        if (this.truncatedValuesCanBeShown) {
+            return PotentialViewType.Truncated;
+        }
+        
+        // neither axis gene or treatment
+        return PotentialViewType.None;
     }
 
     private searchCaseTimeout:Timer;
@@ -369,6 +435,9 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             case EventKey.utilities_viewMutationType:
                 this.viewMutationType = !this.viewMutationType;
                 break;
+            case EventKey.utilities_viewTruncatedValues:
+                this.viewTruncatedValues = !this.viewTruncatedValues;
+                break;
         }
     }
 
@@ -488,31 +557,37 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @autobind
     private onVerticalAxisGeneSelect(option:any) {
         this.vertSelection.selectedGeneOption = option;
+        this.viewTruncatedValues = true;
     }
 
     @autobind
     private onHorizontalAxisGeneSelect(option:any) {
         this.horzSelection.selectedGeneOption = option;
+        this.viewTruncatedValues = true;
     }
 
     @autobind
     private onVerticalAxisGenesetSelect(option:any) {
         this.vertSelection.selectedGenesetOption = option;
+        this.viewTruncatedValues = true;
     }
 
     @autobind
     private onHorizontalAxisGenesetSelect(option:any) {
         this.horzSelection.selectedGenesetOption = option;
+        this.viewTruncatedValues = true;
     }
 
     @autobind
     private onVerticalAxisTreatmentSelect(option:any) {
         this.vertSelection.selectedTreatmentOption = option;
+        this.viewTruncatedValues = true;
     }
 
     @autobind
     private onHorizontalAxisTreatmentSelect(option:any) {
         this.horzSelection.selectedTreatmentOption = option;
+        this.viewTruncatedValues = true;
     }
 
     public test__selectGeneOption(vertical:boolean, optionValue:any) {
@@ -624,24 +699,24 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         return (sameTreatmentOption || []).concat((this.horzTreatmentOptions.result || []) as {value:string, label:string}[]);
     }
 
-    showGeneSelectBox(dataType:string):boolean {
+    private showGeneSelectBox(dataType:string):boolean {
         return dataType !== NONE_SELECTED_OPTION_STRING_VALUE
                 && dataType !== GENESET_DATA_TYPE
                 && dataType !== CLIN_ATTR_DATA_TYPE
                 && dataType !== AlterationTypeConstants.TREATMENT_RESPONSE;
     }
 
-    showGenesetSelectBox(dataType:string):boolean {
+    private showGenesetSelectBox(dataType:string):boolean {
         return dataType !== NONE_SELECTED_OPTION_STRING_VALUE
                 && dataType === GENESET_DATA_TYPE;
     }
 
-    showTreatmentSelectBox(dataType:string):boolean {
+    private showTreatmentSelectBox(dataType:string):boolean {
         return dataType !== NONE_SELECTED_OPTION_STRING_VALUE
                 && dataType === AlterationTypeConstants.TREATMENT_RESPONSE;
     }
     
-    showDatasourceBox(dataType:string):boolean {
+    private showDatasourceBox(dataType:string):boolean {
         return dataType !== NONE_SELECTED_OPTION_STRING_VALUE;
     }
 
@@ -754,38 +829,44 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @action
     private onVerticalAxisDataTypeSelect(option:any) {
         this.vertSelection.dataType = option.value;
+        this.viewTruncatedValues = true;
     }
-
+    
     @autobind
     @action
     public onHorizontalAxisDataTypeSelect(option:any) {
         this.horzSelection.dataType = option.value;
+        this.viewTruncatedValues = true;
     }
-
+    
     @autobind
     @action
     public onVerticalAxisDataSourceSelect(option:any) {
         this.vertSelection.dataSourceId = option.value;
+        this.viewTruncatedValues = true;
     }
-
+    
     @autobind
     @action
     public onHorizontalAxisDataSourceSelect(option:any) {
         this.horzSelection.dataSourceId = option.value;
+        this.viewTruncatedValues = true;
     }
-
+    
     @autobind
     @action
     public onVerticalAxisMutationCountBySelect(option:any) {
         this.vertSelection.mutationCountBy = option.value;
+        this.viewTruncatedValues = true;
     }
-
+    
     @autobind
     @action
     public onHorizontalAxisMutationCountBySelect(option:any) {
         this.horzSelection.mutationCountBy = option.value;
+        this.viewTruncatedValues = true;
     }
-
+    
     @autobind
     @action
     private swapHorzVertSelections() {
@@ -823,9 +904,10 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     }
 
+    // WIP comment: I do not consider treatment profiles to be classified as a 'molecular profile'
     @computed get bothAxesMolecularProfile() {
-        return (this.horzSelection.dataType !== CLIN_ATTR_DATA_TYPE) &&
-             (this.vertSelection.dataType !== CLIN_ATTR_DATA_TYPE);
+        return (this.horzSelection.dataType !== CLIN_ATTR_DATA_TYPE && this.horzSelection.dataType !== TREATMENT_DATA_TYPE) &&
+             (this.vertSelection.dataType !== CLIN_ATTR_DATA_TYPE && this.vertSelection.dataType !== TREATMENT_DATA_TYPE);
     }
 
     @computed get sameGeneInBothAxes() {
@@ -835,6 +917,26 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
 
     @computed get cnaDataCanBeShown() {
         return !!(this.cnaDataExists.result && this.potentialViewType === PotentialViewType.MutationTypeAndCopyNumber);
+    }
+
+    @computed get truncatedValuesCanBeShown():boolean {
+
+        if (this.horzAxisDataPromise.result && this.vertAxisDataPromise.result) {
+
+            // only values from treatment profiles are checked for truncation
+            let data: any[] = [];
+            if (this.horzSelection.dataType === TREATMENT_DATA_TYPE) {
+                data = data.concat(this.horzAxisDataPromise.result.data);
+            }
+            if (this.vertSelection.dataType === TREATMENT_DATA_TYPE) {
+                data = data.concat(this.vertAxisDataPromise.result.data);
+            }
+            
+            // check for presence of truncation symbol
+            return _.some(data, d => { return d.truncation !== undefined && d.truncation !== "" });
+
+        }
+        return false;
     }
 
     @computed get cnaDataShown() {
@@ -991,6 +1093,10 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             case ViewType.MutationTypeAndCopyNumber:
             case ViewType.MutationType:
             case ViewType.MutationSummary:
+            case ViewType.Truncated:
+            case ViewType.TruncatedMutationType:
+            case ViewType.TruncatedMutationSummary:
+            case ViewType.TruncatedMutationTypeAndCopyNumber:
                 return (d:IScatterPlotSampleData)=>this.scatterPlotAppearance(d).fill!;
             case ViewType.None:
                 return mutationSummaryToAppearance[MutationSummary.Neither].fill;
@@ -1016,6 +1122,11 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @autobind
     private scatterPlotStrokeOpacity(d:IScatterPlotSampleData) {
         return this.scatterPlotAppearance(d).strokeOpacity;
+    }
+
+    @autobind
+    private scatterPlotSymbol(d:IScatterPlotSampleData) {
+        return this.scatterPlotAppearance(d).symbol || "circle";
     }
 
     @autobind
@@ -1254,6 +1365,19 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     /> Copy Number Alteration
                                 </label></div>
                             )}
+                            {this.truncatedValuesCanBeShown && (
+                                <div className="checkbox"><label>
+                                    <input
+                                        data-test="ViewTruncatedValues"
+                                        type="checkbox"
+                                        name="utilities_viewTruncatedValues"
+                                        value={EventKey.utilities_viewTruncatedValues}
+                                        checked={this.viewTruncatedValues}
+                                        onClick={this.onInputClick}
+                                        disabled={!this.truncatedValuesCanBeShown}
+                                    /> Truncated Value
+                                </label></div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -1486,10 +1610,11 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     stroke={this.scatterPlotStroke}
                                     strokeOpacity={this.scatterPlotStrokeOpacity}
                                     zIndexSortBy={this.zIndexSortBy}
-                                    symbol="circle"
+                                    symbol={this.scatterPlotSymbol}
                                     fillOpacity={this.scatterPlotFillOpacity}
                                     strokeWidth={this.scatterPlotStrokeWidth}
                                     useLogSpaceTicks={true}
+                                    excludeTruncatedValuesFromCalculation={this.truncatedValuesCanBeShown && this.viewTruncatedValues}
                                     legendData={scatterPlotLegendData(
                                         this.scatterPlotData.result, this.viewType, this.mutationDataExists, this.cnaDataExists, this.props.store.mutationAnnotationSettings.driversAnnotated
                                     )}
@@ -1522,7 +1647,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     stroke={this.scatterPlotStroke}
                                     strokeOpacity={this.scatterPlotStrokeOpacity}
                                     zIndexSortBy={this.zIndexSortBy}
-                                    symbol="circle"
+                                    symbol={this.scatterPlotSymbol}
                                     fillOpacity={this.scatterPlotFillOpacity}
                                     strokeWidth={this.scatterPlotStrokeWidth}
                                     useLogSpaceTicks={true}
