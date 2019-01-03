@@ -2015,6 +2015,31 @@ export class ResultsViewPageStore {
         }
     });
 
+    // readonly treatmentMolecularProfile = remoteData<Optional<MolecularProfile>>({
+    //     await: () => [
+    //         this.selectedMolecularProfiles
+    //     ],
+    //     invoke: () => {
+    //         const applicableProfiles = _.filter(
+    //             this.selectedMolecularProfiles.result!,
+    //             profile => (
+    //                 profile.molecularAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE
+    //                 && profile.showProfileInAnalysisTab
+    //             )
+    //         );
+    //         if (applicableProfiles.length > 1) {
+    //             return Promise.reject(new Error("Queried more than one treatment response profile"));
+    //         }
+    //         const treatmentProfile = applicableProfiles.pop();
+    //         const value: Optional<MolecularProfile> = (
+    //             treatmentProfile
+    //             ? {isApplicable: true, value: treatmentProfile}
+    //             : {isApplicable: false}
+    //         );
+    //         return Promise.resolve(value);
+    //     }
+    // });
+
     readonly studyToDataQueryFilter = remoteData<{ [studyId: string]: IDataQueryFilter }>({
         await: () => [this.studyToSampleIds, this.studyIds, this.studyToSampleListId],
         invoke: () => {
@@ -2135,6 +2160,23 @@ export class ResultsViewPageStore {
                 const linkMap: {[genesetId: string]: string} = {};
                 genesets.forEach(({genesetId, refLink}) => {
                     linkMap[genesetId] = refLink;
+                });
+                return linkMap;
+            } else {
+                return {};
+            }
+        }
+    });
+
+    readonly treatmentLinkMap = remoteData<{[treatmentId: string]: string}>({
+        invoke: async () => {
+            if (this.rvQuery.treatmentIds && this.rvQuery.treatmentIds.length) {
+                const treatments = await internalClient.fetchTreatmentsUsingPOST(
+                    {treatmentIds: this.rvQuery.treatmentIds.slice()}
+                );
+                const linkMap: {[treatmentId: string]: string} = {};
+                treatments.forEach(({treatmentId, refLink}) => {
+                    linkMap[treatmentId] = refLink;
                 });
                 return linkMap;
             } else {

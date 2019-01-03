@@ -106,7 +106,7 @@ export function updateResultsViewQuery(
 
     if (urlQuery.treatment_list) {
         // we have to trim because for some reason we get a single space from submission
-        const parsedTreatmentList = urlQuery.treatment_list.trim().length ? (urlQuery.treatment_list.trim().split(/\s+/)) : [];
+        const parsedTreatmentList = urlQuery.treatment_list.trim().length ? (urlQuery.treatment_list.trim().split(/;/)) : [];
         if (!_.isEqual(parsedTreatmentList, rvQuery.treatmentIds)) {
             rvQuery.treatmentIds = parsedTreatmentList;
         }
