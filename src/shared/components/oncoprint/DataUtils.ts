@@ -269,7 +269,7 @@ export function fillHeatmapTrackDatum<T extends IBaseHeatmapTrackDatum, K extend
     featureKey: K,
     featureId: T[K],
     case_:Sample|Patient,
-    data?: {value: number}[]
+    data?: {value: number, truncation?: string}[]
 ) {
     trackDatum[featureKey] = featureId;
     trackDatum.study = case_.studyId;
@@ -278,6 +278,7 @@ export function fillHeatmapTrackDatum<T extends IBaseHeatmapTrackDatum, K extend
         trackDatum.na = true;
     } else if (data.length === 1) {
         trackDatum.profile_data = data[0].value;
+        trackDatum.truncation = data[0].truncation;
     } else {
         if (isSample(case_)) {
             throw Error("Unexpectedly received multiple heatmap profile data for one sample");
