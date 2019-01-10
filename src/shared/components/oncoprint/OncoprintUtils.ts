@@ -168,27 +168,39 @@ export function getHeatmapTrackRuleSetParams(trackSpec: IHeatmapTrackSpec) {
         // calculated for representation purpouses (10*pivotThreshold value)
        
         legend_label = `${trackSpec.molecularProfileName}`;
-        let dataPoints = trackSpec.data;
-        let pivotThreshold = trackSpec.pivotThreshold!;
-        let sortOrder = trackSpec.sortOrder!;
+        const dataPoints = trackSpec.data;
+        const pivotThreshold = trackSpec.pivotThreshold!;
+        const sortOrder = trackSpec.sortOrder!;
         
-        let colorWorse  = [0,0,255,1]
-        let colorPivot  = [0,0,0,1]
-        let colorBetter = [255,0,0,1]
+        const colorWorse  = [0,0,255,1]
+        const colorPivot  = [0,0,0,1]
+        const colorBetter = [255,0,0,1]
 
-        let maxValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).map('profile_data').max()!;
-        let pseudoMaxValue = pivotThreshold*10; 
+        const maxValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).map('profile_data').max()!;
+        const minValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).map('profile_data').min()!;
+        const artificialPivotOffset = Math.abs(pivotThreshold*10); 
 
-        let boundaryValue = maxValue >= pivotThreshold? maxValue : pseudoMaxValue;      // larger concentrations are `better` (ASC)
-        value_range = [0, boundaryValue];
-        value_stop_points = [0, pivotThreshold, boundaryValue];
+        // when all observed values are negative or positive
+        // assume that 0 should be used in the legend
+        const rightBoundaryValue = maxValue <= 0? 0 : maxValue;
+        const leftBoundaryValue = minValue >= 0? 0 : minValue;
+        value_range = [leftBoundaryValue, rightBoundaryValue];                          // larger concentrations are `better` (ASC)
+
+        // only include the pivotValue in the legend when covered by the current value_range
+        if (pivotThreshold <= leftBoundaryValue) {                                      
+            value_stop_points = [pivotThreshold-(rightBoundaryValue-pivotThreshold), pivotThreshold, rightBoundaryValue]
+        } else if (pivotThreshold >= rightBoundaryValue) {
+            value_stop_points = [leftBoundaryValue, pivotThreshold, pivotThreshold+(pivotThreshold-leftBoundaryValue)]
+        } else {
+            value_stop_points = [leftBoundaryValue, pivotThreshold, rightBoundaryValue];
+        }
         
         if (sortOrder === SortOrder.DESC) {                                             // smaller concentrations are `better` (DESC)
             value_range = _.reverse(value_range);
             value_stop_points = _.reverse(value_stop_points);
         }
-        
-        colors = [colorWorse, colorPivot, colorBetter];
+    
+    colors = [colorWorse, colorPivot, colorBetter];
 
     } else {
         value_range = [-3,3];
