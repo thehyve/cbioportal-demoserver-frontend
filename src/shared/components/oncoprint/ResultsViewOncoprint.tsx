@@ -649,25 +649,28 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     private addHeatmapTracks(molecularProfileId:string, entities:string[]) {
         
-        let trackGroup = this.molecularProfileIdToHeatmapTracks.get(molecularProfileId);
-        if (!trackGroup) {
-            let newTrackGroupIndex = 2;
-            for (const group of this.molecularProfileIdToHeatmapTracks.values()) {
-                newTrackGroupIndex = Math.max(newTrackGroupIndex, group.trackGroupIndex + 1);
+        let profile:MolecularProfile = this.props.store.molecularProfileIdToMolecularProfile.result![molecularProfileId];
+        // TODO fix the Promise dependency in this function (remove if profile statement)
+        if (profile) {
+            let trackGroup = this.molecularProfileIdToHeatmapTracks.get(molecularProfileId);
+            if (!trackGroup) {
+                let newTrackGroupIndex = 2;
+                for (const group of this.molecularProfileIdToHeatmapTracks.values()) {
+                    newTrackGroupIndex = Math.max(newTrackGroupIndex, group.trackGroupIndex + 1);
+                }
+
+
+                trackGroup = observable({
+                    trackGroupIndex: newTrackGroupIndex,
+                    molecularProfileId,
+                    molecularAlterationType: profile.molecularAlterationType,
+                    entities: observable.shallowMap<boolean>({})
+                });
+                this.molecularProfileIdToHeatmapTracks.set(molecularProfileId, trackGroup);
             }
-
-            let profile:MolecularProfile = this.props.store.molecularProfileIdToMolecularProfile.result![molecularProfileId];
-
-            trackGroup = observable({
-                trackGroupIndex: newTrackGroupIndex,
-                molecularProfileId,
-                molecularAlterationType: profile.molecularAlterationType,
-                entities: observable.shallowMap<boolean>({})
-            });
-            this.molecularProfileIdToHeatmapTracks.set(molecularProfileId, trackGroup);
-        }
-        for (const entity of entities) {
-            trackGroup!.entities.set(entity, true);
+            for (const entity of entities) {
+                trackGroup!.entities.set(entity, true);
+            }
         }
     }
 

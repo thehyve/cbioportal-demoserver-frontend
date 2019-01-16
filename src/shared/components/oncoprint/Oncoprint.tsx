@@ -47,12 +47,13 @@ export type ClinicalTrackSpec = {
 
 export interface IBaseHeatmapTrackDatum {
     profile_data: number|null;
-    truncation?:string;
     sample?: string;
     patient?: string;
     study: string;
     uid: string;
     na?:boolean;
+    category?:string
+    truncation?:string;
 }
 export interface IGeneHeatmapTrackDatum extends IBaseHeatmapTrackDatum {
     hugo_gene_symbol: string;
@@ -117,6 +118,7 @@ export interface IHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
     sortOrder?: SortOrder;
     maxProfileValue?: number;
     ruleSetTrackId?: number;
+    category?:string;
 }
 export interface IGenesetHeatmapTrackSpec extends IBaseHeatmapTrackSpec {
     data: IGenesetHeatmapTrackDatum[];

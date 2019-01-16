@@ -144,70 +144,28 @@ export function doWithRenderingSuppressedAndSortingOff(oncoprint:OncoprintJS<any
     oncoprint.releaseRendering();
 }
 
-export function getHeatmapTrackRuleSetParams(trackSpec: IHeatmapTrackSpec) {
+export function getHeatmapTrackRuleSetParams(trackSpec: IHeatmapTrackSpec):RuleSetParams {
     let value_range:[number, number];
     let legend_label:string;
     let colors:number[][];
     let value_stop_points:number[];
+
+    if (trackSpec.molecularAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE) {
+        return getTreatmentTrackRuleSetParams(trackSpec);
+    }
+
     if (trackSpec.molecularAlterationType === AlterationTypeConstants.METHYLATION) {
         value_range = [0,1];
         legend_label = "Methylation Heatmap";
         value_stop_points = [0,0.35,1];
         colors = [[0,0,255,1], [255,255,255,1], [255,0,0,1]];
-    } else if (trackSpec.molecularAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE) {
-
-        // - Legends for treatments can be configured in two ways:
-        // 1. Larger values are `better` and appear at the right side of the legend (a.k.a. ASC sort order)
-        // 2. Smaller values are `better` and appeat at the right side of the legend (a.k.a. DESC sort order)
-        // - The pivot threshold denotes the compound concentration that is the arbitrary boundary between effective (in red)
-        // and ineffective (in blue) concentrations. Blue and red gradient to black color at the pivotThreshold value.
-        // - The most extreme value in the legend is should be the largest value in the current track group. It is:
-        // 1. Passed in along side other track specs (if possible), or...
-        // 2. Evalueated from the datapoints in the current heatmap track
-        // - When the most extreme value does not reach the pivotThreshold an arbitrary most extreme value is 
-        // calculated for representation purpouses (10*pivotThreshold value)
-       
-        legend_label = `${trackSpec.molecularProfileName}`;
-        const dataPoints = trackSpec.data;
-        const pivotThreshold = trackSpec.pivotThreshold!;
-        const sortOrder = trackSpec.sortOrder!;
-        
-        const colorWorse  = [0,0,255,1]
-        const colorPivot  = [0,0,0,1]
-        const colorBetter = [255,0,0,1]
-
-        const maxValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).map('profile_data').max()!;
-        const minValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).map('profile_data').min()!;
-        const artificialPivotOffset = Math.abs(pivotThreshold*10); 
-
-        // when all observed values are negative or positive
-        // assume that 0 should be used in the legend
-        const rightBoundaryValue = maxValue <= 0? 0 : maxValue;
-        const leftBoundaryValue = minValue >= 0? 0 : minValue;
-        value_range = [leftBoundaryValue, rightBoundaryValue];                          // larger concentrations are `better` (ASC)
-
-        // only include the pivotValue in the legend when covered by the current value_range
-        if (pivotThreshold <= leftBoundaryValue) {                                      
-            value_stop_points = [pivotThreshold-(rightBoundaryValue-pivotThreshold), pivotThreshold, rightBoundaryValue]
-        } else if (pivotThreshold >= rightBoundaryValue) {
-            value_stop_points = [leftBoundaryValue, pivotThreshold, pivotThreshold+(pivotThreshold-leftBoundaryValue)]
-        } else {
-            value_stop_points = [leftBoundaryValue, pivotThreshold, rightBoundaryValue];
-        }
-        
-        if (sortOrder === SortOrder.DESC) {                                             // smaller concentrations are `better` (DESC)
-            value_range = _.reverse(value_range);
-            value_stop_points = _.reverse(value_stop_points);
-        }
-    
-    colors = [colorWorse, colorPivot, colorBetter];
-
     } else {
         value_range = [-3,3];
         legend_label = "Expression Heatmap";
         value_stop_points = [-3, 0, 3];
         colors = [[0,0,255,1], [0,0,0,1], [255,0,0,1]];
     }
+
     return {
         type: 'gradient' as 'gradient',
         legend_label,
@@ -216,6 +174,86 @@ export function getHeatmapTrackRuleSetParams(trackSpec: IHeatmapTrackSpec) {
         colors,
         value_stop_points,
         null_color: 'rgba(224,224,224,1)'
+    };
+}
+
+function getTreatmentTrackRuleSetParams(trackSpec: IHeatmapTrackSpec):RuleSetParams {
+
+    let value_range:[number, number];
+    let legend_label:string;
+    let colors:number[][];
+    let value_stop_points:number[];
+    let category_to_color:{[d:string]: string} | undefined;
+
+    // - Legends for treatments can be configured in two ways:
+    // 1. Larger values are `better` and appear at the right side of the legend (a.k.a. ASC sort order)
+    // 2. Smaller values are `better` and appeat at the right side of the legend (a.k.a. DESC sort order)
+    // - The pivot threshold denotes the compound concentration that is the arbitrary boundary between effective (in red)
+    // and ineffective (in blue) concentrations. Blue and red gradient to black color at the pivotThreshold value.
+    // - The most extreme value in the legend is should be the largest value in the current track group. It is:
+    // 1. Passed in along side other track specs (if possible), or...
+    // 2. Evalueated from the datapoints in the current heatmap track
+    // - When the most extreme value does not reach the pivotThreshold an arbitrary most extreme value is 
+    // calculated for representation purpouses (10*pivotThreshold value)
+    
+    legend_label = `${trackSpec.molecularProfileName}`;
+    const dataPoints = trackSpec.data;
+    const pivotThreshold = trackSpec.pivotThreshold!;
+    const sortOrder = trackSpec.sortOrder!;
+    
+    const colorWorse  = [0,0,255,1];
+    const colorPivot  = [0,0,0,1];
+    const colorBetter = [255,0,0,1];
+    const categoryColorOptions = [ 'rgba(230,159,0,1)', 'rgba(0,158,115,1)', 'rgba(204,121,167,1)', 'rgba(240,228,66,1)', 'rgba(86,180,233,1)' ];
+
+    const maxValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).filter((d:ITreatmentHeatmapTrackDatum) => !d.category).map('profile_data').max()!;
+    const minValue:number = trackSpec.maxProfileValue || _(dataPoints as ITreatmentHeatmapTrackDatum[]).filter((d:ITreatmentHeatmapTrackDatum) => !d.category).map('profile_data').min()!;
+    const categories = _(dataPoints as ITreatmentHeatmapTrackDatum[]).filter((d:ITreatmentHeatmapTrackDatum) => !!d.category).map('category').uniq().value();
+
+    // when all observed values are negative or positive
+    // assume that 0 should be used in the legend
+    const rightBoundaryValue = maxValue <= 0? 0 : maxValue;
+    const leftBoundaryValue = minValue >= 0? 0 : minValue;
+    value_range = [leftBoundaryValue, rightBoundaryValue];                          // larger concentrations are `better` (ASC)
+
+    // only include the pivotValue in the legend when covered by the current value_range
+    if (pivotThreshold <= leftBoundaryValue) {
+        // when data points do not bracket the pivotThreshold, make an artificial left boundary                                      
+        value_stop_points = [pivotThreshold-(rightBoundaryValue-pivotThreshold), pivotThreshold, rightBoundaryValue]
+    } else if (pivotThreshold >= rightBoundaryValue) {
+        // when data points do not bracket the pivotThreshold, make an artificial right boundary                                      
+        value_stop_points = [leftBoundaryValue, pivotThreshold, pivotThreshold+(pivotThreshold-leftBoundaryValue)]
+    } else {
+        value_stop_points = [leftBoundaryValue, pivotThreshold, rightBoundaryValue];
+    }
+    
+    if (sortOrder === SortOrder.DESC) {                                             // smaller concentrations are `better` (DESC)
+        value_range = _.reverse(value_range);
+        value_stop_points = _.reverse(value_stop_points);
+    }
+    
+    colors = [colorWorse, colorPivot, colorBetter];
+    let counter = 0;
+    categories.forEach( (d:string) => {
+        if (category_to_color === undefined) {
+            category_to_color = {};
+        }
+        category_to_color![d] = categoryColorOptions[counter++];
+        if (counter == categoryColorOptions.length) {
+            counter = 0;
+        };
+    });
+
+    return {
+        type: 'gradient+categorical' as 'gradient+categorical',
+        legend_label,
+        value_key: "profile_data",
+        value_range,
+        colors,
+        value_stop_points,
+        null_color: 'rgba(224,224,224,1)',
+        category_key: "category",
+        category_to_color: category_to_color
     };
 }
 

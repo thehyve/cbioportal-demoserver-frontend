@@ -111,7 +111,7 @@ export function makeHeatmapTrackTooltip(genetic_alteration_type:MolecularProfile
                 break;
         }
         if ((d.profile_data !== null) && (typeof d.profile_data !== "undefined")) {
-            profile_data = d.profile_data.toFixed(2);
+            profile_data = d.category || d.profile_data.toFixed(2);
         }
         let ret = data_header + '<b>' + profile_data + '</b><br>';
         ret += (d.sample ? (link_id ? sampleViewAnchorTag(d.study, d.sample) : d.sample) : (link_id ? patientViewAnchorTag(d.study, d.patient) : d.patient));

@@ -419,7 +419,7 @@ function transitionTracks(
     let treatmentProfileMaxValue = _.chain(nextProps.heatmapTracks)
                                     .filter((s:IHeatmapTrackSpec) => s.molecularAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE)
                                     .groupBy((track:IHeatmapTrackSpec) => track.molecularProfileId)
-                                    .mapValues( (o:IHeatmapTrackSpec[]) => _(o).flatMap('data').map('profile_data').max() )
+                                    .mapValues( (o:IHeatmapTrackSpec[]) => _(o).flatMap('data').filter((d:IBaseHeatmapTrackDatum) => ! d.category).map('profile_data').max() )
                                     .value();
     
     // Transition genetic tracks
