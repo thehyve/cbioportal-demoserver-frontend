@@ -1562,7 +1562,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             if (!horzAxisData && !vertAxisData) {
                 return new Promise<{horizontal:boolean, data:IWaterfallPlotData[]}>(()=>0); // dont resolve
             } else {
-                const horizontal:boolean = this.horzSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE;
+                const horizontal:boolean = this.horzSelection.dataType !== NONE_SELECTED_OPTION_STRING_VALUE;
                 const axisData = horizontal? vertAxisData : horzAxisData;
                 if (isNumberData(axisData!)) {
                     return Promise.resolve({
