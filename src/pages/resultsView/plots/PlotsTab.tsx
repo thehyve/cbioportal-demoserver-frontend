@@ -8,6 +8,7 @@ import fileDownload from 'react-file-download';
 import ReactSelect from "react-select";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import ScatterPlot from "shared/components/plots/ScatterPlot";
+import WaterfallPlot from "shared/components/plots/WaterfallPlot";
 import TablePlot from "shared/components/plots/TablePlot";
 import { ClinicalAttribute } from "../../../shared/api/generated/CBioPortalAPI";
 import { remoteData } from "../../../shared/api/remoteData";
@@ -20,7 +21,15 @@ import ScrollBar from "../../../shared/components/Scrollbar/ScrollBar";
 import { getMobxPromiseGroupStatus } from "../../../shared/lib/getMobxPromiseGroupStatus";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
-import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, dataTypeToDisplayType, GENESET_DATA_TYPE, TREATMENT_DATA_TYPE, getAxisLabel, getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IScatterPlotSampleData, isNumberData, isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, sortMolecularProfilesForDisplay } from "./PlotsTabUtils";
+import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, 
+    dataTypeToDisplayType, GENESET_DATA_TYPE, TREATMENT_DATA_TYPE, getAxisLabel, 
+    getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, 
+    IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IScatterPlotSampleData, isNumberData, 
+    isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, 
+    makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, 
+    PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, 
+    sortMolecularProfilesForDisplay, makeWaterfallPlotData, IWaterfallPlotData,
+    waterfallPlotTooltip } from "./PlotsTabUtils";
 import "./styles.scss";
 import Timer = NodeJS.Timer;
 
@@ -57,6 +66,7 @@ export enum PotentialViewType {
 
 export enum PlotType {
     ScatterPlot,
+    WaterfallPlot,
     BoxPlot,
     Table
 }
@@ -87,12 +97,13 @@ const searchInputTimeoutMs = 600;
 
 class PlotsTabScatterPlot extends ScatterPlot<IScatterPlotData> {}
 class PlotsTabBoxPlot extends BoxScatterPlot<IBoxScatterPlotPoint> {}
+class PlotsTabWaterfallPlot extends WaterfallPlot<IWaterfallPlotData> {}
 
 const SVG_ID = "plots-tab-plot-svg";
 
 export const NONE_SELECTED_OPTION_STRING_VALUE = "none";
 export const NONE_SELECTED_OPTION_NUMERICAL_VALUE = -1;
-export const NONE_SELECTED_OPTION_LABEL = "None";
+export const NONE_SELECTED_OPTION_LABEL = "--";
 export const SAME_SELECTED_OPTION_STRING_VALUE = "same";
 export const SAME_SELECTED_OPTION_NUMERICAL_VALUE = -2;
 
@@ -1082,6 +1093,34 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     }
 
+    readonly waterfallLabel = remoteData({
+        await:()=>[
+            this.props.store.molecularProfileIdToMolecularProfile,
+            this.props.store.entrezGeneIdToGene,
+            this.clinicalAttributeIdToClinicalAttribute
+        ],
+        invoke:()=>{
+            const selection = this.waterfallPlotOrientation === 'HORZ'? this.vertSelection : this.horzSelection;
+
+            return Promise.resolve(getAxisLabel(
+                selection,
+                this.props.store.molecularProfileIdToMolecularProfile.result!,
+                this.props.store.entrezGeneIdToGene.result!,
+                this.clinicalAttributeIdToClinicalAttribute.result!
+            ));
+        }
+    });
+    
+
+    @computed get waterfallLabelLogSuffix() {
+        const useLogScale = this.waterfallPlotOrientation === 'HORZ'? this.vertSelection.logScale : this.horzSelection.logScale;
+        if (useLogScale) {
+            return " (log2)";
+        } else {
+            return "";
+        }
+    }
+
     @computed get scatterPlotAppearance() {
         return makeScatterPlotPointAppearance(this.viewType, this.mutationDataExists, this.cnaDataExists, this.props.store.mutationAnnotationSettings.driversAnnotated);
     }
@@ -1132,6 +1171,11 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @autobind
     private scatterPlotTooltip(d:IScatterPlotData) {
         return scatterPlotTooltip(d);
+    }
+
+    @autobind
+    private waterfallPlotTooltip(d:IWaterfallPlotData) {
+        return waterfallPlotTooltip(d);
     }
 
     @computed get boxPlotTooltip() {
@@ -1424,16 +1468,24 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         invoke: ()=>{
             const horzAxisData = this.horzAxisDataPromise.result;
             const vertAxisData = this.vertAxisDataPromise.result;
+            const horzAxisNoneSelected = this.horzSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE;
+            const vertAxisNoneSelected = this.vertSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE;
+
             if (!horzAxisData || !vertAxisData) {
                 return new Promise<PlotType>(()=>0); // dont resolve
+            }
+
+            if ((vertAxisNoneSelected && horzAxisData)
+                || (horzAxisNoneSelected && vertAxisData)) {
+                return Promise.resolve(PlotType.WaterfallPlot);
+            }
+
+            if (isStringData(horzAxisData) && isStringData(vertAxisData)) {
+                return Promise.resolve(PlotType.Table);
+            } else if (isNumberData(horzAxisData) && isNumberData(vertAxisData)) {
+                return Promise.resolve(PlotType.ScatterPlot);
             } else {
-                if (isStringData(horzAxisData) && isStringData(vertAxisData)) {
-                    return Promise.resolve(PlotType.Table);
-                } else if (isNumberData(horzAxisData) && isNumberData(vertAxisData)) {
-                    return Promise.resolve(PlotType.ScatterPlot);
-                } else {
-                    return Promise.resolve(PlotType.BoxPlot);
-                }
+                return Promise.resolve(PlotType.BoxPlot);
             }
         }
     });
@@ -1491,6 +1543,70 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             }
         }
     });
+
+    readonly waterfallPlotData = remoteData<{horizontal:boolean, data:IWaterfallPlotData[]}>({
+        await: ()=>[
+            this.horzAxisDataPromise,
+            this.vertAxisDataPromise,
+            this.props.store.sampleKeyToSample,
+            this.props.store.coverageInformation,
+            this.mutationPromise,
+            this.props.store.studyToMutationMolecularProfile,
+            this.cnaPromise,
+            this.props.store.studyToMolecularProfileDiscrete
+        ],
+        invoke: ()=>{
+            const horzAxisData = this.horzAxisDataPromise.result;
+            const vertAxisData = this.vertAxisDataPromise.result;
+
+            if (!horzAxisData && !vertAxisData) {
+                return new Promise<{horizontal:boolean, data:IWaterfallPlotData[]}>(()=>0); // dont resolve
+            } else {
+                const horizontal:boolean = this.horzSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE;
+                const axisData = horizontal? vertAxisData : horzAxisData;
+                if (isNumberData(axisData!)) {
+                    return Promise.resolve({
+                        horizontal: horizontal,
+                        data: makeWaterfallPlotData(
+                                axisData as INumberAxisData,
+                                this.props.store.sampleKeyToSample.result!,
+                                this.props.store.coverageInformation.result!.samples,
+                                this.mutationDataExists.result ? {
+                                    molecularProfileIds: _.values(this.props.store.studyToMutationMolecularProfile.result!).map(p=>p.molecularProfileId),
+                                    data: this.mutationPromise.result!
+                                } : undefined,
+                                this.cnaDataShown ? {
+                                    molecularProfileIds: _.values(this.props.store.studyToMolecularProfileDiscrete.result!).map(p=>p.molecularProfileId),
+                                    data: this.cnaPromise.result!
+                                }: undefined
+                            )
+                    });
+                } else {
+                    return Promise.resolve({horizontal: true, data: []});
+                }
+            }
+        }
+    });
+
+    @computed get waterfallPlotOrientation():'HORZ'|'VERT' {
+        if (this.vertSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE) {
+            return 'VERT';
+        }
+        if (this.horzSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE) {
+            return 'HORZ';
+        }
+        return 'HORZ';
+    }
+
+    @computed get waterfallPlotPivotThreshold():number {
+        const i = this.waterfallPlotData.result!.data[0].pivotThreshold;
+        return i;
+    }
+
+    @computed get waterfallPlotSortOrder():'ASC'|'DESC' {
+        const i = this.waterfallPlotData.result!.data[0].sortOrder;
+        return i;
+    }
 
     readonly boxPlotData = remoteData<{horizontal:boolean, data:IBoxScatterPlotData<IBoxScatterPlotPoint>[]}>({
         await: ()=>[
@@ -1617,6 +1733,42 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     excludeTruncatedValuesFromCalculation={this.truncatedValuesCanBeShown && this.viewTruncatedValues}
                                     legendData={scatterPlotLegendData(
                                         this.scatterPlotData.result, this.viewType, this.mutationDataExists, this.cnaDataExists, this.props.store.mutationAnnotationSettings.driversAnnotated
+                                    )}
+                                />
+                            );
+                            break;
+                        } else if (this.scatterPlotData.isError) {
+                            return <span>Error loading plot data.</span>;
+                        } else {
+                            return <LoadingIndicator isLoading={true} center={true} size={"big"}/>;
+                        }
+                    case PlotType.WaterfallPlot:
+                        if (this.waterfallPlotData.isComplete) {
+                            const horizontal = this.waterfallPlotData.result.horizontal;
+                            plotElt = (
+                                <PlotsTabWaterfallPlot
+                                    svgId={SVG_ID}
+                                    axisLabel={this.waterfallLabel.result + this.waterfallLabelLogSuffix }
+                                    data={this.waterfallPlotData.result.data}
+                                    size={scatterPlotSize}
+                                    chartWidth={PLOT_SIDELENGTH}
+                                    chartHeight={PLOT_SIDELENGTH}
+                                    tooltip={this.waterfallPlotTooltip}
+                                    highlight={this.scatterPlotHighlight}
+                                    log={this.horzSelection.logScale}
+                                    fill={this.scatterPlotFill}
+                                    stroke={this.scatterPlotStroke}
+                                    horizontal={horizontal}
+                                    strokeOpacity={this.scatterPlotStrokeOpacity}
+                                    zIndexSortBy={this.zIndexSortBy}
+                                    fillOpacity={this.scatterPlotFillOpacity}
+                                    strokeWidth={this.scatterPlotStrokeWidth}
+                                    useLogSpaceTicks={true}
+                                    sortOrder={this.waterfallPlotSortOrder}
+                                    pivotThreshold={this.waterfallPlotPivotThreshold}
+                                    plotOrientation={this.waterfallPlotOrientation}
+                                    legendData={scatterPlotLegendData(
+                                        this.waterfallPlotData.result.data, this.viewType, this.mutationDataExists, this.cnaDataExists, this.props.store.mutationAnnotationSettings.driversAnnotated
                                     )}
                                 />
                             );

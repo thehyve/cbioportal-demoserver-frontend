@@ -109,7 +109,6 @@ export function scatterPlotSize(
     }
 }
 
-
 export function separateScatterDataByAppearance<D>(
     data:D[],
     fill:string | ((d:D)=>string),
