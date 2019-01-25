@@ -799,7 +799,7 @@ export class ResultsViewPageStore {
                         }
                     }));*/
                     ret.push(profile);
-                } else {
+                } else if (profile.molecularAlterationType !== AlterationTypeConstants.STRUCTURAL_VARIANT) { //All studies except structural variants
                     // handle non-mutation profile
                     promises.push(client.fetchAllMolecularDataInMolecularProfileUsingPOSTWithHttpInfo({
                         molecularProfileId,
