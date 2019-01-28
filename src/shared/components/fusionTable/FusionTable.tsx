@@ -256,9 +256,8 @@ export default class FusionTable<P extends IFusionTableProps> extends React.Comp
             FusionTableColumnType.SAMPLE_ID,
             FusionTableColumnType.SITE1_HUGO_SYMBOL,
             FusionTableColumnType.SITE2_HUGO_SYMBOL,
-            FusionTableColumnType.SITE2_EFFECT_ON_FRAME,
-            FusionTableColumnType.RNA_SUPPORT,
             FusionTableColumnType.TUMOR_READ_COUNT,
+            FusionTableColumnType.TUMOR_VARIANT_COUNT,
             FusionTableColumnType.ANNOTATION
         ];
 
