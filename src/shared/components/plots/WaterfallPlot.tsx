@@ -73,7 +73,7 @@ const labelStyle = {
 
 
 @observer
-export default class WatefallPlot<D extends IBaseWaterfallPlotData> extends React.Component<IWaterfallPlotProps<D>, {}> {
+export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends React.Component<IWaterfallPlotProps<D>, {}> {
 
     @observable.ref tooltipModel:any|null = null;
     @observable pointHovered:boolean = false;
