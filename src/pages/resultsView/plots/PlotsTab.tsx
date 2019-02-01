@@ -1249,7 +1249,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.clinicalAttributeIdToClinicalAttribute
         ],
         invoke:()=>{
-            const selection = this.isHorizontalPlot? this.vertSelection : this.horzSelection;
+            const selection = this.isHorizontalPlot? this.horzSelection: this.vertSelection;
 
             return Promise.resolve(getAxisLabel(
                 selection,

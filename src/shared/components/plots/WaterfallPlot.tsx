@@ -264,25 +264,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         }
         return this.plotDomain.value;
     }
-
-    @computed get labelY() {
-        if (this.props.horizontal) {
-            return "";
-        }
-        let label = this.props.axisLabel;
-        if (this.props.pivotThreshold) {
-            label += "\n";
-        }
-        return this.props.axisLabel;
-    }
-
-    @computed get labelX() {
-        if (this.props.horizontal) {
-            return this.props.axisLabel;
-        }
-        return "";
-    }
-
+    
     @computed get size() {
         const highlight = this.props.highlight;
         const size = this.props.size;
@@ -419,7 +401,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                 tickCount={NUM_AXIS_TICKS}
                                 tickFormat={this.tickFormatX}
                                 axisLabelComponent={<VictoryLabel dy={25}/>}
-                                label={this.labelX}
+                                label={this.props.axisLabel}
                             />}
                            {!this.props.horizontal && <VictoryAxis
                                 domain={this.plotDomainY}
@@ -430,7 +412,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                 tickFormat={this.tickFormatY}
                                 dependentAxis={true}
                                 axisLabelComponent={<VictoryLabel dy={-35}/>}
-                                label={this.labelY}
+                                label={this.props.axisLabel}
                             />}
                             <VictoryBar
                                 barRatio='0.85'
