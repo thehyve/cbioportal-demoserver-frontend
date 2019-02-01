@@ -780,7 +780,8 @@ export function getAxisLabel(
     molecularProfileIdToMolecularProfile:{[molecularProfileId:string]:MolecularProfile},
     entrezGeneIdToGene:{[entrezGeneId:number]:Gene},
     clinicalAttributeIdToClinicalAttribute:{[clinicalAttributeId:string]:ClinicalAttribute},
-    plotType:PlotType
+    plotType:PlotType,
+    logScale:boolean
 ) {
     let ret = "";
     const profile = molecularProfileIdToMolecularProfile[selection.dataSourceId!];
@@ -800,11 +801,22 @@ export function getAxisLabel(
             break;
         case TREATMENT_DATA_TYPE:
             if (profile && selection.treatmentId !== undefined) {
+
                 ret = `${selection.treatmentId}: ${profile.name}`;
+                
+                const logElement = logScale ? "Log10" : "";
+                let pivotElement = "";
+                
                 if (plotType === PlotType.WaterfallPlot
                     && profile.pivotThreshold !== undefined && profile.pivotThreshold !== 0) {
-                    ret += ` (pivot threshold-adjusted)`;
+                    pivotElement = "pivot threshold-adjusted";
                 }
+                    
+                const joinElement = logElement && pivotElement ? ", ": "";
+                if (logElement || pivotElement) {
+                    ret += ` (${logElement}${joinElement}${pivotElement})`;
+                }
+
             }
             break;
         default:
@@ -1270,7 +1282,7 @@ function generalScatterPlotTooltip<D extends IPlotSampleData>(
 }
 
 export function waterfallPlotTooltip(d:IWaterfallPlotData) {
-    return generalWaterfallPlotTooltip<IWaterfallPlotData>(d, "value", "pivotThreshold", "truncation");
+    return generalWaterfallPlotTooltip<IWaterfallPlotData>(d, "pivot_adjusted_value", "pivotThreshold", "truncation");
 }
 
 function generalWaterfallPlotTooltip<D extends IWaterfallPlotData>(
@@ -1289,23 +1301,15 @@ function generalWaterfallPlotTooltip<D extends IWaterfallPlotData>(
     }
     
     let value:any = d[valueKey];
-    const pivot:any|undefined = pivotKey ? d[pivotKey] : undefined;
-    const adjustedValue:string|undefined = pivot ? parseFloat(value - pivot as any).toFixed(4) : undefined;
-    const trunctation = truncKey && d[truncKey]? d[truncKey] : "";
     value = value.toFixed(4);
-    
-    const labelOriginal = `${trunctation}${value}`;
-    const labelAdjusted = `${trunctation}${adjustedValue}`;
+    const pivot:any|undefined = pivotKey ? d[pivotKey] : undefined;
+    const trunctation = truncKey && d[truncKey]? d[truncKey] : "";
 
     return (
         <div>
             <a href={getSampleViewUrl(d.studyId, d.sampleId)} target="_blank">{d.sampleId}</a>
-
-            {adjustedValue && 
-            <div>Value: <span style={{fontWeight:"bold"}}> {labelAdjusted} </span> (pivot-adjusted)</div>}
-
-            <div>Value: <span style={{fontWeight:"bold"}}> {labelOriginal} </span> {adjustedValue && `(original)`}</div>
-
+            <div>Value: <span style={{fontWeight:"bold"}}> {trunctation}{value} </span>
+            {pivot && `(pivot-adjusted)`}</div>
             {mutationsSection}
             {!!mutationsSection && <br/>}
             {cnaSection}

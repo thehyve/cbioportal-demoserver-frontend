@@ -193,62 +193,10 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         let max = _(this.data).map('pivot_adjusted_value').max() || 0;
         let min = _(this.data).map('pivot_adjusted_value').min() || 0;
 
-        if (this.props.log) {
-            min = this.logScale(min!);
-            max = this.logScale(max!);
-        }
         return {
             value: [min!, max!],
             order: [1, this.data.length]  // return range defined by the number of samples for the x-axis
         };
-    }
-
-    @computed get rightPadding() {
-        return RIGHT_PADDING;
-    }
-
-    @computed get svgWidth() {
-        return LEFT_PADDING + this.props.chartWidth + this.rightPadding;
-    }
-
-    @computed get svgHeight() {
-        return this.props.chartHeight;
-    }
-
-    private logScale(x:number) {
-        return Math.log2(Math.max(x, MIN_LOG_ARGUMENT));
-    }
-
-    private invLogScale(x:number) {
-        return Math.pow(2, x);
-    }
-
-    @bind
-    private datumAccessorY(d:IBaseWaterfallPlotData) {
-            if (this.props.log) {
-                return this.logScale(d.pivot_adjusted_value!);
-            } else {
-                return d.pivot_adjusted_value;
-            }
-    }
-
-    @bind
-    private datumAccessorX(d:IBaseWaterfallPlotData) {
-            return d.order;
-    }
-
-    @bind
-    private datumAccessorLabelY(d:IBaseWaterfallPlotData) {
-        if (this.props.log) {
-            return this.logScale(d.labely!);
-        } else {
-            return d.labely;
-        }
-    }
-
-    @bind
-    private datumAccessorLabelX(d:IBaseWaterfallPlotData) {
-        return d.labelx;
     }
 
     @computed get plotDomainX() {
@@ -264,7 +212,47 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         }
         return this.plotDomain.value;
     }
-    
+
+    @computed get rightPadding() {
+        return RIGHT_PADDING;
+    }
+
+    @computed get svgWidth() {
+        return LEFT_PADDING + this.props.chartWidth + this.rightPadding;
+    }
+
+    @computed get svgHeight() {
+        return this.props.chartHeight;
+    }
+
+    private log10Scale(x:number) {
+        return Math.log10(x);
+    }
+
+    private invLog10Scale(x:number) {
+        return Math.pow(10, x);
+    }
+
+    @bind
+    private datumAccessorY(d:IBaseWaterfallPlotData) {
+        return d.pivot_adjusted_value;
+    }
+
+    @bind
+    private datumAccessorX(d:IBaseWaterfallPlotData) {
+        return d.order;
+    }
+
+    @bind
+    private datumAccessorLabelY(d:IBaseWaterfallPlotData) {
+        return d.labely;
+    }
+
+    @bind
+    private datumAccessorLabelX(d:IBaseWaterfallPlotData) {
+        return d.labelx;
+    }
+
     @computed get size() {
         const highlight = this.props.highlight;
         const size = this.props.size;
@@ -274,8 +262,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
     private tickFormat(t:number, ticks:number[], logScale:boolean) {
         if (logScale && !this.props.useLogSpaceTicks) {
-            t = this.invLogScale(t);
-            ticks = ticks.map(x=>this.invLogScale(x));
+            t = this.invLog10Scale(t);
+            ticks = ticks.map(x=>this.invLog10Scale(x));
         }
         return tickFormatNumeral(t, ticks);
     }
@@ -307,9 +295,27 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         // assign a x value (equivalent to position in array)
         _.each(dataPoints, (d:IBaseWaterfallPlotData, index:number) => d.order = index + 1 );
 
-        // subtract the pivotThreshold from each value
+        // subtract the pivotThreshold from each value and apply log-transformation if applicable
         const delta = this.props.pivotThreshold || 0;
-        _.each(dataPoints, (d:IBaseWaterfallPlotData) => d.pivot_adjusted_value = d.value - delta );
+        
+        // for log transformation one should handle negative numbers
+        // this is done by transposing all data so that negative numbers no
+        // longer occur. Als include the pivotThreshold.
+        const values =  _.map(dataPoints, 'value').concat([delta]);
+        const minValue = _.min(values);
+        const offset = Math.abs(minValue!);
+
+        _.each(dataPoints, (d:IBaseWaterfallPlotData) => {
+            if (this.props.log) {
+                if (minValue! <= 0) {
+                    d.pivot_adjusted_value = this.log10Scale(d.value+offset+0.001) - this.log10Scale(delta+offset+0.001);
+                } else {
+                    d.pivot_adjusted_value = this.log10Scale(d.value) - this.log10Scale(delta);
+                }
+            } else {
+                d.pivot_adjusted_value = d.value - delta;
+            }
+        });
 
         // add style information to each point
         _.each(dataPoints, (d:IBaseWaterfallPlotData) => {
@@ -345,8 +351,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
             const min_value = range[0];
             const max_value = range[1];
 
-            let offset:number = (max_value - min_value) * TRUNCATED_LABEL_OFFSET_FRACTION;
-            offset = d.pivot_adjusted_value! >= 0 ? offset : offset*-1;
+            let offset:number = (max_value - min_value) * TRUNCATED_LABEL_OFFSET_FRACTION;// determine magnitude of offset for symbols
+            offset = d.pivot_adjusted_value! >= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
             const labelPos = d.pivot_adjusted_value! + offset;
 
             if (this.props.horizontal) {
