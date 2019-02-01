@@ -1,6 +1,6 @@
 import autobind from "autobind-decorator";
 import _ from "lodash";
-import { action, computed, observable } from "mobx";
+import { action, computed, observable, autorun } from "mobx";
 import { Observer, observer } from "mobx-react";
 import * as React from "react";
 import { FormControl } from "react-bootstrap";
@@ -335,6 +335,13 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                         // otherwise, just return the first option
                         return dataTypeOptions[0].value;
                     }
+                } else if (this._dataType === NONE_SELECTED_OPTION_STRING_VALUE) {
+                    // when a `none` option was selected in the datatype menu
+                    // and was removed (no treatment data selected on other axis)
+                    // just return the first option.
+                    const firstDataTypeOption = vertical ? self.vertDatatypeOptions[0] : self.horzDatatypeOptions[0];
+                    const returnType = firstDataTypeOption.value === NONE_SELECTED_OPTION_STRING_VALUE ? this._dataType : dataTypeOptions[0].value;
+                    return returnType;
                 } else {
                     // otherwise, _dataType is defined, or there are no default options to choose from, so return _dataType
                     return this._dataType;
@@ -710,7 +717,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         if (this.dataTypeOptions && this.vertSelection.dataType === TREATMENT_DATA_TYPE) {
             noneDatatypeOption = [{ value: NONE_SELECTED_OPTION_STRING_VALUE, label: NONE_SELECTED_OPTION_LABEL}];
         }
-        return (noneDatatypeOption || []).concat((this.dataTypeOptions.result || []) as any[]);
+        const options = (noneDatatypeOption || []).concat((this.dataTypeOptions.result || []) as any[]);
+        return options;
     }
 
     @computed get vertDatatypeOptions() {
