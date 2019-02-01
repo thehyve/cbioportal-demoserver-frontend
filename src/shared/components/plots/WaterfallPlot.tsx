@@ -421,7 +421,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                 label={this.props.axisLabel}
                             />}
                             <VictoryBar
-                                barRatio='0.85'
+                                barRatio={1} // removes spaces between bars
                                 style={{
                                     data: {
                                         fill: (d:D) => d.fill,
