@@ -26,6 +26,8 @@ export interface IBaseWaterfallPlotData {
     labelx?:number;
     labely?:number;
     labelVisibility?:boolean;
+    searchindicatorx?:number;
+    searchindicatory?:number;
 }
 
 export interface IWaterfallPlotProps<D extends IBaseWaterfallPlotData> {
@@ -62,7 +64,8 @@ const NUM_AXIS_TICKS = 8;
 const PLOT_DATA_PADDING_PIXELS = 50;
 const MIN_LOG_ARGUMENT = 0.01;
 const LEFT_PADDING = 25;
-const TRUNCATED_LABEL_OFFSET_FRACTION = .02;
+const LABEL_OFFSET_FRACTION = .02;
+const LABEL_SIZE_MULTIPLIER = 1.5;
 const labelStyle = {
     fill: "#ffffff",
     stroke: "#000000",
@@ -126,10 +129,10 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                             target: "data",
                             mutation: () => {
                                 if (disappearTimeout !== null) {
-                                    clearTimeout(disappearTimeout);
+                                    clearTimeout(disappearTimeout);searchindicatory
                                 }
 
-                                disappearTimeout = setTimeout(()=>{
+                                disappearTimeout = setTimeout(()=>{searchindicatory
                                     this.pointHovered = false;
                                 }, disappearDelayMs);
 
@@ -253,6 +256,16 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return d.labelx;
     }
 
+    @bind
+    private datumAccessorSearchIndicatorY(d:IBaseWaterfallPlotData) {
+        return d.searchindicatory;
+    }
+
+    @bind
+    private datumAccessorSearchIndicatorX(d:IBaseWaterfallPlotData) {
+        return d.searchindicatorx;
+    }
+
     @computed get size() {
         const highlight = this.props.highlight;
         const size = this.props.size;
@@ -338,22 +351,22 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return styleOption;
     }
 
-    @computed get barLabels() {
+    @computed get truncationLabels() {
 
         // filter out data points that are truncted
         // these will get a symbol above the resp. bar
         const labelData = _.filter(this.data, (d) => d.labelVisibility);
 
+        const range = this.props.horizontal ? this.plotDomainX : this.plotDomainY;
+        const min_value = range[0];
+        const max_value = range[1];
+        let offset:number = (max_value - min_value) * LABEL_OFFSET_FRACTION;// determine magnitude of offset for symbols
+
         // add offset information for possible labels above the bars
         _.each(labelData, (d:IBaseWaterfallPlotData) => {
 
-            const range = this.props.horizontal ? this.plotDomainX : this.plotDomainY;
-            const min_value = range[0];
-            const max_value = range[1];
-
-            let offset:number = (max_value - min_value) * TRUNCATED_LABEL_OFFSET_FRACTION;// determine magnitude of offset for symbols
-            offset = d.pivot_adjusted_value! >= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
-            const labelPos = d.pivot_adjusted_value! + offset;
+            const offsetLocal = d.pivot_adjusted_value! >= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
+            const labelPos = d.pivot_adjusted_value! + offsetLocal;
 
             if (this.props.horizontal) {
                 d.labelx = labelPos;
@@ -365,6 +378,38 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         });
 
         return labelData;
+    }
+
+    @computed get sampleSearchLabels() {
+
+        const searchLabels = _.filter(this.data, (d) => this.props.highlight(d) );
+
+        const range = this.props.horizontal ? this.plotDomainX : this.plotDomainY;
+        const min_value = range[0];
+        const max_value = range[1];
+        let offset:number = (max_value - min_value) * LABEL_OFFSET_FRACTION;// determine magnitude of offset for symbols
+
+        // add offset information for possible labels above the bars
+        _.each(searchLabels, (d:IBaseWaterfallPlotData) => {
+
+            const labelPos = d.pivot_adjusted_value! <= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
+            if (labelPos > 0) {
+                d.symbol = "triangleDown"
+            } else {
+                d.symbol = "triangleUp"
+            }
+
+            if (this.props.horizontal) {
+                d.searchindicatorx = labelPos;
+                d.searchindicatory = d.order;
+            } else { // ! this.props.horizontal
+                d.searchindicatorx = d.order;
+                d.searchindicatory = labelPos;
+            }
+
+        });
+
+        return searchLabels;
     }
     
     @bind
@@ -421,7 +466,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                 label={this.props.axisLabel}
                             />}
                             <VictoryBar
-                                barRatio={1} // removes spaces between bars
+                                // barRatio={1} // removes spaces between bars
                                 style={{
                                     data: {
                                         fill: (d:D) => d.fill,
@@ -449,9 +494,24 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                     }
                                 }}
                                 size={labelStyle.size}
-                                data={this.barLabels}
+                                data={this.truncationLabels}
                                 x={this.datumAccessorLabelX}
                                 y={this.datumAccessorLabelY}
+                            />
+                            <VictoryScatter
+                                style={{
+                                    data: {
+                                        fill: "white",
+                                        stroke: "red",
+                                        strokeWidth: 1*LABEL_SIZE_MULTIPLIER,
+                                        strokeOpacity: 1,
+                                        symbol: (d:D) => d.symbol
+                                    }
+                                }}
+                                size={labelStyle.size * LABEL_SIZE_MULTIPLIER}
+                                data={this.sampleSearchLabels}
+                                x={this.datumAccessorSearchIndicatorX}
+                                y={this.datumAccessorSearchIndicatorY}
                             />
                         </VictoryChart>
                     </g>
