@@ -801,22 +801,7 @@ export function getAxisLabel(
             break;
         case TREATMENT_DATA_TYPE:
             if (profile && selection.treatmentId !== undefined) {
-
                 ret = `${selection.treatmentId}: ${profile.name}`;
-                
-                const logElement = logScale ? "Log10" : "";
-                let pivotElement = "";
-                
-                if (plotType === PlotType.WaterfallPlot
-                    && profile.pivotThreshold !== undefined && profile.pivotThreshold !== 0) {
-                    pivotElement = "pivot threshold-adjusted";
-                }
-                    
-                const joinElement = logElement && pivotElement ? ", ": "";
-                if (logElement || pivotElement) {
-                    ret += ` (${logElement}${joinElement}${pivotElement})`;
-                }
-
             }
             break;
         default:
@@ -828,6 +813,38 @@ export function getAxisLabel(
             }
             break;
     }
+    return ret;
+}
+
+export function getAxisLabelSuffix(
+    selection:AxisMenuSelection,
+    molecularProfileIdToMolecularProfile:{[molecularProfileId:string]:MolecularProfile},
+    plotType:PlotType,
+    logScale:boolean
+) {
+    let ret = "";
+    const profile = molecularProfileIdToMolecularProfile[selection.dataSourceId!];
+
+    let logElement = "";
+    if (logScale) {
+        logElement = "Log2";
+    }
+    if (logScale && plotType === PlotType.WaterfallPlot) {
+        logElement = "Log10";
+    }
+
+    let pivotElement = "";
+    if (plotType === PlotType.WaterfallPlot
+        && profile.pivotThreshold !== undefined && profile.pivotThreshold !== 0) {
+        pivotElement = "pivot threshold-adjusted";
+    }
+        
+    const joinElement = logElement && pivotElement ? ", ": "";
+
+    if (logElement || pivotElement) {
+        ret += ` (${logElement}${joinElement}${pivotElement})`;
+    }
+
     return ret;
 }
 
@@ -1770,6 +1787,39 @@ export function getScatterPlotDownloadData(
         dataRows.push(row.join("\t"));
     }
     const header = ["Sample Id", xAxisLabel, yAxisLabel];
+    if (hasMutations) {
+        header.push("Mutations");
+    }
+    return header.join("\t")+"\n"+dataRows.join("\n");
+}
+
+export function getWaterfallPlotDownloadData(
+    data:IWaterfallPlotData[],
+    axisLabel:string,
+    axisLabelSuffix:string,
+    entrezGeneIdToGene:{[entrezGeneId:number]:Gene}
+) {
+    const dataRows:string[] = [];
+    let hasMutations = false;
+    for (const datum of data) {
+        const row:string[] = [];
+
+        row.push(datum.sampleId);
+        row.push(numeral(datum.value).format('0[.][000000]'));
+        row.push(numeral(datum.pivot_adjusted_value).format('0[.][000000]'));
+        row.push(numeral(datum.pivotThreshold).format('0[.][000000]'));
+        row.push(numeral(datum.order).format('0[.][000000]'));
+        row.push(datum.sortOrder === SortOrder.ASC?"ascending":"descending");
+        if (datum.mutations.length) {
+            row.push(mutationsProteinChanges(datum.mutations, entrezGeneIdToGene).join("; ")); // 4 concatenated mutations
+            hasMutations = true;
+        } else if (datum.profiledMutations === false) {
+            row.push("Not Profiled");
+            hasMutations = true;
+        }
+        dataRows.push(row.join("\t"));
+    }
+    const header = ["Sample Id", `${axisLabel} (original)`, `${axisLabel}${axisLabelSuffix}`, "pivot threshold", "order", "sort order" ];
     if (hasMutations) {
         header.push("Mutations");
     }

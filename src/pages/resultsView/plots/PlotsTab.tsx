@@ -23,7 +23,7 @@ import {getMobxPromiseGroupStatus} from "../../../shared/lib/getMobxPromiseGroup
 import StackedBarPlot from "../../../shared/components/plots/StackedBarPlot";
 import {STUDY_VIEW_CONFIG} from "../../studyView/StudyViewConfig";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
-import { AlterationTypeConstants, ResultsViewPageStore, AnnotatedMutation, AnnotatedNumericGeneMolecularData } from "../ResultsViewPageStore";
+import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
 import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, 
     dataTypeToDisplayType, GENESET_DATA_TYPE, TREATMENT_DATA_TYPE, getAxisLabel, 
     getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, 
@@ -32,8 +32,9 @@ import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayO
     makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, 
     PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, 
     sortMolecularProfilesForDisplay, makeWaterfallPlotData, IWaterfallPlotData,
-    waterfallPlotTooltip, 
-    mutationRenderPriority} from "./PlotsTabUtils";
+    waterfallPlotTooltip, getWaterfallPlotDownloadData, 
+    mutationRenderPriority,
+    getAxisLabelSuffix} from "./PlotsTabUtils";
 import "./styles.scss";
 import Timer = NodeJS.Timer;
 
@@ -553,6 +554,17 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 this.scatterPlotData.result!,
                                 horzLabel,
                                 vertLabel,
+                                entrezGeneIdToGene
+                            ),
+                            filename
+                        );
+                        break;
+                    case PlotType.WaterfallPlot:
+                        fileDownload(
+                            getWaterfallPlotDownloadData(
+                                this.waterfallPlotData.result!.data,
+                                this.waterfallLabel.result!,
+                                this.waterfallLabelSuffix.result!,
                                 entrezGeneIdToGene
                             ),
                             filename
@@ -1226,15 +1238,21 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             ));
         }
     });
-    
-    @computed get waterfallLabelLogSuffix() {
-        const useLogScale = this.isHorizontalPlot? this.vertSelection.logScale : this.horzSelection.logScale;
-        if (useLogScale) {
-            return " (log2)";
-        } else {
-            return "";
+
+    readonly waterfallLabelSuffix = remoteData({
+        await:()=>[
+            this.props.store.molecularProfileIdToMolecularProfile,
+        ],
+        invoke:()=>{
+            const selection = this.isHorizontalPlot? this.horzSelection: this.vertSelection;
+            return Promise.resolve(getAxisLabelSuffix(
+                selection,
+                this.props.store.molecularProfileIdToMolecularProfile.result!,
+                PlotType.WaterfallPlot,
+                selection.logScale
+            ));
         }
-    }
+    });
 
     @computed get waterfallPlotTitle():string {
         const treatment = this.horzSelection.treatmentId || this.vertSelection.treatmentId;
@@ -1981,7 +1999,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 <PlotsTabWaterfallPlot
                                     svgId={SVG_ID}
                                     title={this.waterfallPlotTitle}
-                                    axisLabel={this.waterfallLabel.result + this.waterfallLabelLogSuffix }
+                                    axisLabel={this.waterfallLabel.result! + this.waterfallLabelSuffix.result!}
                                     data={this.waterfallPlotData.result.data}
                                     size={scatterPlotSize}
                                     chartWidth={PLOT_SIDELENGTH}
