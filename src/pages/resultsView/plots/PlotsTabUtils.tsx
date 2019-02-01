@@ -785,6 +785,8 @@ export function getAxisLabel(
     let ret = "";
     const profile = molecularProfileIdToMolecularProfile[selection.dataSourceId!];
     switch (selection.dataType) {
+        case NONE_SELECTED_OPTION_STRING_VALUE:
+            break;
         case CLIN_ATTR_DATA_TYPE:
             const attribute = clinicalAttributeIdToClinicalAttribute[selection.dataSourceId!];
             if (attribute) {
@@ -1330,6 +1332,9 @@ export function logScalePossible(
     axisSelection: AxisMenuSelection
 ) {
     if (axisSelection.dataType !== CLIN_ATTR_DATA_TYPE) {
+        if (axisSelection.dataType === TREATMENT_DATA_TYPE) {
+            return true;
+        }
         // molecular profile
         return !!(
             axisSelection.dataSourceId &&
