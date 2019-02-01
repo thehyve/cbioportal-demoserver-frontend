@@ -1188,7 +1188,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
                 this.props.store.entrezGeneIdToGene.result!,
                 this.clinicalAttributeIdToClinicalAttribute.result!,
-                this.plotType.result!
+                this.plotType.result!,
+                this.horzSelection.logScale
             ));
         }
     });
@@ -1214,7 +1215,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
                 this.props.store.entrezGeneIdToGene.result!,
                 this.clinicalAttributeIdToClinicalAttribute.result!,
-                this.plotType.result!
+                this.plotType.result!,
+                this.vertSelection.logScale
             ));
         }
     });
@@ -1241,7 +1243,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
                 this.props.store.entrezGeneIdToGene.result!,
                 this.clinicalAttributeIdToClinicalAttribute.result!,
-                PlotType.WaterfallPlot
+                PlotType.WaterfallPlot,
+                selection.logScale
             ));
         }
     });
