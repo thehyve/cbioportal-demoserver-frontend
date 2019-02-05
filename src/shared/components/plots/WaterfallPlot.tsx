@@ -10,6 +10,7 @@ import { makeScatterPlotSizeFunction as makePlotSizeFunction, dataPointIsTruncat
 import { SortOrder } from "../../api/generated/CBioPortalAPIInternal";
 import WaterfallPlotTooltip from "./WaterfallPlotTooltip";
 import { tickFormatNumeral } from "./TickUtils";
+import { IWaterfallPlotData } from "pages/resultsView/plots/PlotsTabUtils";
 
 // TODO make distinction between public and internal interface for waterfall plot data
 export interface IBaseWaterfallPlotData {
@@ -129,10 +130,10 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                             target: "data",
                             mutation: () => {
                                 if (disappearTimeout !== null) {
-                                    clearTimeout(disappearTimeout);searchindicatory
+                                    clearTimeout(disappearTimeout);
                                 }
 
-                                disappearTimeout = setTimeout(()=>{searchindicatory
+                                disappearTimeout = setTimeout(()=>{
                                     this.pointHovered = false;
                                 }, disappearDelayMs);
 
@@ -382,17 +383,25 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
     @computed get sampleSearchLabels() {
 
-        const searchLabels = _.filter(this.data, (d) => this.props.highlight(d) );
+        if (! this.props.highlight) {
+            return [];
+        }
+
+        const searchLabels = _.filter(this.data, (d:any) => this.props.highlight!(d) );
 
         const range = this.props.horizontal ? this.plotDomainX : this.plotDomainY;
         const min_value = range[0];
         const max_value = range[1];
-        let offset:number = (max_value - min_value) * LABEL_OFFSET_FRACTION;// determine magnitude of offset for symbols
 
-        // add offset information for possible labels above the bars
+        // determine magnitude of offset for symbols
+        let offset:number = (max_value - min_value) * LABEL_OFFSET_FRACTION;
+
+        // add offset information for search labels to datapoints
         _.each(searchLabels, (d:IBaseWaterfallPlotData) => {
 
-            const labelPos = d.pivot_adjusted_value! <= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
+            // determine direction of offset for symbols (above or below line y=0)
+            const labelPos = d.pivot_adjusted_value! <= 0 ? offset : offset*-1;
+
             if (labelPos > 0) {
                 d.symbol = "triangleDown"
             } else {

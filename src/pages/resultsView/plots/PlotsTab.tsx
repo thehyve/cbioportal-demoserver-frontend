@@ -34,7 +34,11 @@ import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayO
     sortMolecularProfilesForDisplay, makeWaterfallPlotData, IWaterfallPlotData,
     waterfallPlotTooltip, getWaterfallPlotDownloadData, 
     mutationRenderPriority,
-    getAxisLabelSuffix} from "./PlotsTabUtils";
+    getAxisLabelSuffix,
+    WATERFALL_PLOT_WIDTH_SCALING_FACTOR,
+    WATERFALLPLOT_SIDELENGTH,
+    WATERFALLPLOT_BASE_SIDELENGTH,
+    WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR} from "./PlotsTabUtils";
 import "./styles.scss";
 import Timer = NodeJS.Timer;
 
@@ -1263,6 +1267,22 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         return title;
     }
 
+    @computed get waterfallPlotWidth():number {
+        const noSamples = this.waterfallPlotData.isComplete ? this.waterfallPlotData.result.data.length : 0;
+        if (this.isHorizontalPlot) {
+            return PLOT_SIDELENGTH;
+        }
+        return WATERFALLPLOT_BASE_SIDELENGTH + Math.round(noSamples * WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR);
+    }
+    
+    @computed get waterfallPlotHeigth():number {
+        const noSamples = this.waterfallPlotData.isComplete ? this.waterfallPlotData.result.data.length : 0;
+        if (this.isHorizontalPlot) {
+            return WATERFALLPLOT_BASE_SIDELENGTH + Math.round(noSamples * WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR);
+        }
+        return PLOT_SIDELENGTH;
+    }
+
     @computed get scatterPlotAppearance() {
         return makeScatterPlotPointAppearance(this.viewType, this.mutationDataExists, this.cnaDataExists, this.props.store.driverAnnotationSettings.driversAnnotated);
     }
@@ -2002,8 +2022,8 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     axisLabel={this.waterfallLabel.result! + this.waterfallLabelSuffix.result!}
                                     data={this.waterfallPlotData.result.data}
                                     size={scatterPlotSize}
-                                    chartWidth={PLOT_SIDELENGTH}
-                                    chartHeight={PLOT_SIDELENGTH}
+                                    chartWidth={this.waterfallPlotWidth}
+                                    chartHeight={this.waterfallPlotHeigth}
                                     tooltip={this.waterfallPlotTooltip}
                                     highlight={this.scatterPlotHighlight}
                                     log={useLogScale}
