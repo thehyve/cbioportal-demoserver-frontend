@@ -35,8 +35,6 @@ import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayO
     waterfallPlotTooltip, getWaterfallPlotDownloadData, 
     mutationRenderPriority,
     getAxisLabelSuffix,
-    WATERFALL_PLOT_WIDTH_SCALING_FACTOR,
-    WATERFALLPLOT_SIDELENGTH,
     WATERFALLPLOT_BASE_SIDELENGTH,
     WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR} from "./PlotsTabUtils";
 import "./styles.scss";
