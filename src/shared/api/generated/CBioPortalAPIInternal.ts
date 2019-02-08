@@ -1,7 +1,7 @@
 import * as request from "superagent";
 
 export enum SortOrder {
-    ASC, DESC
+    UNDEFINED, ASC, DESC
 }
 
 type CallbackHandler = (err: any, res ? : request.Response) => void;
