@@ -3,7 +3,7 @@ import _ from "lodash";
 import { action, computed, observable, autorun } from "mobx";
 import { Observer, observer } from "mobx-react";
 import * as React from "react";
-import { FormControl } from "react-bootstrap";
+import { FormControl, Button } from "react-bootstrap";
 import fileDownload from 'react-file-download';
 import ReactSelect from "react-select";
 import _ from "lodash";
@@ -200,6 +200,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @observable discreteVsDiscretePlotType = DiscreteVsDiscretePlotType.StackedBar;
     @observable stackedBarHorizontalBars = false;
     @observable viewTruncatedValues:boolean = true;
+    @observable _waterfallPlotSortOrder:SortOrder = SortOrder.UNDEFINED;
 
     @observable searchCase:string = "";
     @observable searchMutation:string = "";
@@ -679,12 +680,6 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         this.searchMutation = proteinChange;
     }
 
-    private isAxisMenuLoading(axisSelection:AxisMenuSelection) {
-        return ;
-    }
-
-
-
     @autobind
     private getHorizontalAxisMenu() {
         if (!this.dataTypeOptions.isComplete ||
@@ -893,6 +888,21 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         return this.plotType.isComplete && this.plotType.result === PlotType.WaterfallPlot;
     }
 
+    private showSortOrderButton(onVerticalAxis:boolean):boolean {
+        if (this.waterfallPlotIsShown){
+            if (onVerticalAxis) {
+                return ! this.isHorizontalWaterfallPlot;
+            } else {
+                return this.isHorizontalWaterfallPlot;
+            }
+        }
+        return false;
+    }
+
+    @computed get waterfallPlotIsShown():boolean {
+        return this.plotType.isComplete && this.plotType.result === PlotType.WaterfallPlot;
+    }
+
     readonly clinicalAttributeIdToClinicalAttribute = remoteData<{[clinicalAttributeId:string]:ClinicalAttribute}>({
         await:()=>[
             this.props.store.clinicalAttributes,
@@ -1013,6 +1023,12 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         this.viewTruncatedValues = true;
     }
     
+    @autobind
+    @action
+    private onSortOrderButtonPressed() {
+        this._waterfallPlotSortOrder = this.waterfallPlotSortOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
+    }
+
     @autobind
     @action
     private swapHorzVertSelections() {
@@ -1250,7 +1266,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.clinicalAttributeIdToClinicalAttribute
         ],
         invoke:()=>{
-            const selection = this.isHorizontalPlot? this.horzSelection: this.vertSelection;
+            const selection = this.isHorizontalWaterfallPlot? this.horzSelection: this.vertSelection;
 
             return Promise.resolve(getAxisLabel(
                 selection,
@@ -1268,7 +1284,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             this.props.store.molecularProfileIdToMolecularProfile,
         ],
         invoke:()=>{
-            const selection = this.isHorizontalPlot? this.horzSelection: this.vertSelection;
+            const selection = this.isHorizontalWaterfallPlot? this.horzSelection: this.vertSelection;
             return Promise.resolve(getAxisLabelSuffix(
                 selection,
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
@@ -1289,7 +1305,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
 
     @computed get waterfallPlotWidth():number {
         const noSamples = this.waterfallPlotData.isComplete ? this.waterfallPlotData.result.data.length : 0;
-        if (this.isHorizontalPlot) {
+        if (this.isHorizontalWaterfallPlot) {
             return PLOT_SIDELENGTH;
         }
         return WATERFALLPLOT_BASE_SIDELENGTH + Math.round(noSamples * WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR);
@@ -1297,7 +1313,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     
     @computed get waterfallPlotHeigth():number {
         const noSamples = this.waterfallPlotData.isComplete ? this.waterfallPlotData.result.data.length : 0;
-        if (this.isHorizontalPlot) {
+        if (this.isHorizontalWaterfallPlot) {
             return WATERFALLPLOT_BASE_SIDELENGTH + Math.round(noSamples * WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR);
         }
         return PLOT_SIDELENGTH;
@@ -1513,8 +1529,20 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 value={vertical ? EventKey.vert_logScale : EventKey.horz_logScale}
                                 checked={axisSelection.logScale}
                                 onClick={this.onInputClick}
-                            /> Apply Log Scale
-                        </label></div>
+                            /> {this.showSortOrderButton(vertical) ? `Log Scale` : `Apply Log Scale`}
+                        </label>
+                        { this.showSortOrderButton(vertical) && (
+                            <label style={{"margin-right": "10px"}}>
+                                <Button 
+                                    className="btn btn-default sort-order"
+                                    data-test="changeSortOrderButton"
+                                    type="button"
+                                    onClick={this.onSortOrderButtonPressed}>
+                                    <i  className={this.sortOrderImageClassName} />
+                                </Button>
+                                Sort Order
+                            </label>)}
+                        </div>
                     )}
                     {(axisSelection.dataType && this.showGeneSelectBox(axisSelection.dataType))
                         && (<div className="form-group" style={{opacity:(axisSelection.dataType === CLIN_ATTR_DATA_TYPE ? 0 : 1)}}>
@@ -1826,7 +1854,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             if (!horzAxisData && !vertAxisData) {
                 return new Promise<{horizontal:boolean, data:IWaterfallPlotData[]}>(()=>0); // dont resolve
             } else {
-                const axisData = this.isHorizontalPlot? horzAxisData : vertAxisData;
+                const axisData = this.isHorizontalWaterfallPlot? horzAxisData : vertAxisData;
 
                 // Note: code below is a placeholder for styling based on multiple genes
                 let selectedGenes:number[] = [];
@@ -1859,22 +1887,33 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     });
 
     @computed get waterfallPlotPivotThreshold():number {
-        const dataSourceId:string|undefined = this.isHorizontalPlot ? this.horzSelection.dataSourceId! : this.vertSelection.dataSourceId!;
+        const dataSourceId:string|undefined = this.isHorizontalWaterfallPlot ? this.horzSelection.dataSourceId! : this.vertSelection.dataSourceId!;
         const profile = this.props.store.molecularProfileIdToMolecularProfile.result![dataSourceId];
         return profile.pivotThreshold;
     }
 
     @computed get waterfallPlotSortOrder():SortOrder {
-        const dataSourceId:string = this.isHorizontalPlot ? this.horzSelection.dataSourceId! : this.vertSelection.dataSourceId!;
-        const profile = this.props.store.molecularProfileIdToMolecularProfile.result![dataSourceId];
-        return profile.sortOrder;
+        if (this._waterfallPlotSortOrder === SortOrder.UNDEFINED) {
+            const dataSourceId:string = this.isHorizontalWaterfallPlot ? this.horzSelection.dataSourceId! : this.vertSelection.dataSourceId!;
+            const profile = this.props.store.molecularProfileIdToMolecularProfile.result![dataSourceId];
+            return profile.sortOrder;
+        }
+        return this._waterfallPlotSortOrder;
     }
 
-    @computed get isHorizontalPlot():boolean {
+    @computed get isHorizontalWaterfallPlot():boolean {
         if (this.vertAxisDataPromise.result) {
-            return !!(this.vertAxisDataPromise.result['datatype'] === NONE_SELECTED_OPTION_STRING_VALUE);
+            return !!(this.plotType.result === PlotType.WaterfallPlot &&
+                this.vertAxisDataPromise.result['datatype'] === NONE_SELECTED_OPTION_STRING_VALUE);
         }
         return false;
+    }
+
+    @computed get sortOrderImageClassName():string {
+        const baseClass = "fa fa-signal";
+        const axisClass =  this.isHorizontalWaterfallPlot ? "horz" : "vert";
+        const sortClass =  this.waterfallPlotSortOrder === SortOrder.ASC ? "ascending" : "descending";
+        return `${baseClass} ${axisClass}-${sortClass}`;
     }
 
     readonly boxPlotData = remoteData<{horizontal:boolean, data:IBoxScatterPlotData<IBoxScatterPlotPoint>[]}>({
@@ -2033,7 +2072,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                         }
                     case PlotType.WaterfallPlot:
                         if (this.waterfallPlotData.isComplete) {
-                            const horizontal = this.isHorizontalPlot;
+                            const horizontal = this.isHorizontalWaterfallPlot;
                             const useLogScale = horizontal ? this.horzSelection.logScale : this.vertSelection.logScale;
                             plotElt = (
                                 <PlotsTabWaterfallPlot

@@ -1,5 +1,6 @@
 import * as request from "superagent";
 import { SortOrder } from "./CBioPortalAPIInternal";
+import _ from "lodash";
 
 type CallbackHandler = (err: any, res ? : request.Response) => void;
 export type CancerStudy = {
@@ -2362,6 +2363,11 @@ export default class CBioPortalAPI {
         }): Promise < Array < MolecularProfile >
         > {
             return this.fetchMolecularProfilesUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
+                response.body = _(response.body).each((d:MolecularProfile) => {
+                    if (d.sortOrder !== undefined) {
+                        d.sortOrder = d.sortOrder as any === "ASC"? SortOrder.ASC : SortOrder.DESC;
+                    }
+                });
                 return response.body;
             });
         };
