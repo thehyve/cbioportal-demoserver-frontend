@@ -97,7 +97,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     @observable selectedHeatmapProfile = "";
     @observable heatmapGeneInputValue = "";
-    @observable addToHeatmapButtonName = "Add Genes to Heatmap";
 
     @observable horzZoom:number = 0.5;
 
@@ -161,11 +160,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             // select first initially
             if (profiles.length > 0) {
                 this.selectedHeatmapProfile = profiles[0].molecularProfileId;
-                if (profiles[0].molecularAlterationType == AlterationTypeConstants.TREATMENT_RESPONSE) {
-                    this.addToHeatmapButtonName = "Add Treatments to Heatmap";
-                } else {
-                    this.addToHeatmapButtonName = "Add Genes to Heatmap";
-                };
             }
         });
 
@@ -484,12 +478,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             }),
             onSelectHeatmapProfile:(id:string)=>{
                 this.selectedHeatmapProfile = id;
-                let selectedMolecularProfileObj = this.props.store.molecularProfileIdToMolecularProfile.result[id];
-                if (selectedMolecularProfileObj.molecularAlterationType == AlterationTypeConstants.TREATMENT_RESPONSE) {
-                    this.addToHeatmapButtonName = "Add Treatments to Heatmap";
-                } else {
-                    this.addToHeatmapButtonName = "Add Genes to Heatmap";
-                };
             },
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
@@ -603,6 +591,13 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
         );
     }
 
+    @computed get addToHeatmapButtonName():string {
+        if (this.selectedHeatmapProfileAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE) {
+            return "Add Treatments to Heatmap";
+        }
+        return "Add Genes to Heatmap";
+    }
+
     @action private initFromUrlParams(paramsMap:any) {
         if (paramsMap[SAMPLE_MODE_URL_PARAM]) {
             this.columnMode = (paramsMap[SAMPLE_MODE_URL_PARAM] && paramsMap[SAMPLE_MODE_URL_PARAM]==="true") ? "sample" : "patient";
@@ -643,6 +638,11 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
         return _.filter(this.molecularProfileIdToHeatmapTracks.values(), (x:HeatmapTrackGroupRecord)=> x.molecularAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE)
         .map((x:HeatmapTrackGroupRecord)=>`${x.entities.keys().join(";")}`)
         .join(";");
+    }
+
+    @computed get selectedHeatmapProfileAlterationType():string {
+        let molecularProfile = this.props.store.molecularProfileIdToMolecularProfile.result[this.selectedHeatmapProfile];
+        return molecularProfile.molecularAlterationType;
     }
 
     private addHeatmapTracks(molecularProfileId:string, entities:string[]) {
