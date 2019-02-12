@@ -2174,7 +2174,7 @@ export class ResultsViewPageStore {
         return this.genes.isError;
     }
 
-    readonly genesets = remoteData<Geneset[]>({
+    readonly genesets = remoteData<Geneset[ ]>({
         invoke: () => {
             if (this.rvQuery.genesetIds && this.rvQuery.genesetIds.length > 0) {
                 return internalClient.fetchGenesetsUsingPOST({genesetIds: this.rvQuery.genesetIds.slice()});
@@ -2208,16 +2208,20 @@ export class ResultsViewPageStore {
     });
 
     readonly treatments = remoteData<Treatment[]>({
-        invoke: () => {
-            if (this.rvQuery.treatmentIds && this.rvQuery.treatmentIds.length > 0) {
-                return internalClient.fetchTreatmentsUsingPOST({treatmentIds: this.rvQuery.treatmentIds.slice()});
-            } else {
-                return Promise.resolve([]);
-            }
+        invoke: async () => {
+            return internalClient.getAllTreatmentsUsingGET({});
         },
         onResult:(treatments:Treatment[])=>{    }
 
             this.treatmentCache.addData(treatments);
+        }
+    });
+
+    readonly selectedTreatments = remoteData<Treatment[]>({
+        await: ()=>[this.treatments],
+        invoke: () => {
+            const treatmentIdFromUrl =  this.rvQuery.treatmentIds;
+            return Promise.resolve(_.filter(this.treatments.result, (d:Treatment) => { treatmentIdFromUrl.includes(d.treatmentId) } ));
         }
     });
 

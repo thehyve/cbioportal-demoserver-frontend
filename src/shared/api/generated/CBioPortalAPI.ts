@@ -1,5 +1,5 @@
 import * as request from "superagent";
-import { SortOrder } from "./CBioPortalAPIInternal";
+import { SortOrder, Treatment } from "./CBioPortalAPIInternal";
 import _ from "lodash";
 
 type CallbackHandler = (err: any, res ? : request.Response) => void;
@@ -2060,6 +2060,79 @@ export default class CBioPortalAPI {
                 return response.body;
             });
         };
+
+    /**
+     * Get all treatments
+     * @method
+     * @name CBioPortalAPI#getAllTreatmentsUsingGET
+     * @param {string} projection - Level of detail of the response
+     * @param {integer} pageSize - Page size of the result list
+     * @param {integer} pageNumber - Page number of the result list
+     */
+    getAllTreatmentsUsingGET(parameters: {
+        'projection' ? : "SUMMARY" | "META",
+        'pageSize' ? : number,
+        'pageNumber' ? : number,
+        $queryParameters ? : any,
+            $domain ? : string
+    }): Promise < Array < Treatment >
+    > {
+        return this.getAllTreatmentsUsingGETWithHttpInfo(parameters).then(function(response: request.Response) {
+            return response.body;
+        });
+    };
+
+        /**
+     * Get all treatments
+     * @method
+     * @name CBioPortalAPI#getAllTreatmentsUsingGET
+     * @param {string} projection - Level of detail of the response
+     * @param {integer} pageSize - Page size of the result list
+     * @param {integer} pageNumber - Page number of the result list
+     */
+    getAllTreatmentsUsingGETWithHttpInfo(parameters: {
+        'projection' ? : "SUMMARY" | "META",
+        'pageSize' ? : number,
+        'pageNumber' ? : number,
+        $queryParameters ? : any,
+            $domain ? : string
+    }): Promise < request.Response > {
+        const domain = parameters.$domain ? parameters.$domain : this.domain;
+        const errorHandlers = this.errorHandlers;
+        const request = this.request;
+        let path = '/treatments';
+        let body: any;
+        let queryParameters: any = {};
+        let headers: any = {};
+        let form: any = {};
+        return new Promise(function(resolve, reject) {
+            headers['Accept'] = 'application/json';
+
+            if (parameters['projection'] !== undefined) {
+                queryParameters['projection'] = parameters['projection'];
+            }
+
+            if (parameters['pageSize'] !== undefined) {
+                queryParameters['pageSize'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageNumber'] !== undefined) {
+                queryParameters['pageNumber'] = parameters['pageNumber'];
+            }
+
+            if (parameters.$queryParameters) {
+                Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                    var parameter = parameters.$queryParameters[parameterName];
+                    queryParameters[parameterName] = parameter;
+                });
+            }
+
+            request('GET', domain + path, body, headers, queryParameters, form, reject, resolve, errorHandlers);
+
+        });
+    };
+
+
     fetchMolecularDataInMultipleMolecularProfilesUsingPOSTURL(parameters: {
         'molecularDataMultipleStudyFilter': MolecularDataMultipleStudyFilter,
         'projection' ? : "ID" | "SUMMARY" | "DETAILED" | "META",

@@ -848,10 +848,10 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     }
 
     @observable readonly horzTreatmentOptions = remoteData({
-        await:()=>[this.props.store.treatments],
+        await:()=>[this.props.store.selectedTreatments],
         invoke:()=>{
             return Promise.resolve(
-                this.props.store.treatments.result!.map(treatment=>({ value: treatment.treatmentId, label: treatment.name }))
+                this.props.store.selectedTreatments.result!.map(treatment=>({ value: treatment.treatmentId, label: treatment.name }))
             );
         }
     });

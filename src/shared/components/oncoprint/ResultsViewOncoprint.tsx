@@ -97,6 +97,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     @observable selectedHeatmapProfile = "";
     @observable heatmapGeneInputValue = "";
+    @observable heatmapTreatmentInputValue = "";
 
     @observable horzZoom:number = 0.5;
 
@@ -289,8 +290,14 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             get heatmapProfilesPromise() {
                 return self.props.store.heatmapMolecularProfiles;
             },
+            get treatmentsPromise() {
+                return self.props.store.treatments;
+            },
             get selectedHeatmapProfile() {
                 return self.selectedHeatmapProfile;
+            },
+            get selectedHeatmapProfileAlterationType() {
+                return self.selectedHeatmapProfileAlterationType;
             },
             get heatmapIsDynamicallyQueried () {
                 return self.heatmapIsDynamicallyQueried;
@@ -312,8 +319,8 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             get heatmapGeneInputValue() {
                 return self.heatmapGeneInputValue;
             },
-            get addToHeatmapButtonName() {
-                return self.addToHeatmapButtonName;
+            get heatmapTreatmentInputValue() {
+                return self.heatmapTreatmentInputValue;
             },
             get customDriverAnnotationBinaryMenuLabel() {
                 const label = AppConfig.serverConfig.binary_custom_driver_annotation_menu_label;
@@ -476,11 +483,17 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 this.heatmapGeneInputValue = s;
                 this.heatmapGeneInputValueUpdater(); // stop updating heatmap input if user has typed
             }),
+            onChangeHeatmapTreatmentInputValue:action((s:string)=>{
+                this.heatmapTreatmentInputValue = s;
+            }),
             onSelectHeatmapProfile:(id:string)=>{
                 this.selectedHeatmapProfile = id;
             },
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
+            },
+            onClickAddTreatmentsToHeatmap:()=>{
+                this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapTreatmentInputValue.toUpperCase().trim().split(/\s+/));
             },
             onClickRemoveHeatmap:action(() => {
                 this.molecularProfileIdToHeatmapTracks.clear();
@@ -589,13 +602,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             profileMap.hasOwnProperty(this.selectedHeatmapProfile) &&
             profileMap[this.selectedHeatmapProfile].molecularAlterationType !== 'GENESET_SCORE'
         );
-    }
-
-    @computed get addToHeatmapButtonName():string {
-        if (this.selectedHeatmapProfileAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE) {
-            return "Add Treatments to Heatmap";
-        }
-        return "Add Genes to Heatmap";
     }
 
     @action private initFromUrlParams(paramsMap:any) {
