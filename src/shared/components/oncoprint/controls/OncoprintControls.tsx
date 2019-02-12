@@ -4,7 +4,7 @@ import { Button, ButtonGroup } from "react-bootstrap";
 import CustomDropdown from "./CustomDropdown";
 import ReactSelect from "react-select";
 import { MobxPromise } from "mobxpromise";
-import { computed, IObservableObject, observable, ObservableMap, reaction } from "mobx";
+import { computed, IObservableObject, observable, ObservableMap, reaction, autorun } from "mobx";
 import _ from "lodash";
 import {SortMode} from "../ResultsViewOncoprint";
 import {MolecularProfile} from "shared/api/generated/CBioPortalAPI";
@@ -18,9 +18,12 @@ import ErrorIcon from "../../ErrorIcon";
 import classNames from "classnames";
 import {SpecialAttribute} from "../../../cache/ClinicalDataCache";
 import ClinicalAttributeSelector from "../../clinicalAttributeSelector/ClinicalAttributeSelector";
-import {ResultsViewPageStore} from "../../../../pages/resultsView/ResultsViewPageStore";
+import {ResultsViewPageStore, AlterationTypeConstants} from "../../../../pages/resultsView/ResultsViewPageStore";
 import {ExtendedClinicalAttribute} from "../../../../pages/resultsView/ResultsViewPageStoreUtils";
 import {getNCBIlink} from "../../../api/urls";
+import {Treatment} from "shared/api/generated/CBioPortalAPIInternal";
+import autobind from "autobind-decorator";
+const CheckedSelect = require("react-select-checked").CheckedSelect;
 
 export interface IOncoprintControlsHandlers {
     onSelectColumnType?:(type:"sample"|"patient")=>void,
@@ -54,10 +57,13 @@ export interface IOncoprintControlsHandlers {
     onChangeSelectedClinicalTracks?:(attributeIds:(string|SpecialAttribute)[])=>void;
 
     onClickAddGenesToHeatmap?:()=>void;
+    onClickAddTreatmentsToHeatmap?:()=>void;
+    onClickAddToHeatmap?:()=>void;
     onClickRemoveHeatmap?:()=>void;
     onClickClusterHeatmap?:()=>void;
     onSelectHeatmapProfile?:(molecularProfileId:string)=>void;
     onChangeHeatmapGeneInputValue?:(value:string)=>void;
+    onChangeHeatmapTreatmentInputValue?:(value:string)=>void;
 
     onSetHorzZoom:(z:number)=>void;
     onClickZoomIn:()=>void;
@@ -95,10 +101,12 @@ export interface IOncoprintControlsState {
     clinicalAttributeSampleCountPromise?:MobxPromise<{[clinicalAttributeId:string]:number}>,
     selectedClinicalAttributeIds?:string[],
     heatmapProfilesPromise?:MobxPromise<MolecularProfile[]>,
+    treatmentsPromise?:MobxPromise<Treatment[]>
     selectedHeatmapProfile?:string;
+    selectedHeatmapProfileAlterationType?:string;
     heatmapIsDynamicallyQueried?:boolean;
     heatmapGeneInputValue?: string;
-    addToHeatmapButtonName?:string;
+    heatmapTreatmentInputValue?: string;
     clusterHeatmapButtonActive?: boolean;
     hideClusterHeatmapButton?: boolean;
     hideHeatmapMenu?: boolean;
@@ -119,6 +127,11 @@ export interface IOncoprintControlsProps {
     handlers: IOncoprintControlsHandlers;
     state: IOncoprintControlsState & IObservableObject
     oncoprinterMode?:boolean;
+}
+
+interface ISelectOption {
+    value:string,
+    label:string
 }
 
 const EVENT_KEY = {
@@ -157,11 +170,16 @@ const EVENT_KEY = {
     downloadOrder:"28",
     downloadTabular:"29",
     horzZoomSlider:"30",
+    heatmapTreamentInput: "31",
+    addTreatmentsToHeatmap: "32"
 };
 
 @observer
 export default class OncoprintControls extends React.Component<IOncoprintControlsProps, {}> {
+
     @observable horzZoomSliderState: number;
+    @observable _selectedTreatmentOptions:ISelectOption[] = [];
+    @observable _treatmentsTextAreaContent:string = "";
 
     constructor(props: IOncoprintControlsProps) {
         super(props);
@@ -334,6 +352,10 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 this.props.handlers.onClickAddGenesToHeatmap &&
                     this.props.handlers.onClickAddGenesToHeatmap();
                 break;
+            case EVENT_KEY.addTreatmentsToHeatmap:
+                this.props.handlers.onClickAddTreatmentsToHeatmap &&
+                    this.props.handlers.onClickAddTreatmentsToHeatmap();
+                break;
             case EVENT_KEY.removeHeatmap:
                 this.props.handlers.onClickRemoveHeatmap &&
                     this.props.handlers.onClickRemoveHeatmap();
@@ -371,6 +393,13 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 this.props.handlers.onChangeHeatmapGeneInputValue &&
                     this.props.handlers.onChangeHeatmapGeneInputValue(event.target.value);
                 break;
+            case EVENT_KEY.heatmapTreamentInput:
+                this._treatmentsTextAreaContent = event.target.value;
+                // update selected treatments when the text changed
+                const textElements:string[] = this.splitTextField(this._treatmentsTextAreaContent);
+                // the selected options are all recognizeble textElements
+                this._selectedTreatmentOptions = _.filter(this.treatmentOptions, (d:ISelectOption) => textElements.includes(d.value) );
+                break;
             case EVENT_KEY.annotateCBioPortalInput:
                 this.props.handlers.onChangeAnnotateCBioPortalInputValue &&
                     this.props.handlers.onChangeAnnotateCBioPortalInputValue(event.target.value);
@@ -392,6 +421,87 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         } else {
             return [];
         }
+    }
+
+    @computed get treatmentOptions():ISelectOption[] {
+        if (this.props.state.treatmentsPromise && this.props.state.treatmentsPromise.result) {
+            return _.map(this.props.state.treatmentsPromise.result, (d:Treatment) => {
+                const numUnique = _.uniq(_.values(d)).length;
+                const uniqueName = d.name !== d.treatmentId;
+                const uniqueDesc = d.description !== d.treatmentId && d.description !== d.name;
+                let label = "";
+                if (!uniqueName && !uniqueDesc) {
+                    label = d.treatmentId;
+                } else if (!uniqueName) {
+                    label = `${d.treatmentId}: ${d.description}`;
+                } else if (!uniqueDesc) {
+                    label = `${d.name} (${d.treatmentId}`;
+                } else {
+                    label = `${d.name} (${d.treatmentId}: ${d.description}`;
+                }
+
+                return {
+                    value: d.treatmentId,
+                    label: label
+                };
+            });
+        } else {
+            return [];
+        }
+    }
+
+    @computed get treatmentOptionsByValueMap():{[value:string]: ISelectOption}{
+        return _.keyBy(this.treatmentOptions, 'value');
+    }
+
+    @autobind
+    private onSelectTreatments(event:any[]) {
+
+        // it is difficult to tell whether an item is selected or deselected.
+        // I could not come up with a better aproach than this sentinel.
+        const deselectAll:boolean = event.length === 0;
+        if (deselectAll) {
+            this._selectedTreatmentOptions = [];
+            this._treatmentsTextAreaContent = "";
+            return;
+        }
+
+        const treatmentSelected:boolean = event[0].constructor.name === "ObservableArray";
+
+        if (treatmentSelected) {
+            // add new entry
+            const priorSelections:ISelectOption[] = event[0];
+            const newSelection:ISelectOption = event[1];
+            const textElements = this.splitTextField(this._treatmentsTextAreaContent);
+            textElements.push(newSelection.value);
+            this._treatmentsTextAreaContent = textElements.join(" ");
+            priorSelections.push(newSelection);
+        } else {
+            // remove entry || add all entries ?
+            const selectAllEntries:boolean = event.length === this.treatmentOptions.length;
+
+            const currentSelections = event;
+            const currentSelectionValues = _.map(currentSelections, 'value');
+            const textElements = this.splitTextField(this._treatmentsTextAreaContent);
+            if (selectAllEntries) {
+                this._treatmentsTextAreaContent = currentSelectionValues.join(" ");
+            } else {
+                this._treatmentsTextAreaContent = _.intersection(textElements, currentSelectionValues).join(" ");
+            }
+            this._selectedTreatmentOptions = currentSelections;
+        }
+
+    }
+
+    // notify the listener when the text in the treatment text field updates 
+    autorun1 = autorun(() => {
+        if (this.props.handlers.onChangeHeatmapTreatmentInputValue !== undefined) {
+            this.props.handlers.onChangeHeatmapTreatmentInputValue(this._treatmentsTextAreaContent);
+        }
+    });
+    
+    private splitTextField(text:string):string[] {
+        return _.uniq(text.trim().replace(/,/g," ").replace(/\s+/g," ").split(" "));
     }
 
     private getClinicalTracksMenu() {
@@ -416,13 +526,18 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     }
 
     private getHeatmapMenu() {
+
+        const showItemSelectionElements = this.props.state.heatmapIsDynamicallyQueried;
+        const showGenesTextArea = showItemSelectionElements && this.props.state.selectedHeatmapProfileAlterationType !== AlterationTypeConstants.TREATMENT_RESPONSE;
+        const showTreatmentsTextArea = showItemSelectionElements && this.props.state.selectedHeatmapProfileAlterationType === AlterationTypeConstants.TREATMENT_RESPONSE;
+        
         if (this.props.oncoprinterMode || this.props.state.hideHeatmapMenu || !this.props.state.heatmapProfilesPromise) {
             return <span/>;
         }
         let menu = <LoadingIndicator isLoading={true} />;
         if (this.props.state.heatmapProfilesPromise.isComplete) {
             if (!this.props.state.heatmapProfilesPromise.result!.length) {
-                return <span />;
+                return <span />;    
             } else {
                 menu = (
                     <div className="oncoprint__controls__heatmap_menu">
@@ -434,30 +549,56 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                             value={this.props.state.selectedHeatmapProfile}
                             options={this.heatmapProfileOptions}
                         />
-                        {this.props.state.heatmapIsDynamicallyQueried && [
-                            <textarea
-                                key="heatmapGeneInputArea"
-                                placeholder="Type space- or comma-separated genes here, then click 'Add Genes to Heatmap'"
-                                name={EVENT_KEY.heatmapGeneInput}
-                                onChange={this.onType}
-                                value={this.props.state.heatmapGeneInputValue}
-                            >
+                        {showGenesTextArea &&
+                            [<textarea
+                                    key="heatmapGeneInputArea"
+                                    placeholder="Type space- or comma-separated genes here, then click 'Add Genes to Heatmap'"
+                                    name={EVENT_KEY.heatmapGeneInput}
+                                    onChange={this.onType}
+                                    value={this.props.state.heatmapGeneInputValue}
+                                >
                             </textarea>,
-
                             <button
-                                key="addGenesToHeatmapButton"
-                                className="btn btn-sm btn-default"
-                                name={EVENT_KEY.addGenesToHeatmap}
-                                onClick={this.onButtonClick}
-                            >{this.props.state.addToHeatmapButtonName}</button>,
-
+                                    key="addGenesToHeatmapButton"
+                                    className="btn btn-sm btn-default"
+                                    name={EVENT_KEY.addGenesToHeatmap}
+                                    onClick={this.onButtonClick}
+                                >Add Genes to Heatmap</button>
+                            ]
+                        }
+                        {showTreatmentsTextArea && this.props.state.treatmentsPromise!.isComplete &&
+                            [<div className={classNames("treatment-selector")}>
+                                <CheckedSelect
+                                    name="treatment-select"
+                                    placeholder="Search for Treatments..."
+                                    options={this.treatmentOptions}
+                                    value={this._selectedTreatmentOptions}
+                                    onChange={this.onSelectTreatments}
+                                />
+                            </div>,
+                            <textarea
+                                    key="heatmapTreatmentInputArea"
+                                    placeholder="Type space- or comma-separated treatments here, then click 'Add Treatments to Heatmap'"
+                                    name={EVENT_KEY.heatmapTreamentInput}
+                                    onChange={this.onType}
+                                    value={this._treatmentsTextAreaContent}
+                                >
+                            </textarea>,
                             <button
-                                key="removeHeatmapButton"
-                                className="btn btn-sm btn-default"
-                                name={EVENT_KEY.removeHeatmap}
-                                onClick={this.onButtonClick}
-                            >Remove Heatmap</button>
-                        ]}
+                                    key="addGenesToHeatmapButton"
+                                    className="btn btn-sm btn-default"
+                                    name={EVENT_KEY.addTreatmentsToHeatmap}
+                                    onClick={this.onButtonClick}
+                                >Add Treatments to Heatmap</button>
+                            ]
+                        }
+
+                        <button
+                            key="removeHeatmapButton"
+                            className="btn btn-sm btn-default"
+                            name={EVENT_KEY.removeHeatmap}
+                            onClick={this.onButtonClick}
+                        >Remove Heatmap</button>
 
                         {!this.props.state.hideClusterHeatmapButton &&
                             (<button
