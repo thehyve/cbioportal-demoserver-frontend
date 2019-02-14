@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import classNames from 'classnames';
-import ContentEditable from 'react-contenteditable'
 import _ from 'lodash';
 import ReactDOM from 'react-dom';
+import { observable } from 'mobx';
 
 export interface ITextIconAreaProps {
     elements: ITextIconAreaItemProps[];
@@ -11,7 +11,7 @@ export interface ITextIconAreaProps {
     placeholder?: string;
     classNames?: string[];
     onItemRemove?: (d:string) => void;
-    onChange?: (d:string[], s:string) => void;
+    onChange?: (d:string[], s:string) => string;
 }
 
 export interface ITextIconAreaItemProps {
@@ -21,13 +21,16 @@ export interface ITextIconAreaItemProps {
 }
 
 @observer
-class TextIconArea extends React.Component<ITextIconAreaProps, {}> {
+class TextIconArea extends React.Component<ITextIconAreaProps, {text:string}> {
 
-    textArea:any;
+    // I was unable to make the textare listen to updates of this field
+    // from the parent with MobX. Instead, the parent callback 'onChang'
+    // returns a string that is used to update the textarea.
+    @observable textAreaContent:string = "";
 
     constructor(props:ITextIconAreaProps) {
         super(props);
-        this.divUpdatedByUser = this.divUpdatedByUser.bind(this); 
+        this.textUpdatedByUser = this.textUpdatedByUser.bind(this); 
         this.itemRemovedByUser = this.itemRemovedByUser.bind(this);
     }
 
@@ -37,19 +40,19 @@ class TextIconArea extends React.Component<ITextIconAreaProps, {}> {
         }
     }
     
-    private divUpdatedByUser = (event:any) => {
+    private textUpdatedByUser = (event:any) => {
+        let text:string = event.currentTarget.value;
         if (this.props.onChange) {
             const insertedChar:string = event.nativeEvent.data;
             // only update the parent when a field separator or EOL (null) was typed.
-            const fieldSepDetected:boolean = insertedChar !== undefined && (insertedChar === null || insertedChar.search(/[\s,]/) >= 0);
-            if (fieldSepDetected) {
-                const text:string = event.currentTarget.innerText;
-                const elements = this.splitTextField(text);
-                this.props.onChange(this.splitTextField(text), text);
+            const fieldSepDetected:boolean = event.type === "change" && (insertedChar === null || insertedChar.search(/[\s,]/) >= 0);
+             if (fieldSepDetected) {
+                text = this.props.onChange(this.splitTextField(text), text);
             }
         }
+        this.textAreaContent = text;
     }
-    
+
     private onAreaClicked = (event:any) => {
         const textArea:HTMLElement = ReactDOM.findDOMNode(this.refs.textarea);
         textArea.focus();
@@ -78,17 +81,13 @@ class TextIconArea extends React.Component<ITextIconAreaProps, {}> {
                         )
                     })}
                 </div>
-                {/* react-contenteditable depedency handles logic like eventhandling
-                cursor management, and -html styling of text*/}
-                <ContentEditable
+                <textarea
                     ref={"textarea"}
-                    data-ph={this.props.placeholder}
-                    html={this.props.text}
-                    disabled={false}
-                    onChange={this.divUpdatedByUser}
+                    placeholder={this.props.placeholder}
+                    value={this.textAreaContent}
+                    onChange={this.textUpdatedByUser}
                     className={classNames("text-area",this.props.classNames)}
-                >
-                </ContentEditable>
+                ></textarea>
             </div>
         )
     }
