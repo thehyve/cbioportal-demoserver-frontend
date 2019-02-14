@@ -4,7 +4,7 @@ import { Button, ButtonGroup } from "react-bootstrap";
 import CustomDropdown from "./CustomDropdown";
 import ReactSelect from "react-select";
 import { MobxPromise } from "mobxpromise";
-import { computed, IObservableObject, observable, ObservableMap, reaction, autorun } from "mobx";
+import { computed, IObservableObject, observable, ObservableMap, reaction } from "mobx";
 import _ from "lodash";
 import {SortMode} from "../ResultsViewOncoprint";
 import {MolecularProfile} from "shared/api/generated/CBioPortalAPI";
@@ -23,6 +23,7 @@ import {ExtendedClinicalAttribute} from "../../../../pages/resultsView/ResultsVi
 import {getNCBIlink} from "../../../api/urls";
 import {Treatment} from "shared/api/generated/CBioPortalAPIInternal";
 import autobind from "autobind-decorator";
+import TextIconArea, { ITextIconAreaItemProps } from "shared/components/divContentEditable/TextIconArea";
 const CheckedSelect = require("react-select-checked").CheckedSelect;
 
 export interface IOncoprintControlsHandlers {
@@ -179,7 +180,8 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
 
     @observable horzZoomSliderState: number;
     @observable _selectedTreatmentOptions:ISelectOption[] = [];
-    @observable _treatmentsTextAreaContent:string = "";
+    @observable _treatmentsTextAreaContent:Node[] = [];
+    @observable textareaTreatmentText:string = "";
 
     constructor(props: IOncoprintControlsProps) {
         super(props);
@@ -393,13 +395,13 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 this.props.handlers.onChangeHeatmapGeneInputValue &&
                     this.props.handlers.onChangeHeatmapGeneInputValue(event.target.value);
                 break;
-            case EVENT_KEY.heatmapTreamentInput:
-                this._treatmentsTextAreaContent = event.target.value;
-                // update selected treatments when the text changed
-                const textElements:string[] = this.splitTextField(this._treatmentsTextAreaContent);
-                // the selected options are all recognizeble textElements
-                this._selectedTreatmentOptions = _.filter(this.treatmentOptions, (d:ISelectOption) => textElements.includes(d.value) );
-                break;
+            // case EVENT_KEY.heatmapTreamentInput:
+            //     this._treatmentsTextAreaContent = event.target.value;
+            //     // update selected treatments when the text changed
+            //     const textElements:string[] = this.splitTextField(this._treatmentsTextAreaContent);
+            //     // the selected options are all recognizeble textElements
+            //     this._selectedTreatmentOptions = _.filter(this.treatmentOptions, (d:ISelectOption) => textElements.includes(d.value) );
+            //     break;
             case EVENT_KEY.annotateCBioPortalInput:
                 this.props.handlers.onChangeAnnotateCBioPortalInputValue &&
                     this.props.handlers.onChangeAnnotateCBioPortalInputValue(event.target.value);
@@ -409,6 +411,33 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                     this.props.handlers.onChangeAnnotateCOSMICInputValue(event.target.value);
                 break;
         }
+    }
+
+    @autobind
+    private onChangeEditableDiv(elements:string[], text:string) {
+        const selectedKeys:string[] = _.map(this._selectedTreatmentOptions,'value');
+
+        let detectedTreatments:string[] = [];
+        _.each(elements, (d:string)=> {
+            if (d in this.treatmentOptionsByValueMap) {
+                if (! selectedKeys.includes(d)) {
+                    this._selectedTreatmentOptions.push( this.treatmentOptionsByValueMap[d] );
+                    detectedTreatments.push(d);
+                }
+            }
+        });
+        if (detectedTreatments.length > 0) {
+            _.each(detectedTreatments, (d:string) => {
+                text = text.replace(d, "");
+            })
+            this.textareaTreatmentText = text;
+        }
+    }
+
+    @autobind
+    private onTreatmentRemoved(treatmentId:string) {
+        const removeTreatmentByIdFilter = (d:ISelectOption) => d.value !== treatmentId;
+        this._selectedTreatmentOptions = _.filter(this._selectedTreatmentOptions, removeTreatmentByIdFilter);
     }
 
     @computed get heatmapProfileOptions() {
@@ -423,7 +452,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         }
     }
 
-    @computed get treatmentOptions():ISelectOption[] {
+    @computed get treatmentSelectOptions():ISelectOption[] {
         if (this.props.state.treatmentsPromise && this.props.state.treatmentsPromise.result) {
             return _.map(this.props.state.treatmentsPromise.result, (d:Treatment) => {
                 const numUnique = _.uniq(_.values(d)).length;
@@ -451,7 +480,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     }
 
     @computed get treatmentOptionsByValueMap():{[value:string]: ISelectOption}{
-        return _.keyBy(this.treatmentOptions, 'value');
+        return _.keyBy(this.treatmentSelectOptions, 'value');
     }
 
     @autobind
@@ -462,7 +491,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
         const deselectAll:boolean = event.length === 0;
         if (deselectAll) {
             this._selectedTreatmentOptions = [];
-            this._treatmentsTextAreaContent = "";
+            // this._treatmentsTextAreaContent = "";
             return;
         }
 
@@ -472,36 +501,34 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
             // add new entry
             const priorSelections:ISelectOption[] = event[0];
             const newSelection:ISelectOption = event[1];
-            const textElements = this.splitTextField(this._treatmentsTextAreaContent);
-            textElements.push(newSelection.value);
-            this._treatmentsTextAreaContent = textElements.join(" ");
+            // const textElements = this.splitTextField(this._treatmentsTextAreaContent);
+            // textElements.push(newSelection.value);
+            // this._treatmentsTextAreaContent = textElements.join(" ");
+
+            // const nodes = this._treatmentsTextAreaContent? Array.from(this._treatmentsTextAreaContent) : [];
+            // this._treatmentsTextAreaContent.push(document.createTextNode("This is a new paragraph."));
+            // this._treatmentsTextAreaContent = nodes;
+            // this._treatmentsTextAreaContent.push(document.createTextNode("This is a new paragraph."));
             priorSelections.push(newSelection);
         } else {
             // remove entry || add all entries ?
-            const selectAllEntries:boolean = event.length === this.treatmentOptions.length;
+            const selectAllEntries:boolean = event.length === this.treatmentSelectOptions.length;
 
             const currentSelections = event;
             const currentSelectionValues = _.map(currentSelections, 'value');
-            const textElements = this.splitTextField(this._treatmentsTextAreaContent);
+            // const textElements = this.splitTextField(this._treatmentsTextAreaContent);
             if (selectAllEntries) {
-                this._treatmentsTextAreaContent = currentSelectionValues.join(" ");
+                // this._treatmentsTextAreaContent = currentSelectionValues.join(" ");
             } else {
-                this._treatmentsTextAreaContent = _.intersection(textElements, currentSelectionValues).join(" ");
+                // this._treatmentsTextAreaContent = _.intersection(textElements, currentSelectionValues).join(" ");
             }
             this._selectedTreatmentOptions = currentSelections;
         }
 
     }
 
-    // notify the listener when the text in the treatment text field updates 
-    autorun1 = autorun(() => {
-        if (this.props.handlers.onChangeHeatmapTreatmentInputValue !== undefined) {
-            this.props.handlers.onChangeHeatmapTreatmentInputValue(this._treatmentsTextAreaContent);
-        }
-    });
-    
-    private splitTextField(text:string):string[] {
-        return _.uniq(text.trim().replace(/,/g," ").replace(/\s+/g," ").split(" "));
+    @computed get textareaTreatmentEntries():ITextIconAreaItemProps[] {
+        return _.map(this._selectedTreatmentOptions, (d:ISelectOption) => ({value: d.value, label: d.value, className:"item-correct"}))
     }
 
     private getClinicalTracksMenu() {
@@ -571,19 +598,18 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 <CheckedSelect
                                     name="treatment-select"
                                     placeholder="Search for Treatments..."
-                                    options={this.treatmentOptions}
+                                    options={this.treatmentSelectOptions}
                                     value={this._selectedTreatmentOptions}
                                     onChange={this.onSelectTreatments}
                                 />
                             </div>,
-                            <textarea
-                                    key="heatmapTreatmentInputArea"
-                                    placeholder="Type space- or comma-separated treatments here, then click 'Add Treatments to Heatmap'"
-                                    name={EVENT_KEY.heatmapTreamentInput}
-                                    onChange={this.onType}
-                                    value={this._treatmentsTextAreaContent}
-                                >
-                            </textarea>,
+                            <TextIconArea
+                                elements={this.textareaTreatmentEntries}
+                                text={this.textareaTreatmentText}
+                                placeholder="Type space- or comma-separated treatments here, then click 'Add Treatments to Heatmap'"
+                                onChange={this.onChangeEditableDiv}
+                                onItemRemove={this.onTreatmentRemoved}
+                            />,
                             <button
                                     key="addGenesToHeatmapButton"
                                     className="btn btn-sm btn-default"
