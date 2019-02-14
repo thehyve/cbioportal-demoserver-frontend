@@ -97,7 +97,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
     @observable selectedHeatmapProfile = "";
     @observable heatmapGeneInputValue = "";
-    @observable heatmapTreatmentInputValue = "";
 
     @observable horzZoom:number = 0.5;
 
@@ -319,9 +318,6 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
             get heatmapGeneInputValue() {
                 return self.heatmapGeneInputValue;
             },
-            get heatmapTreatmentInputValue() {
-                return self.heatmapTreatmentInputValue;
-            },
             get customDriverAnnotationBinaryMenuLabel() {
                 const label = AppConfig.serverConfig.binary_custom_driver_annotation_menu_label;
                 const customDriverReport = self.props.store.customDriverAnnotationReport.result;
@@ -483,17 +479,14 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 this.heatmapGeneInputValue = s;
                 this.heatmapGeneInputValueUpdater(); // stop updating heatmap input if user has typed
             }),
-            onChangeHeatmapTreatmentInputValue:action((s:string)=>{
-                this.heatmapTreatmentInputValue = s;
-            }),
             onSelectHeatmapProfile:(id:string)=>{
                 this.selectedHeatmapProfile = id;
             },
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
             },
-            onClickAddTreatmentsToHeatmap:()=>{
-                this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapTreatmentInputValue.toUpperCase().trim().split(/\s+/));
+            onClickAddTreatmentsToHeatmap:(treatmentIds:string[])=>{
+                this.addHeatmapTracks(this.selectedHeatmapProfile, treatmentIds);
             },
             onClickRemoveHeatmap:action(() => {
                 this.molecularProfileIdToHeatmapTracks.clear();

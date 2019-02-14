@@ -58,7 +58,7 @@ export interface IOncoprintControlsHandlers {
     onChangeSelectedClinicalTracks?:(attributeIds:(string|SpecialAttribute)[])=>void;
 
     onClickAddGenesToHeatmap?:()=>void;
-    onClickAddTreatmentsToHeatmap?:()=>void;
+    onClickAddTreatmentsToHeatmap?:(treatments:string[])=>void;
     onClickAddToHeatmap?:()=>void;
     onClickRemoveHeatmap?:()=>void;
     onClickClusterHeatmap?:()=>void;
@@ -180,8 +180,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
 
     @observable horzZoomSliderState: number;
     @observable _selectedTreatmentOptions:ISelectOption[] = [];
-    @observable _treatmentsTextAreaContent:Node[] = [];
-    @observable textareaTreatmentText:string = "";
+    textareaTreatmentText:string = "";
 
     constructor(props: IOncoprintControlsProps) {
         super(props);
@@ -356,7 +355,8 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 break;
             case EVENT_KEY.addTreatmentsToHeatmap:
                 this.props.handlers.onClickAddTreatmentsToHeatmap &&
-                    this.props.handlers.onClickAddTreatmentsToHeatmap();
+                    this.props.handlers.onClickAddTreatmentsToHeatmap(_.map(this._selectedTreatmentOptions,'value'));
+                this._selectedTreatmentOptions = [];
                 break;
             case EVENT_KEY.removeHeatmap:
                 this.props.handlers.onClickRemoveHeatmap &&
@@ -395,13 +395,6 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 this.props.handlers.onChangeHeatmapGeneInputValue &&
                     this.props.handlers.onChangeHeatmapGeneInputValue(event.target.value);
                 break;
-            // case EVENT_KEY.heatmapTreamentInput:
-            //     this._treatmentsTextAreaContent = event.target.value;
-            //     // update selected treatments when the text changed
-            //     const textElements:string[] = this.splitTextField(this._treatmentsTextAreaContent);
-            //     // the selected options are all recognizeble textElements
-            //     this._selectedTreatmentOptions = _.filter(this.treatmentOptions, (d:ISelectOption) => textElements.includes(d.value) );
-            //     break;
             case EVENT_KEY.annotateCBioPortalInput:
                 this.props.handlers.onChangeAnnotateCBioPortalInputValue &&
                     this.props.handlers.onChangeAnnotateCBioPortalInputValue(event.target.value);
@@ -414,24 +407,26 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     }
 
     @autobind
-    private onChangeEditableDiv(elements:string[], text:string) {
+    private onChangeEditableDiv(elements:string[], text:string):string {
         const selectedKeys:string[] = _.map(this._selectedTreatmentOptions,'value');
 
         let detectedTreatments:string[] = [];
         _.each(elements, (d:string)=> {
             if (d in this.treatmentOptionsByValueMap) {
+                detectedTreatments.push(d);
                 if (! selectedKeys.includes(d)) {
                     this._selectedTreatmentOptions.push( this.treatmentOptionsByValueMap[d] );
-                    detectedTreatments.push(d);
                 }
             }
         });
+
         if (detectedTreatments.length > 0) {
             _.each(detectedTreatments, (d:string) => {
                 text = text.replace(d, "");
             })
-            this.textareaTreatmentText = text;
         }
+
+        return text;
     }
 
     @autobind
@@ -486,12 +481,12 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     @autobind
     private onSelectTreatments(event:any[]) {
 
-        // it is difficult to tell whether an item is selected or deselected.
-        // I could not come up with a better aproach than this sentinel.
+        // With the react-select-checked module it is difficult to tell 
+        // whether an item is selected or deselected. I came up with an 
+        // heurtistic aproach below.
         const deselectAll:boolean = event.length === 0;
         if (deselectAll) {
             this._selectedTreatmentOptions = [];
-            // this._treatmentsTextAreaContent = "";
             return;
         }
 
@@ -501,34 +496,16 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
             // add new entry
             const priorSelections:ISelectOption[] = event[0];
             const newSelection:ISelectOption = event[1];
-            // const textElements = this.splitTextField(this._treatmentsTextAreaContent);
-            // textElements.push(newSelection.value);
-            // this._treatmentsTextAreaContent = textElements.join(" ");
-
-            // const nodes = this._treatmentsTextAreaContent? Array.from(this._treatmentsTextAreaContent) : [];
-            // this._treatmentsTextAreaContent.push(document.createTextNode("This is a new paragraph."));
-            // this._treatmentsTextAreaContent = nodes;
-            // this._treatmentsTextAreaContent.push(document.createTextNode("This is a new paragraph."));
             priorSelections.push(newSelection);
         } else {
             // remove entry || add all entries ?
-            const selectAllEntries:boolean = event.length === this.treatmentSelectOptions.length;
-
-            const currentSelections = event;
-            const currentSelectionValues = _.map(currentSelections, 'value');
-            // const textElements = this.splitTextField(this._treatmentsTextAreaContent);
-            if (selectAllEntries) {
-                // this._treatmentsTextAreaContent = currentSelectionValues.join(" ");
-            } else {
-                // this._treatmentsTextAreaContent = _.intersection(textElements, currentSelectionValues).join(" ");
-            }
-            this._selectedTreatmentOptions = currentSelections;
+            this._selectedTreatmentOptions = event;
         }
 
     }
 
     @computed get textareaTreatmentEntries():ITextIconAreaItemProps[] {
-        return _.map(this._selectedTreatmentOptions, (d:ISelectOption) => ({value: d.value, label: d.value, className:"item-correct"}))
+        return _.map(this._selectedTreatmentOptions, (d:ISelectOption) => ({value: d.value, label: d.value}))
     }
 
     private getClinicalTracksMenu() {
