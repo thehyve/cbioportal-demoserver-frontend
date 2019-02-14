@@ -59,7 +59,6 @@ export interface IOncoprintControlsHandlers {
 
     onClickAddGenesToHeatmap?:()=>void;
     onClickAddTreatmentsToHeatmap?:(treatments:string[])=>void;
-    onClickAddToHeatmap?:()=>void;
     onClickRemoveHeatmap?:()=>void;
     onClickClusterHeatmap?:()=>void;
     onSelectHeatmapProfile?:(molecularProfileId:string)=>void;
