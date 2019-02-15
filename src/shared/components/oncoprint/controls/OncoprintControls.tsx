@@ -452,7 +452,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     }
 
     private splitTextField(text:string):string[] {
-        return _.uniq(text.split(/[\s\n]/));
+        return _.uniq(text.split(/[,\s\n]/));
     }
 
     @autobind
