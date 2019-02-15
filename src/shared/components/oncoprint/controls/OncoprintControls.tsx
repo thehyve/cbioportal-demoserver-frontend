@@ -406,9 +406,13 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     }
 
     @autobind
-    private onChangeEditableDiv(elements:string[], text:string):string {
-        const selectedKeys:string[] = _.map(this._selectedTreatmentOptions,'value');
+    private onChangeEditableDiv(text:string):string {
 
+        // get values from input string
+        const elements = this.splitTextField(text);
+
+        // check values for valid treatment ids
+        const selectedKeys:string[] = _.map(this._selectedTreatmentOptions,'value');
         let detectedTreatments:string[] = [];
         _.each(elements, (d:string)=> {
             if (d in this.treatmentOptionsByValueMap) {
@@ -419,13 +423,19 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
             }
         });
 
+        // remove valid treatment ids from the input string
         if (detectedTreatments.length > 0) {
             _.each(detectedTreatments, (d:string) => {
                 text = text.replace(d, "");
             })
         }
 
-        return text;
+        // return the input string
+        return text.trim().replace("\t+","\t").replace(" +"," ");
+    }
+
+    private splitTextField(text:string):string[] {
+        return _.uniq(text.split(/[\s\n]/));
     }
 
     @autobind
