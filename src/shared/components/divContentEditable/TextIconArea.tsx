@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import _ from 'lodash';
 import ReactDOM from 'react-dom';
 import { observable } from 'mobx';
+import autobind from "autobind-decorator";
 
 export interface ITextIconAreaProps {
     elements: ITextIconAreaItemProps[];
@@ -11,7 +12,7 @@ export interface ITextIconAreaProps {
     placeholder?: string;
     classNames?: string[];
     onItemRemove?: (d:string) => void;
-    onChange?: (d:string[], s:string) => string;
+    onChange?: (s:string) => string;
 }
 
 export interface ITextIconAreaItemProps {
@@ -20,13 +21,22 @@ export interface ITextIconAreaItemProps {
     classNames?: string[];
 }
 
+// This class proves an icon area at the top and a managed textarea at the bottom.
+// The contents of the text area are passed to the parent after a set time delay.
+// The parent can provide entries back to the component that are displayed as icons in the
+// icon area. Icons in the icon area contain a button that when pressed informs the
+// parent of the event. The parent can use this for instance for removing this item
+// from the icon area.
+
 @observer
 class TextIconArea extends React.Component<ITextIconAreaProps, {text:string}> {
 
-    // I was unable to make the textare listen to updates of this field
-    // from the parent with MobX. Instead, the parent callback 'onChang'
+    // Shomehow the textare is not able to listen to updates of this field
+    // from the parent with MobX. Instead, the parent callback 'onChange'
     // returns a string that is used to update the textarea.
     @observable textAreaContent:string = "";
+    timeout:number = -1;
+    TIMEOUT_DELAY = 750; // milliseconds
 
     constructor(props:ITextIconAreaProps) {
         super(props);
@@ -41,25 +51,31 @@ class TextIconArea extends React.Component<ITextIconAreaProps, {text:string}> {
     }
     
     private textUpdatedByUser = (event:any) => {
-        let text:string = event.currentTarget.value;
+        this.textAreaContent = event.currentTarget.value;
         if (this.props.onChange) {
-            const insertedChar:string = event.nativeEvent.data;
-            // only update the parent when a field separator or EOL (null) was typed.
-            const fieldSepDetected:boolean = event.type === "change" && (insertedChar === null || insertedChar.search(/[\s,]/) >= 0);
-             if (fieldSepDetected) {
-                text = this.props.onChange(this.splitTextField(text), text);
-            }
+            this.startTimedSubmit();
         }
-        this.textAreaContent = text;
+    }
+
+    private startTimedSubmit() {
+        this.stopTimedSubmit();
+
+        this.timeout = setTimeout(function() {
+            this.textAreaContent = this.props.onChange(this.textAreaContent);
+            this.stopTimedSubmit();
+        }.bind(this), this.TIMEOUT_DELAY)
+
+    }
+
+    private stopTimedSubmit() {
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+        }
     }
 
     private onAreaClicked = (event:any) => {
         const textArea:HTMLElement = ReactDOM.findDOMNode(this.refs.textarea);
         textArea.focus();
-    }
-
-    private splitTextField(text:string):string[] {
-        return _.uniq(text.split(/[\s\n]/));
     }
 
     render() {
@@ -85,7 +101,7 @@ class TextIconArea extends React.Component<ITextIconAreaProps, {text:string}> {
                     ref={"textarea"}
                     placeholder={this.props.placeholder}
                     value={this.textAreaContent}
-                    onChange={this.textUpdatedByUser}
+                    onInput={this.textUpdatedByUser}
                     className={classNames("text-area",this.props.classNames)}
                 ></textarea>
             </div>
