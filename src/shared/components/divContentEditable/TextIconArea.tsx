@@ -35,7 +35,7 @@ class TextIconArea extends React.Component<ITextIconAreaProps, {text:string}> {
     // from the parent with MobX. Instead, the parent callback 'onChange'
     // returns a string that is used to update the textarea.
     @observable textAreaContent:string = "";
-    timeout:number = -1;
+    timeout:NodeJS.Timer|undefined = undefined;
     TIMEOUT_DELAY = 750; // milliseconds
 
     constructor(props:ITextIconAreaProps) {
