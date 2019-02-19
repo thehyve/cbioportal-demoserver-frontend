@@ -68,6 +68,7 @@ export type CancerStudyQueryUrlParams = {
     case_ids: string,
     gene_list: string,
     geneset_list?: string,
+    treatment_list?: string,
     tab_index: 'tab_download' | 'tab_visualize',
     transpose_matrix?: 'on',
     Action: 'Submit',
