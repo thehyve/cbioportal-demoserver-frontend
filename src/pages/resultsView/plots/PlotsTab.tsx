@@ -4,9 +4,7 @@ import { action, computed, observable, autorun } from "mobx";
 import { Observer, observer } from "mobx-react";
 import * as React from "react";
 import { FormControl, Button } from "react-bootstrap";
-import fileDownload from 'react-file-download';
 import ReactSelect from "react-select";
-import _ from "lodash";
 import {
     getAxisDescription,
     getAxisLabel,
@@ -24,7 +22,7 @@ import {
     IStringAxisData,
     INumberAxisData,
     makeBoxScatterPlotData,
-    IScatterPlotSampleData,
+    IPlotSampleData,
     noMutationAppearance,
     IBoxScatterPlotPoint,
     boxPlotTooltip,
@@ -43,7 +41,15 @@ import {
     scatterPlotZIndexSortBy,
     getMutationProfileDuplicateSamplesReport,
     GENESET_DATA_TYPE,
-    makeClinicalAttributeOptions
+    TREATMENT_DATA_TYPE,
+    makeClinicalAttributeOptions,
+    makeWaterfallPlotData,
+    IWaterfallPlotData,
+    waterfallPlotTooltip,
+    getWaterfallPlotDownloadData, 
+    WATERFALLPLOT_BASE_SIDELENGTH,
+    WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR,
+    getAxisLabelSuffix
 } from "./PlotsTabUtils";
 import {
     ClinicalAttribute, MolecularProfile, Mutation,
@@ -53,15 +59,12 @@ import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicato
 import ScatterPlot from "shared/components/plots/ScatterPlot";
 import WaterfallPlot from "shared/components/plots/WaterfallPlot";
 import TablePlot from "shared/components/plots/TablePlot";
-import { ClinicalAttribute } from "../../../shared/api/generated/CBioPortalAPI";
-import { SortOrder } from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {SortOrder} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import { remoteData } from "../../../shared/api/remoteData";
 import DownloadControls from "../../../shared/components/downloadControls/DownloadControls";
 import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
 import setWindowVariable from "../../../shared/lib/setWindowVariable";
-import autobind from "autobind-decorator";
 import fileDownload from 'react-file-download';
-import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import {SpecialAttribute} from "../../../shared/cache/ClinicalDataCache";
 import OqlStatusBanner from "../../../shared/components/oqlStatusBanner/OqlStatusBanner";
 import BoxScatterPlot, { IBoxScatterPlotData } from "../../../shared/components/plots/BoxScatterPlot";
@@ -73,19 +76,6 @@ import StackedBarPlot from "../../../shared/components/plots/StackedBarPlot";
 import {STUDY_VIEW_CONFIG} from "../../studyView/StudyViewConfig";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
-import { boxPlotTooltip, CLIN_ATTR_DATA_TYPE, CNA_STROKE_WIDTH, dataTypeDisplayOrder, 
-    dataTypeToDisplayType, GENESET_DATA_TYPE, TREATMENT_DATA_TYPE, getAxisLabel, 
-    getBoxPlotDownloadData, getCnaQueries, getMutationQueries, getScatterPlotDownloadData, 
-    IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IPlotSampleData, isNumberData, 
-    isStringData, IStringAxisData, logScalePossible, makeAxisDataPromise, makeBoxScatterPlotData, 
-    makeScatterPlotData, makeScatterPlotPointAppearance, MutationSummary, mutationSummaryToAppearance, 
-    PLOT_SIDELENGTH, scatterPlotLegendData, scatterPlotTooltip, scatterPlotZIndexSortBy, 
-    sortMolecularProfilesForDisplay, makeWaterfallPlotData, IWaterfallPlotData,
-    waterfallPlotTooltip, getWaterfallPlotDownloadData, 
-    mutationRenderPriority,
-    getAxisLabelSuffix,
-    WATERFALLPLOT_BASE_SIDELENGTH,
-    WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR} from "./PlotsTabUtils";
 import "./styles.scss";
 import Timer = NodeJS.Timer;
 
