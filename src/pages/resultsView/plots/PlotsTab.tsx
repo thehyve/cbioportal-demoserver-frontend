@@ -1,6 +1,5 @@
-import autobind from "autobind-decorator";
 import _ from "lodash";
-import { action, computed, observable, autorun } from "mobx";
+import { action, computed, observable } from "mobx";
 import { Observer, observer } from "mobx-react";
 import * as React from "react";
 import { FormControl, Button } from "react-bootstrap";
@@ -41,8 +40,8 @@ import {
     scatterPlotZIndexSortBy,
     getMutationProfileDuplicateSamplesReport,
     GENESET_DATA_TYPE,
-    TREATMENT_DATA_TYPE,
     makeClinicalAttributeOptions,
+    TREATMENT_DATA_TYPE,
     makeWaterfallPlotData,
     IWaterfallPlotData,
     waterfallPlotTooltip,
@@ -55,15 +54,18 @@ import {
     ClinicalAttribute, MolecularProfile, Mutation,
     NumericGeneMolecularData
 } from "../../../shared/api/generated/CBioPortalAPI";
-import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
+import Timer = NodeJS.Timer;
 import ScatterPlot from "shared/components/plots/ScatterPlot";
 import WaterfallPlot from "shared/components/plots/WaterfallPlot";
 import TablePlot from "shared/components/plots/TablePlot";
+import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
+import InfoIcon from "../../../shared/components/InfoIcon";
+import {remoteData} from "../../../shared/api/remoteData";
 import {SortOrder} from "../../../shared/api/generated/CBioPortalAPIInternal";
-import { remoteData } from "../../../shared/api/remoteData";
 import DownloadControls from "../../../shared/components/downloadControls/DownloadControls";
 import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
 import setWindowVariable from "../../../shared/lib/setWindowVariable";
+import autobind from "autobind-decorator";
 import fileDownload from 'react-file-download';
 import {SpecialAttribute} from "../../../shared/cache/ClinicalDataCache";
 import OqlStatusBanner from "../../../shared/components/oqlStatusBanner/OqlStatusBanner";
@@ -77,7 +79,6 @@ import {STUDY_VIEW_CONFIG} from "../../studyView/StudyViewConfig";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
 import "./styles.scss";
-import Timer = NodeJS.Timer;
 
 enum EventKey {
     horz_logScale,

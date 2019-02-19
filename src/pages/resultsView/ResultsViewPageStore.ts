@@ -2149,7 +2149,7 @@ export class ResultsViewPageStore {
         return this.genes.isError;
     }
 
-    readonly genesets = remoteData<Geneset[ ]>({
+    readonly genesets = remoteData<Geneset[]>({
         invoke: () => {
             if (this.rvQuery.genesetIds && this.rvQuery.genesetIds.length > 0) {
                 return internalClient.fetchGenesetsUsingPOST({genesetIds: this.rvQuery.genesetIds.slice()});

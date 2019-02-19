@@ -108,7 +108,7 @@ export type GeneticTrackSpec = {
 export interface IBaseHeatmapTrackSpec {
     key: string; // for efficient diffing, just like in React. must be unique
     label: string;
-    molecularProfileId: string;  // source
+    molecularProfileId: string; // source
     molecularAlterationType: MolecularProfile["molecularAlterationType"];
     datatype: MolecularProfile["datatype"];
     data: IBaseHeatmapTrackDatum[];
