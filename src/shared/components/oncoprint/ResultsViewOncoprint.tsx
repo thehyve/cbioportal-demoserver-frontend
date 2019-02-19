@@ -158,7 +158,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
 
         onMobxPromise(this.props.store.heatmapMolecularProfiles, (profiles:MolecularProfile[])=>{
             // select first initially
-            if (profiles.length > 0) {
+            if (profiles.length) {
                 this.selectedHeatmapProfile = profiles[0].molecularProfileId;
             }
         });
@@ -479,9 +479,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 this.heatmapGeneInputValue = s;
                 this.heatmapGeneInputValueUpdater(); // stop updating heatmap input if user has typed
             }),
-            onSelectHeatmapProfile:(id:string)=>{
-                this.selectedHeatmapProfile = id;
-            },
+            onSelectHeatmapProfile:(id:string)=>{this.selectedHeatmapProfile = id;},
             onClickAddGenesToHeatmap:()=>{
                 this.addHeatmapTracks(this.selectedHeatmapProfile, this.heatmapGeneInputValue.toUpperCase().trim().split(/\s+/));
             },

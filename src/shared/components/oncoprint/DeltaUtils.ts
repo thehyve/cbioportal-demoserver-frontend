@@ -236,8 +236,8 @@ function shouldSuppressRenderingForTransition(
 ) {
     // If cost of rerendering everything less than cost of all the rerenders that would happen in the process
     // of incrementally changing the oncoprint state.
-    let suppressNextRendering = nextProps.suppressRendering;
-    let dataChanged = (hasGeneticTrackRuleSetChanged(nextProps, prevProps) // will need to rerender all genetic tracks if genetic rule set has changed
+    const suppressNextRendering = nextProps.suppressRendering;
+    const dataChanged = (hasGeneticTrackRuleSetChanged(nextProps, prevProps) // will need to rerender all genetic tracks if genetic rule set has changed
     || (numTracksWhoseDataChanged(allTracks(nextProps), allTracks(prevProps)) > 1));
     return ! suppressNextRendering && dataChanged;
 }
@@ -370,8 +370,8 @@ function transitionTracks(
     // Initialize tracks for rule set sharing
     const trackIdForRuleSetSharing = {
         genetic: undefined as undefined|TrackId,
-        heatmap: undefined as undefined|TrackId,
         genesetHeatmap: undefined as undefined|TrackId,
+        heatmap: undefined as undefined|TrackId,
         heatmap01:undefined as undefined|TrackId
     };
     const trackSpecKeyToTrackId = getTrackSpecKeyToTrackId();
@@ -396,7 +396,6 @@ function transitionTracks(
         }
         trackIdForRuleSetSharing.heatmap = heatmapTrackId;
         trackIdForRuleSetSharing.heatmap01 = heatmap01TrackId;
-        
     } else if (prevProps.genesetHeatmapTracks) {
         for (const gsTrack of prevProps.genesetHeatmapTracks) {
             if (gsTrack.expansionTrackList && gsTrack.expansionTrackList.length) {
@@ -815,7 +814,7 @@ function transitionGenesetHeatmapTrack(
             link_url: nextSpec.trackLinkUrl,
             tooltipFn: makeHeatmapTrackTooltip(nextSpec.molecularAlterationType, true),
             onSortDirectionChange: nextProps.onTrackSortDirectionChange,
-            expandCallback: nextSpec.expansionCallback, 
+            expandCallback: nextSpec.expansionCallback,
             expandButtonTextGetter: (is_expanded: boolean) =>
                 `${is_expanded ? 'More' : 'Show'}  genes`
         };

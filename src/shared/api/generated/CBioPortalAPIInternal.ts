@@ -223,35 +223,35 @@ export type Geneset = {
 };
 export type GenesetCorrelation = {
     'correlationValue': number
-    
-    'entrezGeneId': number
-    
-    'expressionGeneticProfileId': string
-    
-    'hugoGeneSymbol': string
-    
-    'zScoreGeneticProfileId': string
-    
+
+        'entrezGeneId': number
+
+        'expressionGeneticProfileId': string
+
+        'hugoGeneSymbol': string
+
+        'zScoreGeneticProfileId': string
+
 };
 export type GenesetDataFilterCriteria = {
     'genesetIds': Array < string >
-    
-    'sampleIds': Array < string >
-    
-    'sampleListId': string
-    
+
+        'sampleIds': Array < string >
+
+        'sampleListId': string
+
 };
 export type GenesetHierarchyInfo = {
     'genesets': Array < Geneset >
-    
-    'nodeId': number
-    
-    'nodeName': string
-    
-    'parentId': number
-    
-    'parentNodeName': string
-    
+
+        'nodeId': number
+
+        'nodeName': string
+
+        'parentId': number
+
+        'parentNodeName': string
+
 };
 export type GenesetMolecularData = {
     'geneset': Geneset
@@ -315,14 +315,14 @@ export type TreatmentMolecularData = {
 };
 export type Gistic = {
     'amp': boolean
-    
-    'chromosome': number
-    
-    'cytoband': string
-    
-    'genes': Array < GisticToGene >
-    
-    'qValue': number
+
+        'chromosome': number
+
+        'cytoband': string
+
+        'genes': Array < GisticToGene >
+
+        'qValue': number
 
         'studyId': string
 
@@ -2074,7 +2074,6 @@ export default class CBioPortalAPIInternal {
                 return response.body;
             });
         };
-
     fetchGeneticDataItemsUsingPOSTURL(parameters: {
         'geneticProfileId': string,
         'genesetDataFilterCriteria': GenesetDataFilterCriteria,
