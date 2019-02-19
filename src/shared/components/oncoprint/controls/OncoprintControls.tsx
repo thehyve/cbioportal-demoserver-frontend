@@ -615,29 +615,30 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 onItemRemove={this.onTreatmentRemoved}
                             />,
                             <button
-                                key="addGenesToHeatmapButton"
-                                className="btn btn-sm btn-default"
-                                name={EVENT_KEY.addGenesToHeatmap}
-                                onClick={this.onButtonClick}
-                             >Add Genes to Heatmap</button>,
+                            key="addGenesToHeatmapButton"
+                            className="btn btn-sm btn-default"
+                            name={EVENT_KEY.addTreatmentsToHeatmap}
+                            onClick={this.onButtonClick}
+                            >Add Treatments to Heatmap</button>
+                            ]
+                        }
 
-                            <button
-                                key="removeHeatmapButton"
-                                className="btn btn-sm btn-default"
-                                name={EVENT_KEY.removeHeatmap}
-                                onClick={this.onButtonClick}
-                            >Remove Heatmap</button>
-                        ]}
+                        <button
+                            key="removeHeatmapButton"
+                            className="btn btn-sm btn-default"
+                            name={EVENT_KEY.removeHeatmap}
+                            onClick={this.onButtonClick}
+                        >Remove Heatmap</button>
 
                         {!this.props.state.hideClusterHeatmapButton &&
                             (<button
                                 data-test="clusterHeatmapBtn"
-                                 className={classNames("btn", "btn-sm", "btn-default", {active:this.props.state.clusterHeatmapButtonActive})}
-                                 name={EVENT_KEY.sortByHeatmapClustering}
-                                 onClick={this.onButtonClick}
-                             >Cluster Heatmap</button>)
+                                className={classNames("btn", "btn-sm", "btn-default", { active: this.props.state.clusterHeatmapButtonActive })}
+                                name={EVENT_KEY.sortByHeatmapClustering}
+                                onClick={this.onButtonClick}
+                            >Cluster Heatmap</button>)
                         }
-                    </div>
+                </div>
                 );
             }
         } else if (this.props.state.heatmapProfilesPromise.isError) {
