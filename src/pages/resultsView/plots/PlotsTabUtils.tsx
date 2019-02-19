@@ -1184,7 +1184,7 @@ export function makeScatterPlotPointAppearance(
                 const defaultAppearance = mutationSummaryToAppearance[MutationSummary.Neither];
                 return Object.assign({}, defaultAppearance, truncAppearance);
             }
-        case ViewType.MutationType:
+        case ViewType.MutationSummary:
             if (mutationDataExists.isComplete && mutationDataExists.result) {
                 return (d:IPlotSampleData)=>{
                     if (!d.profiledMutations) {
