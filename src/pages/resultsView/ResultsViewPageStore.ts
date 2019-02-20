@@ -2190,12 +2190,12 @@ export class ResultsViewPageStore {
             this.treatmentCache.addData(treatments);
         }
     });
-
+    
     readonly selectedTreatments = remoteData<Treatment[]>({
         await: ()=>[this.treatments],
         invoke: () => {
             const treatmentIdFromUrl =  this.rvQuery.treatmentIds;
-            return Promise.resolve(_.filter(this.treatments.result, (d:Treatment) => { treatmentIdFromUrl.includes(d.treatmentId) } ));
+            return Promise.resolve(_.filter(this.treatments.result!, (d:Treatment) => treatmentIdFromUrl.includes(d.treatmentId)));
         }
     });
 

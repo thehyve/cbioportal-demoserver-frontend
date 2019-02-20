@@ -61,7 +61,7 @@ import TablePlot from "shared/components/plots/TablePlot";
 import LoadingIndicator from "shared/components/loadingIndicator/LoadingIndicator";
 import InfoIcon from "../../../shared/components/InfoIcon";
 import {remoteData} from "../../../shared/api/remoteData";
-import {SortOrder} from "../../../shared/api/generated/CBioPortalAPIInternal";
+import {SortOrder, Treatment} from "../../../shared/api/generated/CBioPortalAPIInternal";
 import DownloadControls from "../../../shared/components/downloadControls/DownloadControls";
 import DefaultTooltip from "../../../shared/components/defaultTooltip/DefaultTooltip";
 import setWindowVariable from "../../../shared/lib/setWindowVariable";
@@ -833,7 +833,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         await:()=>[this.props.store.selectedTreatments],
         invoke:()=>{
             return Promise.resolve(
-                this.props.store.selectedTreatments.result!.map(treatment=>({ value: treatment.treatmentId, label: treatment.name }))
+                this.props.store.selectedTreatments.result!.map((treatment:Treatment)=>({ value: treatment.treatmentId, label: treatment.name }))
             );
         }
     });
