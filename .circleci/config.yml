@@ -57,68 +57,125 @@ jobs:
           paths:
             - repo
 
-  api_sync:
-    <<: *defaults
-    steps:
-      - attach_workspace:
-          at: /tmp/
-      # check that all api responses are still the same
-      - run: "bash src/test/check_api_sync.sh"
+#   api_sync:
+#     <<: *defaults
+#     steps:
+#       - attach_workspace:
+#           at: /tmp/
+#       # check that all api responses are still the same
+#       - run: "bash src/test/check_api_sync.sh"
 
-  unit_tests:
-    <<: *defaults
-    steps:
-      - run:
-          name: "Install yarn at specific version"
-          command:
-            sudo npm install --global yarn@1.13.0
-      - attach_workspace:
-          at: /tmp/
-      # run tests!
-      - run:
-          command: "yarn run test"
-          environment:
-            JUNIT_REPORT_PATH: ./junit/
-            JUNIT_REPORT_NAME: test-results.xml
-          when: always
-      - store_test_results:
-          path: /tmp/repo/junit
-      - store_artifacts:
-          path: /tmp/repo/junit
+#   unit_tests:
+#     <<: *defaults
+#     steps:
+#       - run:
+#           name: "Install yarn at specific version"
+#           command:
+#             sudo npm install --global yarn@1.13.0
+#       - attach_workspace:
+#           at: /tmp/
+#       # run tests!
+#       - run:
+#           command: "yarn run test"
+#           environment:
+#             JUNIT_REPORT_PATH: ./junit/
+#             JUNIT_REPORT_NAME: test-results.xml
+#           when: always
+#       - store_test_results:
+#           path: /tmp/repo/junit
+#       - store_artifacts:
+#           path: /tmp/repo/junit
 
   end_to_end_tests:
     <<: *defaults
     steps:
       - run:
           name: "Install yarn at specific version"
-          command:
+          command: |
             sudo npm install --global yarn@1.13.0
       - attach_workspace:
           at: /tmp/
+    #   - run:
+    #       name: "Spin up frontend over ssl if necessary and run end-to-end tests"    
+    #       command: |
+    #         yarn serveDist & \
+    #         cd end-to-end-tests && \
+    #         yarn install --frozen-lockfile && \
+    #         ./node_modules/webdriver-manager/bin/webdriver-manager update --versions.chrome '2.42' && \
+    #         ./node_modules/webdriver-manager/bin/webdriver-manager start --versions.chrome '2.42' & \
+    #         ./scripts/env_vars.sh && \
+    #         eval "$(./scripts/env_vars.sh)" && \
+    #         curl $CBIOPORTAL_URL > /dev/null && \
+    #         sleep 5s && \
+    #         curl $CBIOPORTAL_URL > /dev/null && \
+    #         sleep 5s && \
+    #         curl $CBIOPORTAL_URL > /dev/null && \
+    #         sleep 20s && \
+    #         (curl --insecure https://localhost:3000 || curl http://localhost:3000) > /dev/null && \
+    #         sleep 1s && \
+    #         cd end-to-end-tests && \
+    #         yarn run test-webdriver-manager
+    #       environment:
+    #         DIFF_SCREENSHOT_DIR_NAME: diff
+    #         JUNIT_REPORT_PATH: ./junit/
+    #         FRONTEND_TEST_USE_LOCAL_DIST: true
+        #   when: always
+    #   - run:
+    #         name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against backend version specified in the PR"    
+    #         command:
+    #             yarn serveDist & \
+    #             cd end-to-end-tests && \
+    #             yarn install --frozen-lockfile && \
+    #             ./node_modules/webdriver-manager/bin/webdriver-manager update --versions.chrome '2.42' && \
+    #             ./node_modules/webdriver-manager/bin/webdriver-manager start --versions.chrome '2.42' & \
+    #             curl $CBIOPORTAL_URL > /dev/null && \
+    #             sleep 5s && \
+    #             curl $CBIOPORTAL_URL > /dev/null && \
+    #             sleep 5s && \
+    #             curl $CBIOPORTAL_URL > /dev/null && \
+    #             sleep 20s && \
+    #             (curl --insecure https://localhost:3000 || curl http://localhost:3000) > /dev/null && \
+    #             sleep 1s && \
+    #             cd end-to-end-tests/local_database/runtime-config && \
+    #             setup_environment.sh && \
+    #             cd end-to-end-tests && \
+    #             local_database/docker/setup_dockers.sh && \
+    #             yarn run test-webdriver-manager
+    #       environment:
+    #         CBIOPORTAL_URL: https//localhost:8081
+    #         DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
+    #         SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
+    #         JUNIT_REPORT_PATH: ./junit/
+    #         FRONTEND_TEST_USE_LOCAL_DIST: true
+    #       when: always
       - run:
-          name: "Spin up frontend over ssl if necessary and run end to end tests"
-          command: |
-            yarn serveDist & \
-            cd end-to-end-tests && \
-            yarn install --frozen-lockfile && \
-            ./node_modules/webdriver-manager/bin/webdriver-manager update --versions.chrome '2.42' && \
-            ./node_modules/webdriver-manager/bin/webdriver-manager start --versions.chrome '2.42' & \
-            ./scripts/env_vars.sh && \
-            eval "$(./scripts/env_vars.sh)" && \
-            curl $CBIOPORTAL_URL > /dev/null && \
-            sleep 5s && \
-            curl $CBIOPORTAL_URL > /dev/null && \
-            sleep 5s && \
-            curl $CBIOPORTAL_URL > /dev/null && \
-            sleep 20s && \
-            (curl --insecure https://localhost:3000 || curl http://localhost:3000) > /dev/null && \
-            sleep 1s && \
-            cd end-to-end-tests && \
-            yarn run test-webdriver-manager
+            name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against reference backend version (master or rc)"    
+            command:
+                yarn serveDist & \
+                cd end-to-end-tests && \
+                yarn install --frozen-lockfile && \
+                ./node_modules/webdriver-manager/bin/webdriver-manager update --versions.chrome '2.42' && \
+                ./node_modules/webdriver-manager/bin/webdriver-manager start --versions.chrome '2.42' & \
+                curl $CBIOPORTAL_URL > /dev/null && \
+                sleep 5s && \
+                curl $CBIOPORTAL_URL > /dev/null && \
+                sleep 5s && \
+                curl $CBIOPORTAL_URL > /dev/null && \
+                sleep 20s && \
+                (curl --insecure https://localhost:3000 || curl http://localhost:3000) > /dev/null && \
+                sleep 1s && \
+                cd end-to-end-tests/local_database/runtime-config && \
+                setup_environment.sh $BACKEND_REF_FLAG && \
+                cd end-to-end-tests && \
+                local_database/docker/setup_dockers.sh && \
+                yarn run test-webdriver-manager
           environment:
+            REF_BACKEND_FLAG: -r
+            CBIOPORTAL_URL: https//localhost:8081
+            DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
+            SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
             JUNIT_REPORT_PATH: ./junit/
             FRONTEND_TEST_USE_LOCAL_DIST: true
-          when: always
       - run:
           name: "Make sure all screenshots are tracked (otherwise the test will always be successful)"
           command: 'for f in end-to-end-tests/screenshots/reference/*.png; do git ls-files --error-unmatch $f > /dev/null 2> /dev/null || (echo -e "\033[0;31m $f not tracked \033[0m" && touch screenshots_not_tracked); done; ls screenshots_not_tracked > /dev/null 2> /dev/null && exit 1 || exit 0'
