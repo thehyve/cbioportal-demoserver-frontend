@@ -2,7 +2,7 @@ import * as React from "react";
 import {observer, Observer} from "mobx-react";
 import {Button, ButtonGroup} from "react-bootstrap";
 import CustomDropdown from "./CustomDropdown";
-import ReactSelect from "react-select-checked";
+import ReactSelect from "react-select";
 import {MobxPromise} from "mobxpromise";
 import {computed, IObservableObject, observable, ObservableMap, reaction} from "mobx";
 import _ from "lodash";
@@ -587,6 +587,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                     options={this.treatmentSelectOptions}
                                     value={this._selectedTreatmentOptions}
                                     onChange={this.onSelectTreatments}
+                                    addAllTitle={"Select all"}
                                 />
                             </div>,
                             <TextIconArea
