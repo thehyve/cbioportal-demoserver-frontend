@@ -353,12 +353,12 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                 break;
             case EVENT_KEY.addTreatmentsToHeatmap:
                 this.props.handlers.onClickAddTreatmentsToHeatmap &&
-                 this.props.handlers.onClickAddTreatmentsToHeatmap(_.map(this._selectedTreatmentOptions,'value'));
-                this._selectedTreatmentOptions = [];
+                this.props.handlers.onClickAddTreatmentsToHeatmap(_.map(this._selectedTreatmentOptions,'value'));
                 break;
-            case EVENT_KEY.removeHeatmap:
+                case EVENT_KEY.removeHeatmap:
                 this.props.handlers.onClickRemoveHeatmap &&
                 this.props.handlers.onClickRemoveHeatmap();
+                this._selectedTreatmentOptions = [];
                 break;
             case EVENT_KEY.downloadSVG:
                 this.props.handlers.onClickDownload &&
