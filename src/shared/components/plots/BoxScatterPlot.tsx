@@ -15,6 +15,9 @@ import {tickFormatNumeral, wrapTick} from "./TickUtils";
 import {makeScatterPlotSizeFunction} from "./PlotUtils";
 import {getTextWidth} from "../../lib/wrapText";
 import autobind from "autobind-decorator";
+import { dataPointIsTruncated } from 'shared/components/plots/PlotUtils';
+import _ from "lodash";
+import { IBoxScatterPlotPoint } from '../../../../target/classes/tsDist/pages/resultsView/plots/PlotsTabUtils';
 
 export interface IBaseBoxScatterPlotPoint {
     value:number;
@@ -45,6 +48,7 @@ export interface IBoxScatterPlotProps<D extends IBaseBoxScatterPlotPoint> {
     tooltip?:(d:D)=>JSX.Element;
     legendData?:{name:string|string[], symbol:any}[]; // see http://formidable.com/open-source/victory/docs/victory-legend/#data
     logScale?:boolean; // log scale along the point data axis
+    excludeTruncatedValuesFromBoxPlot?:boolean;
     axisLabelX?:string;
     axisLabelY?:string;
     horizontal?:boolean; // whether the box plot is horizontal
@@ -525,7 +529,17 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
 
     @computed get boxPlotData():BoxModel[] {
         const boxCalculationFilter = this.props.boxCalculationFilter;
-        return this.props.data.map(d=>calculateBoxPlotModel(d.data.reduce((data, next)=>{
+
+        // when truncated values are shown in the legend, exclude
+        // these points from influencing the shape of the box plots
+        let boxData = _.cloneDeep(this.props.data);
+        if (this.props.excludeTruncatedValuesFromBoxPlot) {
+            _.each(boxData, (o:IBoxScatterPlotData<D>) => {
+                 o.data = _.filter(o.data, (p:IBoxScatterPlotPoint) => ! dataPointIsTruncated(p) );
+            })
+        }
+
+        return boxData.map(d=>calculateBoxPlotModel(d.data.reduce((data, next)=>{
             if (!boxCalculationFilter || (boxCalculationFilter && boxCalculationFilter(next))) {
                 // filter out values in calculating boxes, if a filter is specified ^^
                 if (this.props.logScale) {
