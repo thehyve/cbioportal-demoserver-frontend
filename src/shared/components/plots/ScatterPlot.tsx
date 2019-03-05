@@ -200,7 +200,6 @@ export default class ScatterPlot<D extends IBaseScatterPlotData> extends React.C
 
         // when truncated values are shown in the legend, exclude
         // these points from calculations of correlation coefficients
-        // TODO: decide whether this is the correct logic
         let data = this.props.excludeTruncatedValuesFromCalculation?
             _.filter(this.props.data, dataPointIsTruncated)
             :

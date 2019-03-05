@@ -2125,6 +2125,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     fillOpacity={this.scatterPlotFillOpacity}
                                     strokeWidth={this.scatterPlotStrokeWidth}
                                     useLogSpaceTicks={true}
+                                    excludeTruncatedValuesFromBoxPlot={this.truncatedValuesCanBeShown && this.viewTruncatedValues}
                                     legendData={scatterPlotLegendData(
                                         _.flatten(this.boxPlotData.result.data.map(d=>d.data)), this.viewType, PlotType.BoxPlot, this.mutationDataExists, this.cnaDataExists, this.props.store.driverAnnotationSettings.driversAnnotated
                                     )}
