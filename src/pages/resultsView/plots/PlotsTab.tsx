@@ -1671,6 +1671,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                         <div>
                             <label style={{marginBottom:0}}>Color Samples By</label>
                             <div style={{marginLeft:14, marginTop:-4}}>
+                                <label>Color Samples By</label>
                                 {this.mutationDataCanBeShown && (
                                     <div className="checkbox"><label>
                                         <input
@@ -1722,7 +1723,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                             checked={this.viewTruncatedValues}
                                             onClick={this.onInputClick}
                                             disabled={!this.truncatedValuesCanBeShown}
-                                        /> Truncated Value
+                                        /> Limit Value
                                     </label></div>
                                 )}
                              </div>
