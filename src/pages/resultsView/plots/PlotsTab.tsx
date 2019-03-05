@@ -1702,7 +1702,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                         checked={this.viewTruncatedValues}
                                         onClick={this.onInputClick}
                                         disabled={!this.truncatedValuesCanBeShown}
-                                    /> Truncated Value
+                                    /> Limit Value
                                 </label></div>
                             )}
                         </div>
