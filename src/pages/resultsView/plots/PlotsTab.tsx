@@ -405,7 +405,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             },
             set dataType(t:string|undefined) {
                 if (this._dataType !== t) {
-                    this._dataSourceId = undefined;
+                    this._selectedDataSourceOption = undefined;
                 }
                 this._dataType = t;
             },
@@ -1038,7 +1038,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @autobind
     @action
     private swapHorzVertSelections() {
-        const keys:(keyof AxisMenuSelection)[] = ["dataType", "dataSourceId", "logScale", "mutationCountBy"];
+        const keys:(keyof AxisMenuSelection)[] = ["dataType", "selectedDataSourceOption", "logScale", "mutationCountBy"];
         // have to store all values for swap because values depend on each other in derived data way so the copy can mess up if you do it one by one
         const horz = keys.map(k=>this.horzSelection[k]);
         const vert = keys.map(k=>this.vertSelection[k]);
