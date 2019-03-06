@@ -66,7 +66,7 @@ const NUM_AXIS_TICKS = 8;
 const PLOT_DATA_PADDING_PIXELS = 50;
 const MIN_LOG_ARGUMENT = 0.01;
 const LEFT_PADDING = 25;
-const LABEL_OFFSET_FRACTION = .02;
+const LABEL_OFFSET_FRACTION = .01;
 const LABEL_SIZE_MULTIPLIER = 1.5;
 const labelStyle = {
     fill: "#ffffff",
@@ -410,11 +410,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
             // determine direction of offset for symbols (above or below line y=0)
             const labelPos = d.value! <= 0 ? offset : offset*-1;
 
-            if (labelPos > 0) {
-                d.symbol = "triangleDown"
-            } else {
-                d.symbol = "triangleUp"
-            }
+            d.symbol = "plus";
 
             if (this.props.horizontal) {
                 d.searchindicatorx = labelPos;
