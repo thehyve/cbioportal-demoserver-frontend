@@ -89,8 +89,6 @@ export interface IStringAxisData {
         uniqueSampleKey:string;
         value:string | (string[]);
         truncation?:string | undefined;
-        sortOrder?: SortOrder;
-        pivotThreshold?: number;
     }[];
     categoryOrder?:string[];
     hugoGeneSymbol?:string;
@@ -101,8 +99,6 @@ export interface INumberAxisData {
         uniqueSampleKey:string;
         value:number | (number[]);
         truncation?:string | undefined;
-        sortOrder?: SortOrder;
-        pivotThreshold?: number;
     }[];
     hugoGeneSymbol?:string;
     datatype:string;
@@ -1643,8 +1639,6 @@ export function makeWaterfallPlotData(
             sampleId: sample.sampleId,
             studyId: sample.studyId,
             values: ([] as number[]).concat(d.value),
-            sortOrder: d.sortOrder,
-            // pivotThreshold: d.pivotThreshold,
             truncations: ([] as string[]).concat(d.truncation || ""),
             mutations: sampleMutations || [],
             copyNumberAlterations:sampleCopyNumberAlterations || [],
