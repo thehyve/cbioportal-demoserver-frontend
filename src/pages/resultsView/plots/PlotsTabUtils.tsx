@@ -1055,7 +1055,7 @@ const cnaToAppearance = {
 
 export const truncatedValueAppearance = {
     legendLabel: "Truncated value",
-    symbol : "triangleDown"
+    symbol : "diamond"
 };
 
 const cnaCategoryOrder = ["-2", "-1", "0", "1", "2"].map(x=>(cnaToAppearance as any)[x].legendLabel);
