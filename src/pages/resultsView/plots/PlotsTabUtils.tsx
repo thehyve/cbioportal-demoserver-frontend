@@ -1297,7 +1297,6 @@ export function waterfallPlotTooltip(d:IWaterfallPlotData) {
 function generalWaterfallPlotTooltip<D extends IWaterfallPlotData>(
     d:D,
     valueKey:keyof D,
-    pivotKey?:keyof D,
     truncKey?:keyof D
 ) {
     let mutationsSection:any = null;
@@ -1311,14 +1310,12 @@ function generalWaterfallPlotTooltip<D extends IWaterfallPlotData>(
     
     let value:any = d[valueKey];
     value = value.toFixed(4);
-    const pivot:any|undefined = pivotKey ? d[pivotKey] : undefined;
     const trunctation = truncKey && d[truncKey]? d[truncKey] : "";
 
     return (
         <div>
             <a href={getSampleViewUrl(d.studyId, d.sampleId)} target="_blank">{d.sampleId}</a>
-            <div>Value: <span style={{fontWeight:"bold"}}> {trunctation}{value} </span>
-            {pivot && `(pivot-adjusted)`}</div>
+            <div>Value: <span style={{fontWeight:"bold"}}> {trunctation}{value} </span></div>
             {mutationsSection}
             {!!mutationsSection && <br/>}
             {cnaSection}
