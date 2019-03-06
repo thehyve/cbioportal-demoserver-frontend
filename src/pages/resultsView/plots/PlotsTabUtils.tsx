@@ -837,19 +837,7 @@ export function getAxisLabelSuffix(
         logElement = "Log10";
     }
 
-    let pivotElement = "";
-    if (plotType === PlotType.WaterfallPlot
-        && profile.pivotThreshold !== undefined && profile.pivotThreshold !== 0) {
-        pivotElement = "pivot threshold-adjusted";
-    }
-        
-    const joinElement = logElement && pivotElement ? ", ": "";
-
-    if (logElement || pivotElement) {
-        ret += ` (${logElement}${joinElement}${pivotElement})`;
-    }
-
-    return ret;
+    return ` (${logElement})`;
 }
 
 export function getAxisDescription(
