@@ -14,6 +14,7 @@ import {computeCorrelationPValue, makeScatterPlotSizeFunction, separateScatterDa
 import {toConditionalPrecision} from "../../lib/NumberUtils";
 import regression from "regression";
 import {getRegressionComputations} from "./ScatterPlotUtils";
+import { IAxisLogScaleParams } from "pages/resultsView/plots/PlotsTabUtils";
 
 export interface IBaseScatterPlotData {
     x:number;
@@ -44,8 +45,8 @@ export interface IScatterPlotProps<D extends IBaseScatterPlotData> {
         spearman: number;
     };
     showRegressionLine?:boolean;
-    logX?:boolean;
-    logY?:boolean;
+    logX?:IAxisLogScaleParams;
+    logY?:IAxisLogScaleParams;
     excludeTruncatedValuesFromCalculation?:boolean;
     useLogSpaceTicks?:boolean; // if log scale for an axis, then this prop determines whether the ticks are shown in post-log coordinate, or original data coordinate space
     axisLabelX?:string;
@@ -59,7 +60,6 @@ export const LEGEND_Y = CORRELATION_INFO_Y + 90; /* 90 ≈ approximate correlati
 const RIGHT_PADDING = 120; // room for correlation info and legend
 const NUM_AXIS_TICKS = 8;
 const PLOT_DATA_PADDING_PIXELS = 50;
-const MIN_LOG_ARGUMENT = 0.01;
 const LEFT_PADDING = 25;
 
 @observer
@@ -232,12 +232,12 @@ export default class ScatterPlot<D extends IBaseScatterPlotData> extends React.C
             min.y = Math.min(d.y, min.y);
         }
         if (this.props.logX) {
-            min.x = this.logScale(min.x);
-            max.x = this.logScale(max.x);
+            min.x = this.props.logX.fLogScale(min.x, 0);
+            max.x = this.props.logX.fLogScale(max.x, 0);
         }
         if (this.props.logY) {
-            min.y = this.logScale(min.y);
-            max.y = this.logScale(max.y);
+            min.y = this.props.logY.fLogScale(min.y, 0);
+            max.y = this.props.logY.fLogScale(max.y, 0);
         }
         return {
             x: [min.x, max.x],
@@ -252,10 +252,10 @@ export default class ScatterPlot<D extends IBaseScatterPlotData> extends React.C
             let x = this.splitData.x;
             let y = this.splitData.y;
             if (this.props.logX) {
-                x = x.map(d=>this.logScale(d));
+                x = x.map(d=>this.props.logX!.fLogScale(d, 0));
             }
             if (this.props.logY) {
-                y = y.map(d=>this.logScale(d));
+                y = y.map(d=>this.props.logY!.fLogScale(d, 0));
             }
             return jStat.corrcoeff(x, y);
         }
@@ -290,18 +290,10 @@ export default class ScatterPlot<D extends IBaseScatterPlotData> extends React.C
         return this.props.chartHeight;
     }
 
-    private logScale(x:number) {
-        return Math.log2(Math.max(x, MIN_LOG_ARGUMENT));
-    }
-
-    private invLogScale(x:number) {
-        return Math.pow(2, x);
-    }
-
     @bind
     private x(d:D) {
         if (this.props.logX) {
-            return this.logScale(d.x);
+            return this.props.logX!.fLogScale(d.x, 0);
         } else {
             return d.x;
         }
@@ -310,7 +302,7 @@ export default class ScatterPlot<D extends IBaseScatterPlotData> extends React.C
     @bind
     private y(d:D) {
         if (this.props.logY) {
-            return this.logScale(d.y);
+            return this.props.logY!.fLogScale(d.y, 0);
         } else {
             return d.y;
         }
@@ -323,22 +315,22 @@ export default class ScatterPlot<D extends IBaseScatterPlotData> extends React.C
         return makeScatterPlotSizeFunction(highlight, size);
     }
 
-    private tickFormat(t:number, ticks:number[], logScale:boolean) {
-        if (logScale && !this.props.useLogSpaceTicks) {
-            t = this.invLogScale(t);
-            ticks = ticks.map(x=>this.invLogScale(x));
+    private tickFormat(t:number, ticks:number[], logScaleFunc:IAxisLogScaleParams|undefined) {
+        if (logScaleFunc && !this.props.useLogSpaceTicks) {
+            t = logScaleFunc.fInvLogScale(t);
+            ticks = ticks.map(x=>logScaleFunc.fInvLogScale(x));
         }
         return tickFormatNumeral(t, ticks);
     }
 
     @bind
     private tickFormatX(t:number, i:number, ticks:number[]) {
-        return this.tickFormat(t, ticks, !!this.props.logX);
+        return this.tickFormat(t, ticks, this.props.logX);
     }
 
     @bind
     private tickFormatY(t:number, i:number, ticks:number[]) {
-        return this.tickFormat(t, ticks, !!this.props.logY);
+        return this.tickFormat(t, ticks, this.props.logY);
     }
 
     @computed get data() {

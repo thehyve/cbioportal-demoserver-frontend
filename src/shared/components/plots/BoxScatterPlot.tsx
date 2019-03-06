@@ -18,6 +18,7 @@ import autobind from "autobind-decorator";
 import { dataPointIsTruncated } from 'shared/components/plots/PlotUtils';
 import _ from "lodash";
 import { IBoxScatterPlotPoint } from '../../../../target/classes/tsDist/pages/resultsView/plots/PlotsTabUtils';
+import { IAxisLogScaleParams } from "pages/resultsView/plots/PlotsTabUtils";
 
 export interface IBaseBoxScatterPlotPoint {
     value:number;
@@ -47,7 +48,7 @@ export interface IBoxScatterPlotProps<D extends IBaseBoxScatterPlotPoint> {
     symbol?: string | ((d:D)=>string); // see http://formidable.com/open-source/victory/docs/victory-scatter/#symbol for options
     tooltip?:(d:D)=>JSX.Element;
     legendData?:{name:string|string[], symbol:any}[]; // see http://formidable.com/open-source/victory/docs/victory-legend/#data
-    logScale?:boolean; // log scale along the point data axis
+    logScale?:IAxisLogScaleParams; // log scale along the point data axis
     excludeTruncatedValuesFromBoxPlot?:boolean;
     axisLabelX?:string;
     axisLabelY?:string;
@@ -71,7 +72,6 @@ type BoxModel = {
 const RIGHT_GUTTER = 120; // room for legend
 const NUM_AXIS_TICKS = 8;
 const PLOT_DATA_PADDING_PIXELS = 100;
-const MIN_LOG_ARGUMENT = 0.01;
 const CATEGORY_LABEL_HORZ_ANGLE = 50;
 const DEFAULT_LEFT_PADDING = 25;
 const DEFAULT_BOTTOM_PADDING = 10;
@@ -248,8 +248,8 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
             }
         }
         if (this.props.logScale) {
-            min = this.logScale(min);
-            max = this.logScale(max);
+            min = this.props.logScale.fLogScale(min, 0);
+            max = this.props.logScale.fLogScale(max, 0);
         }
         if (this.props.startDataAxisAtZero) {
             min = Math.min(0, min);
@@ -344,7 +344,7 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
     @bind
     private scatterPlotX(d:IBaseScatterPlotData & D) {
         if (this.props.logScale && this.props.horizontal) {
-            return this.logScale(d.x);
+            return this.props.logScale.fLogScale(d.x, 0);
         } else {
             let jitter = 0;
             if (!this.props.horizontal) {
@@ -361,7 +361,7 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
     @bind
     private scatterPlotY(d:IBaseScatterPlotData & D) {
         if (this.props.logScale && !this.props.horizontal) {
-            return this.logScale(d.y);
+            return this.props.logScale.fLogScale(d.y, 0);
         } else {
             let jitter = 0;
             if (this.props.horizontal) {
@@ -394,7 +394,7 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
 
     @bind
     private formatNumericalTick(t:number, i:number, ticks:number[]) {
-        return tickFormatNumeral(t, ticks, (this.props.logScale && !this.props.useLogSpaceTicks) ? x=>this.invLogScale(x) : undefined);
+        return tickFormatNumeral(t, ticks, (this.props.logScale && !this.props.useLogSpaceTicks) ? this.props.logScale.fInvLogScale : undefined);
     }
 
     @computed get horzAxis() {
@@ -511,14 +511,6 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
         }
     }
 
-    private logScale(x:number) {
-        return Math.log2(Math.max(x, MIN_LOG_ARGUMENT));
-    }
-
-    private invLogScale(x:number) {
-        return Math.pow(2, x);
-    }
-
     private categoryCoord(index:number) {
         return index * (this.boxWidth + this.boxSeparation); // half box + separation + half box
     }
@@ -543,7 +535,7 @@ export default class BoxScatterPlot<D extends IBaseBoxScatterPlotPoint> extends 
             if (!boxCalculationFilter || (boxCalculationFilter && boxCalculationFilter(next))) {
                 // filter out values in calculating boxes, if a filter is specified ^^
                 if (this.props.logScale) {
-                    data.push(this.logScale(next.value));
+                    data.push(this.props.logScale.fLogScale(next.value, 0));
                 } else {
                     data.push(next.value);
                 }

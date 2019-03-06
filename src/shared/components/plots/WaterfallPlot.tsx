@@ -10,7 +10,7 @@ import { makeScatterPlotSizeFunction as makePlotSizeFunction, dataPointIsTruncat
 import { SortOrder } from "../../api/generated/CBioPortalAPIInternal";
 import WaterfallPlotTooltip from "./WaterfallPlotTooltip";
 import { tickFormatNumeral } from "./TickUtils";
-import { IWaterfallPlotData, IAxisLogScaleFunction } from "pages/resultsView/plots/PlotsTabUtils";
+import { IWaterfallPlotData, IAxisLogScaleParams } from "pages/resultsView/plots/PlotsTabUtils";
 import LetterIcon from "../cohort/LetterIcon";
 
 // TODO make distinction between public and internal interface for waterfall plot data
@@ -51,7 +51,7 @@ export interface IWaterfallPlotProps<D extends IBaseWaterfallPlotData> {
     tooltip?:(d:D)=>JSX.Element;
     horizontal:boolean;
     legendData?:{name:string|string[], symbol:any}[]; // see http://formidable.com/open-source/victory/docs/victory-legend/#data
-    log?:IAxisLogScaleFunction;
+    log?:IAxisLogScaleParams;
     useLogSpaceTicks?:boolean; // if log scale for an axis, then this prop determines whether the ticks are shown in post-log coordinate, or original data coordinate space
     axisLabel?:string;
     fontFamily?:string;
@@ -230,19 +230,6 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return this.props.chartHeight;
     }
 
-    private log10Scale(x:number, offset:number) {
-        // for log transformation one should handle negative numbers
-        // this is done by removal and readdition of the sign
-        if (offset === undefined) {
-            offset = 0;
-        }
-        return Math.log10(x+offset);
-    }
-
-    private invLog10Scale(x:number) {
-        return Math.pow(10, x);
-    }
-
     @bind
     private datumAccessorY(d:IBaseWaterfallPlotData) {
         return d.value;
@@ -285,10 +272,10 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return makePlotSizeFunction(highlight, size);
     }
 
-    private tickFormat(t:number, ticks:number[], logScale:boolean) {
-        if (logScale && !this.props.useLogSpaceTicks) {
-            t = this.invLog10Scale(t);
-            ticks = ticks.map(x=>this.invLog10Scale(x));
+    private tickFormat(t:number, ticks:number[], logScaleFunc:IAxisLogScaleParams|undefined) {
+        if (logScaleFunc && !this.props.useLogSpaceTicks) {
+            t = logScaleFunc.fInvLogScale(t);
+            ticks = ticks.map(x=>logScaleFunc.fInvLogScale(x));
         }
         return tickFormatNumeral(t, ticks);
     }
@@ -296,7 +283,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
     @bind
     private tickFormatX(t:number, i:number, ticks:number[]) {
         if (this.props.horizontal) {
-            return this.tickFormat(t, ticks, !!this.props.log);
+            return this.tickFormat(t, ticks, this.props.log);
         }
         return undefined;
     }
@@ -306,12 +293,12 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         if (this.props.horizontal) {
             return undefined;
         }
-        return this.tickFormat(t, ticks, !!this.props.log);
+        return this.tickFormat(t, ticks, this.props.log);
     }
 
     @computed get internalData() {
 
-        const doLogTransformation:boolean = this.props.log || false;
+        const logTransFormFunc = this.props.log;
 
         let dataPoints = _.cloneDeep(this.props.data);
 
@@ -334,9 +321,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
         // add offset to data points and log-transform when applicable
         _.each(dataPoints, (d:IBaseWaterfallPlotData) => {
-            d.offset = doLogTransformation? this.log10Scale(offset, logOffset):offset;
-            // d.offset = offset;
-            d.value = doLogTransformation? this.log10Scale(d.value, logOffset):d.value;
+            d.offset = logTransFormFunc? logTransFormFunc.fLogScale(offset, logOffset):offset;
+            d.value = logTransFormFunc?  logTransFormFunc.fLogScale(d.value, logOffset):d.value;
         });
 
         // add style information to each point
