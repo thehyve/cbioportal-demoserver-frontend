@@ -48,7 +48,7 @@ import {
     getWaterfallPlotDownloadData, 
     WATERFALLPLOT_BASE_SIDELENGTH,
     WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR,
-    getAxisLabelSuffix
+    IAxisLogScaleParams
 } from "./PlotsTabUtils";
 import {
     ClinicalAttribute, MolecularProfile, Mutation,
@@ -1224,26 +1224,16 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
                 this.props.store.entrezGeneIdToGene.result!,
                 this.clinicalAttributeIdToClinicalAttribute.result!,
-                this.plotType.result!,
-                this.horzSelection.logScale
+                this.horzLogScaleFunction
             ));
         }
     });
-
-    @computed get horzLabelLogSuffix() {
-        if (this.horzSelection.logScale) {
-            return " (log2)";
-        } else {
-            return "";
-        }
-    }
 
     readonly vertLabel = remoteData({
         await:()=>[
             this.props.store.molecularProfileIdToMolecularProfile,
             this.props.store.entrezGeneIdToGene,
-            this.clinicalAttributeIdToClinicalAttribute,
-            this.plotType
+            this.clinicalAttributeIdToClinicalAttribute
         ],
         invoke:()=>{
             return Promise.resolve(getAxisLabel(
@@ -1251,51 +1241,28 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
                 this.props.store.entrezGeneIdToGene.result!,
                 this.clinicalAttributeIdToClinicalAttribute.result!,
-                this.plotType.result!,
-                this.vertSelection.logScale
+                this.vertLogScaleFunction
             ));
         }
     });
-
-    @computed get vertLabelLogSuffix() {
-        if (this.vertSelection.logScale) {
-            return " (log2)";
-        } else {
-            return "";
-        }
-    }
 
     readonly waterfallLabel = remoteData({
         await:()=>[
             this.props.store.molecularProfileIdToMolecularProfile,
             this.props.store.entrezGeneIdToGene,
-            this.clinicalAttributeIdToClinicalAttribute
+            this.clinicalAttributeIdToClinicalAttribute,
+            this.plotType
         ],
         invoke:()=>{
             const selection = this.isHorizontalWaterfallPlot? this.horzSelection: this.vertSelection;
+            const logScaleFunc = this.isHorizontalWaterfallPlot? this.horzLogScaleFunction: this.vertLogScaleFunction;
 
             return Promise.resolve(getAxisLabel(
                 selection,
                 this.props.store.molecularProfileIdToMolecularProfile.result!,
                 this.props.store.entrezGeneIdToGene.result!,
                 this.clinicalAttributeIdToClinicalAttribute.result!,
-                PlotType.WaterfallPlot,
-                selection.logScale
-            ));
-        }
-    });
-
-    readonly waterfallLabelSuffix = remoteData({
-        await:()=>[
-            this.props.store.molecularProfileIdToMolecularProfile,
-        ],
-        invoke:()=>{
-            const selection = this.isHorizontalWaterfallPlot? this.horzSelection: this.vertSelection;
-            return Promise.resolve(getAxisLabelSuffix(
-                selection,
-                this.props.store.molecularProfileIdToMolecularProfile.result!,
-                PlotType.WaterfallPlot,
-                selection.logScale
+                logScaleFunc
             ));
         }
     });
@@ -1992,6 +1959,54 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     }
 
+    @computed get horzLogScaleFunction():IAxisLogScaleParams|undefined {
+        return this.makeAxisLogScaleFunction(this.horzSelection);
+    }
+
+    @computed get vertLogScaleFunction():IAxisLogScaleParams|undefined {
+        return this.makeAxisLogScaleFunction(this.vertSelection);
+    }
+
+    private makeAxisLogScaleFunction(axisSelection:AxisMenuSelection):IAxisLogScaleParams|undefined {
+
+        const MIN_LOG_ARGUMENT = 0.01;
+
+        if (!axisSelection.logScale) {
+            return undefined;
+        }
+
+        let label;          // suffix that will appear in the axis label
+        let fLogScale;     // function for (log-)transforming a value
+        let fInvLogScale;  // function for back-transforming a value transformed with fLogScale
+
+        // log-transformation parameters for non-treatment reponse 
+        // profile data Note: log2-transformation is used by default
+        if(axisSelection.dataType !== AlterationTypeConstants.TREATMENT_RESPONSE) {
+            
+            label = "log2";
+            fLogScale = (x:number, offset:number) => Math.log2(Math.max(x, MIN_LOG_ARGUMENT));
+            fInvLogScale = (x:number) => Math.pow(2, x);
+            
+        // log-transformation parameters for treatment reponse
+        // profile data Note: log10-transformation is used for treatments
+        } else {
+            
+            label = "log10";
+            fLogScale = (x:number, offset:number) => {
+                // for log transformation one should be able to handle negative values;
+                // this is done by pre-application of a externally provided offset.
+                if (offset === undefined) {
+                    offset = 0;
+                }
+                return Math.log10(x+offset);
+            };
+            fInvLogScale = (x:number) => Math.pow(10, x);
+            
+        }
+
+        return {label, fLogScale, fInvLogScale};
+    }
+
     @computed get plot() {
         const promises = [this.plotType, this.horzAxisDataPromise, this.vertAxisDataPromise, this.horzLabel, this.vertLabel];
         const groupStatus = getMobxPromiseGroupStatus(...promises);
@@ -2046,16 +2061,16 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                             plotElt = (
                                 <PlotsTabScatterPlot
                                     svgId={SVG_ID}
-                                    axisLabelX={this.horzLabel.result! + this.horzLabelLogSuffix}
-                                    axisLabelY={this.vertLabel.result! + this.vertLabelLogSuffix}
+                                    axisLabelX={this.horzLabel.result!}
+                                    axisLabelY={this.vertLabel.result!}
                                     data={this.scatterPlotData.result}
                                     size={scatterPlotSize}
                                     chartWidth={PLOT_SIDELENGTH}
                                     chartHeight={PLOT_SIDELENGTH}
                                     tooltip={this.scatterPlotTooltip}
                                     highlight={this.scatterPlotHighlight}
-                                    logX={this.horzSelection.logScale}
-                                    logY={this.vertSelection.logScale}
+                                    logX={this.horzLogScaleFunction}
+                                    logY={this.vertLogScaleFunction}
                                     fill={this.scatterPlotFill}
                                     stroke={this.scatterPlotStroke}
                                     strokeOpacity={this.scatterPlotStrokeOpacity}
@@ -2084,14 +2099,14 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                 <PlotsTabWaterfallPlot
                                     svgId={SVG_ID}
                                     title={this.waterfallPlotTitle}
-                                    axisLabel={this.waterfallLabel.result! + this.waterfallLabelSuffix.result!}
+                                    axisLabel={this.waterfallLabel.result!}
                                     data={this.waterfallPlotData.result.data}
                                     size={scatterPlotSize}
                                     chartWidth={this.waterfallPlotWidth}
                                     chartHeight={this.waterfallPlotHeigth}
                                     tooltip={this.waterfallPlotTooltip}
                                     highlight={this.scatterPlotHighlight}
-                                    log={useLogScale}
+                                    log={horizontal ? this.horzLogScaleFunction : this.vertLogScaleFunction}
                                     horizontal={horizontal}
                                     fill={this.waterfallPlotColor}
                                     fillOpacity={1}
@@ -2123,14 +2138,14 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     svgId={SVG_ID}
                                     domainPadding={75}
                                     boxWidth={this.boxPlotBoxWidth}
-                                    axisLabelX={this.horzLabel.result! + (horizontal ? this.horzLabelLogSuffix : "")}
-                                    axisLabelY={this.vertLabel.result! + (!horizontal ? this.vertLabelLogSuffix : "")}
+                                    axisLabelX={this.horzLabel.result!}
+                                    axisLabelY={this.vertLabel.result!}
                                     data={this.boxPlotData.result.data}
                                     chartBase={550}
                                     tooltip={this.boxPlotTooltip}
                                     highlight={this.scatterPlotHighlight}
                                     horizontal={horizontal}
-                                    logScale={horizontal ? this.horzSelection.logScale : this.vertSelection.logScale}
+                                    logScale={horizontal ? this.horzLogScaleFunction : this.vertLogScaleFunction}
                                     size={scatterPlotSize}
                                     fill={this.scatterPlotFill}
                                     stroke={this.scatterPlotStroke}

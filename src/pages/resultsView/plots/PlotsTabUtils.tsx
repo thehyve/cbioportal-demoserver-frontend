@@ -147,6 +147,11 @@ export interface IWaterfallPlotSampleData extends IPlotSampleData {
 export interface IScatterPlotData extends IPlotSampleData, IBaseScatterPlotData {};
 export interface IWaterfallPlotData extends IWaterfallPlotSampleData, IBaseWaterfallPlotData {};
 
+export interface IAxisLogScaleParams {
+    label:string;
+    fLogScale:((x:number, offset:number)=>number);
+    fInvLogScale:((x:number)=>number);
+}
 
 export function isStringData(d:IAxisData): d is IStringAxisData {
     return d.datatype === "string";
@@ -780,28 +785,31 @@ export function getAxisLabel(
     molecularProfileIdToMolecularProfile:{[molecularProfileId:string]:MolecularProfile},
     entrezGeneIdToGene:{[entrezGeneId:number]:Gene},
     clinicalAttributeIdToClinicalAttribute:{[clinicalAttributeId:string]:ClinicalAttribute},
-    plotType:PlotType,
-    logScale:boolean
+    logScaleFunc:IAxisLogScaleParams|undefined
 ) {
-    let ret = "";
+    let label = "";
     const profile = molecularProfileIdToMolecularProfile[selection.dataSourceId!];
+    let transformationSection = "";
+    if (logScaleFunc) {
+        transformationSection = logScaleFunc.label;
+    }
     switch (selection.dataType) {
         case NONE_SELECTED_OPTION_STRING_VALUE:
             break;
         case CLIN_ATTR_DATA_TYPE:
             const attribute = clinicalAttributeIdToClinicalAttribute[selection.dataSourceId!];
             if (attribute) {
-                ret = attribute.displayName;
+                label = attribute.displayName;
             }
             break;
         case GENESET_DATA_TYPE:
             if (profile && selection.genesetId !== undefined) {
-                ret = `${selection.genesetId}: ${profile.name}`;
+                label = `${selection.genesetId}: ${profile.name}`;
             }
             break;
         case TREATMENT_DATA_TYPE:
             if (profile && selection.treatmentId !== undefined) {
-                ret = `${selection.treatmentId}: ${profile.name}`;
+                label = `${selection.treatmentId}: ${profile.name}`;
             }
             break;
         default:
@@ -809,31 +817,14 @@ export function getAxisLabel(
             if (profile
                 && selection.entrezGeneId !== undefined
                 && selection.entrezGeneId !== NONE_SELECTED_OPTION_NUMERICAL_VALUE) {
-                ret = `${entrezGeneIdToGene[selection.entrezGeneId].hugoGeneSymbol}: ${profile.name}`;
+                label = `${entrezGeneIdToGene[selection.entrezGeneId].hugoGeneSymbol}: ${profile.name}`;
             }
             break;
     }
-    return ret;
-}
-
-export function getAxisLabelSuffix(
-    selection:AxisMenuSelection,
-    molecularProfileIdToMolecularProfile:{[molecularProfileId:string]:MolecularProfile},
-    plotType:PlotType,
-    logScale:boolean
-) {
-    let ret = "";
-    const profile = molecularProfileIdToMolecularProfile[selection.dataSourceId!];
-
-    let logElement = "";
-    if (logScale) {
-        logElement = "Log2";
+    if (transformationSection) {
+        label += ` (${transformationSection})`;
     }
-    if (logScale && plotType === PlotType.WaterfallPlot) {
-        logElement = "Log10";
-    }
-
-    return ` (${logElement})`;
+    return label;
 }
 
 export function getAxisDescription(

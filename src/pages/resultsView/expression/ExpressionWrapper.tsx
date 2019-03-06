@@ -33,7 +33,7 @@ import {
     getCnaQueries, IBoxScatterPlotPoint, INumberAxisData, IScatterPlotData, IPlotSampleData, IStringAxisData,
     makeBoxScatterPlotData, makeScatterPlotPointAppearance,
     mutationRenderPriority, MutationSummary, mutationSummaryToAppearance, scatterPlotLegendData,
-    scatterPlotTooltip, boxPlotTooltip, scatterPlotZIndexSortBy
+    scatterPlotTooltip, boxPlotTooltip, scatterPlotZIndexSortBy, IAxisLogScaleParams
 } from "../plots/PlotsTabUtils";
 import {getOncoprintMutationType} from "../../../shared/components/oncoprint/DataUtils";
 import {getSampleViewUrl} from "../../../shared/api/urls";
@@ -473,6 +473,20 @@ export default class ExpressionWrapper extends React.Component<ExpressionWrapper
         );
     }
 
+    @computed get axisLogScaleFunction():IAxisLogScaleParams|undefined {
+
+        const MIN_LOG_ARGUMENT = 0.01;
+
+        if (!this.logScale) {
+            return undefined;
+        }
+        return {
+            label: "log2",
+            fLogScale: (x:number, offset:number) => Math.log2(Math.max(x, MIN_LOG_ARGUMENT)),
+            fInvLogScale: (x:number) => Math.pow(2, x)
+        };
+    }
+
     @autobind
     private getChart() {
         if (this.boxPlotData.isComplete) {
@@ -491,7 +505,7 @@ export default class ExpressionWrapper extends React.Component<ExpressionWrapper
                         chartBase={550}
                         tooltip={this.tooltip}
                         horizontal={false}
-                        logScale={this.logScale}
+                        logScale={this.axisLogScaleFunction}
                         size={4}
                         fill={this.fill}
                         stroke={this.stroke}
