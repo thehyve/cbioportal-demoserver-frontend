@@ -1291,7 +1291,7 @@ function generalScatterPlotTooltip<D extends IPlotSampleData>(
 }
 
 export function waterfallPlotTooltip(d:IWaterfallPlotData) {
-    return generalWaterfallPlotTooltip<IWaterfallPlotData>(d, "value", "pivotThreshold", "truncation");
+    return generalWaterfallPlotTooltip<IWaterfallPlotData>(d, "value", "truncation");
 }
 
 function generalWaterfallPlotTooltip<D extends IWaterfallPlotData>(
