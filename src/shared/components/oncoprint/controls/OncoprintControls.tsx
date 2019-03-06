@@ -598,7 +598,14 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                             ]
                         }
                         {showTreatmentsTextArea && this.props.state.treatmentsPromise!.isComplete &&
-                            [<div className={classNames("treatment-selector")}>
+                            [<TextIconArea
+                                elements={this.textareaTreatmentEntries}
+                                text={this.textareaTreatmentText}
+                                placeholder="Type space- or comma-separated treatments here, then click 'Add Treatments to Heatmap'"
+                                onChange={this.onChangeEditableDiv}
+                                onItemRemove={this.onTreatmentRemoved}
+                            />,
+                            <div className={classNames("treatment-selector")}>
                                 <CheckedSelect
                                     name="treatment-select"
                                     placeholder="Search for Treatments..."
@@ -608,13 +615,6 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                     addAllTitle={"Select all"}
                                 />
                             </div>,
-                            <TextIconArea
-                                elements={this.textareaTreatmentEntries}
-                                text={this.textareaTreatmentText}
-                                placeholder="Type space- or comma-separated treatments here, then click 'Add Treatments to Heatmap'"
-                                onChange={this.onChangeEditableDiv}
-                                onItemRemove={this.onTreatmentRemoved}
-                            />,
                             <button
                             key="addGenesToHeatmapButton"
                             className="btn btn-sm btn-default"
