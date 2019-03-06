@@ -10,7 +10,7 @@ import { makeScatterPlotSizeFunction as makePlotSizeFunction, dataPointIsTruncat
 import { SortOrder } from "../../api/generated/CBioPortalAPIInternal";
 import WaterfallPlotTooltip from "./WaterfallPlotTooltip";
 import { tickFormatNumeral } from "./TickUtils";
-import { IWaterfallPlotData } from "pages/resultsView/plots/PlotsTabUtils";
+import { IWaterfallPlotData, IAxisLogScaleFunction } from "pages/resultsView/plots/PlotsTabUtils";
 import LetterIcon from "../cohort/LetterIcon";
 
 // TODO make distinction between public and internal interface for waterfall plot data
@@ -51,7 +51,7 @@ export interface IWaterfallPlotProps<D extends IBaseWaterfallPlotData> {
     tooltip?:(d:D)=>JSX.Element;
     horizontal:boolean;
     legendData?:{name:string|string[], symbol:any}[]; // see http://formidable.com/open-source/victory/docs/victory-legend/#data
-    log?:boolean;
+    log?:IAxisLogScaleFunction;
     useLogSpaceTicks?:boolean; // if log scale for an axis, then this prop determines whether the ticks are shown in post-log coordinate, or original data coordinate space
     axisLabel?:string;
     fontFamily?:string;
@@ -66,7 +66,7 @@ const NUM_AXIS_TICKS = 8;
 const PLOT_DATA_PADDING_PIXELS = 50;
 const MIN_LOG_ARGUMENT = 0.01;
 const LEFT_PADDING = 25;
-const LABEL_OFFSET_FRACTION = .01;
+const LABEL_OFFSET_FRACTION = .02;
 const LABEL_SIZE_MULTIPLIER = 1.5;
 const labelStyle = {
     fill: "#ffffff",
@@ -407,8 +407,11 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         // add offset information for search labels to datapoints
         _.each(searchLabels, (d:IBaseWaterfallPlotData) => {
 
+            const pivot = this.props.pivotThreshold || 0;
+
             // determine direction of offset for symbols (above or below line y=0)
-            const labelPos = d.value! <= 0 ? offset : offset*-1;
+            offset = d.value! <= pivot ? offset : -offset;
+            const labelPos = pivot + offset;
 
             d.symbol = "plus";
 
