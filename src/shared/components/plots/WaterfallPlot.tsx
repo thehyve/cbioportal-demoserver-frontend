@@ -317,7 +317,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
         // sort datapoints according to value
         // default sort order for sortBy is ascending (a.k.a 'ASC') order
-        dataPoints = _.sortBy(dataPoints, (d:IBaseWaterfallPlotData) => d.value);
+        dataPoints = _.sortBy(dataPoints, (d:D) => d.value);
         if (this.props.sortOrder === SortOrder.DESC) {
             dataPoints = _.reverse(dataPoints);
         }
@@ -329,8 +329,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         // this is done by transposing all data so that negative numbers no
         // longer occur. Als include the pivotThreshold.
         const values =  _.map(dataPoints, 'value').concat([offset]);
-        const minValue = _.min(values);
-        const logOffset = minValue < 0? Math.abs(minValue!)+0.0001 : 0;
+        const minValue = _.min(values) || 0;
+        const logOffset = minValue < 0? Math.abs(minValue)+0.0001 : 0;
 
         // add offset to data points and log-transform when applicable
         _.each(dataPoints, (d:IBaseWaterfallPlotData) => {
