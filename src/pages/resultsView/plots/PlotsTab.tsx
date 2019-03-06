@@ -79,7 +79,6 @@ import {STUDY_VIEW_CONFIG} from "../../studyView/StudyViewConfig";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
 import "./styles.scss";
-import { AlterationTypeConstants } from 'pages/resultsView/ResultsViewPageStore';
 
 enum EventKey {
     horz_logScale,
