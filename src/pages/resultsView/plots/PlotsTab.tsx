@@ -79,6 +79,7 @@ import {STUDY_VIEW_CONFIG} from "../../studyView/StudyViewConfig";
 import onMobxPromise from "../../../shared/lib/onMobxPromise";
 import { AlterationTypeConstants, ResultsViewPageStore } from "../ResultsViewPageStore";
 import "./styles.scss";
+import { AlterationTypeConstants } from 'pages/resultsView/ResultsViewPageStore';
 
 enum EventKey {
     horz_logScale,
@@ -900,7 +901,11 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     }
 
     @computed get waterfallPlotIsShown():boolean {
-        return this.plotType.isComplete && this.plotType.result === PlotType.WaterfallPlot;
+        if (this.plotType.isComplete) {
+            this.plotType.result === PlotType.WaterfallPlot;
+        }
+        return (this.vertSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE && this.horzSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE)
+        || (this.horzSelection.dataType === AlterationTypeConstants.TREATMENT_RESPONSE && this.vertSelection.dataType === NONE_SELECTED_OPTION_STRING_VALUE);
     }
 
     readonly clinicalAttributeIdToClinicalAttribute = remoteData<{[clinicalAttributeId:string]:ClinicalAttribute}>({
@@ -985,13 +990,23 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
     @action
     private onVerticalAxisDataTypeSelect(option:any) {
         this.vertSelection.dataType = option.value;
+        // simultaneous selection of viewCNA and viewMutationType is not
+        // supported by the waterfall plot
+        if (this.waterfallPlotIsShown && this.viewMutationType && this.viewCopyNumber) {
+            this.viewCopyNumber = false;
+        }
         this.viewTruncatedValues = true;
     }
     
     @autobind
     @action
     public onHorizontalAxisDataTypeSelect(option:any) {
+        // simultaneous selection of viewCNA and viewMutationType is not
+        // supported by the waterfall plot
         this.horzSelection.dataType = option.value;
+        if (this.waterfallPlotIsShown && this.viewMutationType && this.viewCopyNumber) {
+            this.viewCopyNumber = false;
+        }
         this.viewTruncatedValues = true;
     }
     
