@@ -1644,7 +1644,7 @@ export function makeWaterfallPlotData(
             studyId: sample.studyId,
             values: ([] as number[]).concat(d.value),
             sortOrder: d.sortOrder,
-            pivotThreshold: d.pivotThreshold,
+            // pivotThreshold: d.pivotThreshold,
             truncations: ([] as string[]).concat(d.truncation || ""),
             mutations: sampleMutations || [],
             copyNumberAlterations:sampleCopyNumberAlterations || [],
