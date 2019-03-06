@@ -1303,7 +1303,7 @@ function generalScatterPlotTooltip<D extends IPlotSampleData>(
 }
 
 export function waterfallPlotTooltip(d:IWaterfallPlotData) {
-    return generalWaterfallPlotTooltip<IWaterfallPlotData>(d, "pivot_adjusted_value", "pivotThreshold", "truncation");
+    return generalWaterfallPlotTooltip<IWaterfallPlotData>(d, "value", "pivotThreshold", "truncation");
 }
 
 function generalWaterfallPlotTooltip<D extends IWaterfallPlotData>(
@@ -1814,8 +1814,6 @@ export function getWaterfallPlotDownloadData(
 
         row.push(datum.sampleId);
         row.push(numeral(datum.value).format('0[.][000000]'));
-        row.push(numeral(datum.pivot_adjusted_value).format('0[.][000000]'));
-        row.push(numeral(datum.pivotThreshold).format('0[.][000000]'));
         row.push(numeral(datum.order).format('0[.][000000]'));
         row.push(datum.sortOrder === SortOrder.ASC?"ascending":"descending");
         if (datum.mutations.length) {

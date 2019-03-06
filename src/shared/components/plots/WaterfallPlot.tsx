@@ -11,13 +11,14 @@ import { SortOrder } from "../../api/generated/CBioPortalAPIInternal";
 import WaterfallPlotTooltip from "./WaterfallPlotTooltip";
 import { tickFormatNumeral } from "./TickUtils";
 import { IWaterfallPlotData } from "pages/resultsView/plots/PlotsTabUtils";
+import LetterIcon from "../cohort/LetterIcon";
 
 // TODO make distinction between public and internal interface for waterfall plot data
 export interface IBaseWaterfallPlotData {
     value:number; // public
     truncation?:string; // public
     order?:number|undefined;
-    pivot_adjusted_value?:number;
+    offset?:number;
     fill?:string;
     fillOpacity?:number;
     stroke?:string;
@@ -194,12 +195,12 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
     @computed get plotDomain():{value:number[], order:number[]} {
         // data extremes
-        let max = _(this.data).map('pivot_adjusted_value').max() || 0;
-        let min = _(this.data).map('pivot_adjusted_value').min() || 0;
+        let max = _(this.internalData).map('value').max() || 0;
+        let min = _(this.internalData).map('value').min() || 0;
 
         return {
             value: [min!, max!],
-            order: [1, this.data.length]  // return range defined by the number of samples for the x-axis
+            order: [1, this.internalData.length]  // return range defined by the number of samples for the x-axis
         };
     }
 
@@ -229,8 +230,13 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return this.props.chartHeight;
     }
 
-    private log10Scale(x:number) {
-        return Math.log10(x);
+    private log10Scale(x:number, offset:number) {
+        // for log transformation one should handle negative numbers
+        // this is done by removal and readdition of the sign
+        if (offset === undefined) {
+            offset = 0;
+        }
+        return Math.log10(x+offset);
     }
 
     private invLog10Scale(x:number) {
@@ -239,7 +245,12 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
     @bind
     private datumAccessorY(d:IBaseWaterfallPlotData) {
-        return d.pivot_adjusted_value;
+        return d.value;
+    }
+
+    @bind
+    private datumAccessorBaseLine(d:IBaseWaterfallPlotData) {
+        return d.offset;
     }
 
     @bind
@@ -298,37 +309,34 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return this.tickFormat(t, ticks, !!this.props.log);
     }
 
-    @computed get data() {
+    @computed get internalData() {
+
+        const doLogTransformation:boolean = this.props.log || false;
+
+        let dataPoints = _.cloneDeep(this.props.data);
 
         // sort datapoints according to value
         // default sort order for sortBy is ascending (a.k.a 'ASC') order
-        let dataPoints = _.sortBy(this.props.data, (d:IBaseWaterfallPlotData) => d.value);
+        dataPoints = _.sortBy(dataPoints, (d:IBaseWaterfallPlotData) => d.value);
         if (this.props.sortOrder === SortOrder.DESC) {
             dataPoints = _.reverse(dataPoints);
         }
         // assign a x value (equivalent to position in array)
         _.each(dataPoints, (d:IBaseWaterfallPlotData, index:number) => d.order = index + 1 );
-
-        // subtract the pivotThreshold from each value and apply log-transformation if applicable
-        const delta = this.props.pivotThreshold || 0;
+        let offset = this.props.pivotThreshold || 0;
         
         // for log transformation one should handle negative numbers
         // this is done by transposing all data so that negative numbers no
         // longer occur. Als include the pivotThreshold.
-        const values =  _.map(dataPoints, 'value').concat([delta]);
+        const values =  _.map(dataPoints, 'value').concat([offset]);
         const minValue = _.min(values);
-        const offset = Math.abs(minValue!);
+        const logOffset = minValue < 0? Math.abs(minValue!)+0.0001 : 0;
 
+        // add offset to data points and log-transform when applicable
         _.each(dataPoints, (d:IBaseWaterfallPlotData) => {
-            if (this.props.log) {
-                if (minValue! <= 0) {
-                    d.pivot_adjusted_value = this.log10Scale(d.value+offset+0.001) - this.log10Scale(delta+offset+0.001);
-                } else {
-                    d.pivot_adjusted_value = this.log10Scale(d.value) - this.log10Scale(delta);
-                }
-            } else {
-                d.pivot_adjusted_value = d.value - delta;
-            }
+            d.offset = doLogTransformation? this.log10Scale(offset, logOffset):offset;
+            // d.offset = offset;
+            d.value = doLogTransformation? this.log10Scale(d.value, logOffset):d.value;
         });
 
         // add style information to each point
@@ -356,7 +364,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
         // filter out data points that are truncted
         // these will get a symbol above the resp. bar
-        const labelData = _.filter(this.data, (d) => d.labelVisibility);
+        const labelData = _.filter(this.internalData, (d) => d.labelVisibility);
 
         const range = this.props.horizontal ? this.plotDomainX : this.plotDomainY;
         const min_value = range[0];
@@ -366,8 +374,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         // add offset information for possible labels above the bars
         _.each(labelData, (d:IBaseWaterfallPlotData) => {
 
-            const offsetLocal = d.pivot_adjusted_value! >= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
-            const labelPos = d.pivot_adjusted_value! + offsetLocal;
+            const offsetLocal = d.value! >= 0 ? offset : offset*-1; // determine direction of offset for symbols (above or below)
+            const labelPos = d.value! + offsetLocal;
 
             if (this.props.horizontal) {
                 d.labelx = labelPos;
@@ -387,7 +395,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
             return [];
         }
 
-        const searchLabels = _.filter(this.data, (d:any) => this.props.highlight!(d) );
+        const searchLabels = _.filter(this.internalData, (d:any) => this.props.highlight!(d) );
 
         const range = this.props.horizontal ? this.plotDomainX : this.plotDomainY;
         const min_value = range[0];
@@ -400,7 +408,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         _.each(searchLabels, (d:IBaseWaterfallPlotData) => {
 
             // determine direction of offset for symbols (above or below line y=0)
-            const labelPos = d.pivot_adjusted_value! <= 0 ? offset : offset*-1;
+            const labelPos = d.value! <= 0 ? offset : offset*-1;
 
             if (labelPos > 0) {
                 d.symbol = "triangleDown"
@@ -439,10 +447,10 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                     width={this.svgWidth}
                     role="img"
                     viewBox={`0 0 ${this.svgWidth} ${this.svgHeight}`}
-                >
+                    >
                     <g
                         transform={`translate(${LEFT_PADDING},0)`}
-                    >
+                        >
                         <VictoryChart
                             theme={CBIOPORTAL_VICTORY_THEME}
                             width={this.props.chartWidth}
@@ -486,11 +494,12 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                     }
                                 }}
                                 horizontal={this.props.horizontal}
-                                data={this.data}
+                                data={this.internalData}
                                 size={this.size}
                                 events={this.mouseEvents}
                                 x={this.datumAccessorX} // for x-axis reference accessor function
                                 y={this.datumAccessorY} // for y-axis reference accessor function
+                                y0={this.datumAccessorBaseLine} // for baseline reference accessor function
                             />
                             <VictoryScatter
                                 style={{
