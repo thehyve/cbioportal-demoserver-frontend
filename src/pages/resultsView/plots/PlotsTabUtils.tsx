@@ -1791,19 +1791,28 @@ export function getScatterPlotDownloadData(
 
 export function getWaterfallPlotDownloadData(
     data:IWaterfallPlotData[],
+    sortOrder:SortOrder,
+    pivotThreshold:number,
     axisLabel:string,
-    axisLabelSuffix:string,
-    entrezGeneIdToGene:{[entrezGeneId:number]:Gene}
+    entrezGeneIdToGene:{[enstrezGeneId:number]:Gene}
 ) {
+
+    let dataPoints = _.cloneDeep(data);
+    dataPoints = _.sortBy(dataPoints, (d:IWaterfallPlotData) => d.value);
+    if (sortOrder === SortOrder.DESC) {
+        dataPoints = _.reverse(dataPoints);
+    }
+
     const dataRows:string[] = [];
     let hasMutations = false;
-    for (const datum of data) {
+    const sortOrderString = sortOrder === SortOrder.ASC?"ASC":"DESC";
+    for (const datum of dataPoints) {
         const row:string[] = [];
 
         row.push(datum.sampleId);
         row.push(numeral(datum.value).format('0[.][000000]'));
-        row.push(numeral(datum.order).format('0[.][000000]'));
-        row.push(datum.sortOrder === SortOrder.ASC?"ascending":"descending");
+        row.push(numeral(pivotThreshold).format('0[.][000000]'));
+        row.push(sortOrderString);
         if (datum.mutations.length) {
             row.push(mutationsProteinChanges(datum.mutations, entrezGeneIdToGene).join("; ")); // 4 concatenated mutations
             hasMutations = true;
@@ -1813,7 +1822,7 @@ export function getWaterfallPlotDownloadData(
         }
         dataRows.push(row.join("\t"));
     }
-    const header = ["Sample Id", `${axisLabel} (original)`, `${axisLabel}${axisLabelSuffix}`, "pivot threshold", "order", "sort order" ];
+    const header = ["Sample Id", `${axisLabel}`, "pivot threshold", "sort order" ];
     if (hasMutations) {
         header.push("Mutations");
     }

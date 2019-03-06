@@ -607,8 +607,9 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                         fileDownload(
                             getWaterfallPlotDownloadData(
                                 this.waterfallPlotData.result!.data,
+                                this.waterfallPlotSortOrder,
+                                this.waterfallPlotPivotThreshold,
                                 this.waterfallLabel.result!,
-                                this.waterfallLabelSuffix.result!,
                                 entrezGeneIdToGene
                             ),
                             filename
