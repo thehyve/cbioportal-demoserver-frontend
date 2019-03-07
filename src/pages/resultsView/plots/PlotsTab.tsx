@@ -1286,9 +1286,13 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         const treatment = this.horzSelection.treatmentId || this.vertSelection.treatmentId;
         const gene = this.utilitiesMenuSelection.selectedGeneOption!.label;
         const profileName = this.horzSelection.selectedDataSourceOption ? this.horzSelection.selectedDataSourceOption!.label : this.vertSelection.selectedDataSourceOption!.label;
-        const styleType = this.viewMutationType ? "mutation types" : "CNA types";
-        const title = `${treatment} ${profileName} x ${gene} ${styleType}`;
-        return title;
+        let geneStyle = ""; 
+        if (this.viewMutationType) {
+            geneStyle = ` x ${gene} mutation types`;
+        } else if (this.viewCopyNumber) {
+            geneStyle = ` x ${gene} CNA types`;
+        }
+        return `${treatment} ${profileName}${geneStyle}`;
     }
 
     @computed get waterfallPlotWidth():number {
