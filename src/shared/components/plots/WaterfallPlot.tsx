@@ -393,11 +393,9 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         // add offset information for search labels to datapoints
         _.each(searchLabels, (d:IBaseWaterfallPlotData) => {
 
-            const pivot = this.props.pivotThreshold || 0;
-
             // determine direction of offset for symbols (above or below line y=0)
-            offset = d.value! <= pivot ? offset : -offset;
-            const labelPos = pivot + offset;
+            offset = d.value! <= d.offset! ? offset : -offset;
+            const labelPos = d.offset + offset;
 
             d.symbol = "plus";
 
