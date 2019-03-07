@@ -25,6 +25,7 @@ import { AxisMenuSelection, MutationCountBy, NONE_SELECTED_OPTION_NUMERICAL_VALU
 import { IBaseWaterfallPlotData } from "shared/components/plots/WaterfallPlot";
 
 export const CLIN_ATTR_DATA_TYPE = "clinical_attribute";
+export const BOUNDARY_VALUE_NAME = "Limit"; // "... value": name to indicate values that are > or < than a certain value (e.g. "">8.00")
 export const GENESET_DATA_TYPE = "GENESET_SCORE";
 export const TREATMENT_DATA_TYPE = "TREATMENT_RESPONSE";
 export const dataTypeToDisplayType:{[s:string]:string} = {
@@ -1045,7 +1046,7 @@ const cnaToAppearance = {
 };
 
 export const truncatedValueAppearance = {
-    legendLabel: "Truncated value",
+    legendLabel: `${BOUNDARY_VALUE_NAME} value`,
     symbol : "diamond"
 };
 

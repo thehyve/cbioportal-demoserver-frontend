@@ -48,7 +48,8 @@ import {
     getWaterfallPlotDownloadData, 
     WATERFALLPLOT_BASE_SIDELENGTH,
     WATERFALLPLOT_SIDELENGTH_SAMPLE_MULTIPLATION_FACTOR,
-    IAxisLogScaleParams
+    IAxisLogScaleParams,
+    BOUNDARY_VALUE_NAME
 } from "./PlotsTabUtils";
 import {
     ClinicalAttribute, MolecularProfile, Mutation,
@@ -1709,10 +1710,10 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                             checked={this.viewTruncatedValues}
                                             onClick={this.onInputClick}
                                             disabled={!this.truncatedValuesCanBeShown}
-                                        /> Limit Value
+                                        /> {`${BOUNDARY_VALUE_NAME} Value`}
                                     </label></div>
                                 )}
-                             </div>
+                            </div>
                         </div>
                     )}
                     {showRegression && (
