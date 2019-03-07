@@ -375,7 +375,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         return labelData;
     }
 
-    @computed get sampleSearchLabels() {
+    @computed get searchLabels() {
 
         if (! this.props.highlight) {
             return [];
@@ -498,7 +498,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                 data={this.truncationLabels}
                                 x={this.datumAccessorLabelX}
                                 y={this.datumAccessorLabelY}
-                            />
+                                />
                             <VictoryScatter
                                 style={{
                                     data: {
@@ -510,7 +510,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
                                     }
                                 }}
                                 size={labelStyle.size * LABEL_SIZE_MULTIPLIER}
-                                data={this.sampleSearchLabels}
+                                data={this.searchLabels}
+                                events={this.mouseEvents}
                                 x={this.datumAccessorSearchIndicatorX}
                                 y={this.datumAccessorSearchIndicatorY}
                             />
