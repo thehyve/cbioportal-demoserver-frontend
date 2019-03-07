@@ -394,8 +394,8 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
         _.each(searchLabels, (d:IBaseWaterfallPlotData) => {
 
             // determine direction of offset for symbols (above or below line y=0)
-            offset = d.value! <= d.offset! ? offset : -offset;
-            const labelPos = d.offset + offset;
+            const localOffset = d.value! <= d.offset! ? offset : -offset;
+            const labelPos = d.offset + localOffset;
 
             d.symbol = "plus";
 
