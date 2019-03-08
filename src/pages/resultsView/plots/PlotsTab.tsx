@@ -1427,9 +1427,13 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         }
     }
 
+    @computed get searchMutationWords() {
+        return this.searchMutation.trim().split(/\s+/g).filter((m:string) => !!m.length);
+    }
+
     @computed get scatterPlotHighlight() {
         const searchCaseWords = this.searchCase.trim().split(/\s+/g);
-        const searchMutationWords = this.searchMutation.trim().split(/\s+/g);
+        const searchMutationWords = this.searchMutationWords;
 
         // need to regenerate the function whenever these change in order to trigger immediate Victory rerender
         return (d:IPlotSampleData)=>{
@@ -1442,13 +1446,32 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
             }
             let mutationMatch = false;
             for (const word of searchMutationWords) {
-                mutationMatch = mutationMatch || (!!word.length && (!!d.mutations.find(m=>!!(m.proteinChange && (m.proteinChange.indexOf(word) > -1)))));
+                mutationMatch = mutationMatch || this.fDatumHasMutation(d, word);
                 if (mutationMatch) {
                     break;
                 }
             }
             return caseMatch || mutationMatch;
         };
+    }
+
+    private fDatumHasMutation = (d:any, mutation:string) => {
+        const mutationFound = !!mutation && !!d.mutations.find((m:any)=>!!(m.proteinChange && (m.proteinChange.indexOf(mutation) > -1)));
+        return mutationFound;
+    }
+
+    @computed get showMutationNotFoundMessage():boolean {
+        let showMessage = false;
+        if (this.searchMutationWords.length > 0 && this.waterfallPlotIsShown && this.waterfallPlotData.isComplete) {
+            showMessage = true;
+            _.each(this.searchMutationWords, (word:string) => {
+                const dataPoints = this.waterfallPlotData.result.data;
+                if (_.some(dataPoints, (d:any) => this.fDatumHasMutation(d, word))) {
+                    showMessage = false;
+                }
+            });
+        }
+        return showMessage;
     }
 
     private getAxisMenu(
@@ -1624,6 +1647,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     onChange={this.setSearchMutationInput}
                                     placeholder="Protein Change.."
                                 />
+                            {this.showMutationNotFoundMessage && (<span className="mutation-message">Mutation not found for selected gene</span>)}
                             </div>
                         )}
                     </div>)}
