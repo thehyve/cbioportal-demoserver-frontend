@@ -1465,7 +1465,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
         if (this.searchMutationWords.length > 0 && this.waterfallPlotIsShown && this.waterfallPlotData.isComplete) {
             showMessage = true;
             _.each(this.searchMutationWords, (word:string) => {
-                const dataPoints = this.waterfallPlotData.result.data;
+                const dataPoints = this.waterfallPlotData.result!.data;
                 if (_.some(dataPoints, (d:any) => this.fDatumHasMutation(d, word))) {
                     showMessage = false;
                 }
