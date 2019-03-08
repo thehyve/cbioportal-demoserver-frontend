@@ -45,8 +45,8 @@ export interface IScatterPlotProps<D extends IBaseScatterPlotData> {
         spearman: number;
     };
     showRegressionLine?:boolean;
-    logX?:IAxisLogScaleParams;
-    logY?:IAxisLogScaleParams;
+    logX?:IAxisLogScaleParams|undefined;
+    logY?:IAxisLogScaleParams|undefined;
     excludeTruncatedValuesFromCalculation?:boolean;
     useLogSpaceTicks?:boolean; // if log scale for an axis, then this prop determines whether the ticks are shown in post-log coordinate, or original data coordinate space
     axisLabelX?:string;

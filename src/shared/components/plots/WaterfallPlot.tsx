@@ -51,7 +51,7 @@ export interface IWaterfallPlotProps<D extends IBaseWaterfallPlotData> {
     tooltip?:(d:D)=>JSX.Element;
     horizontal:boolean;
     legendData?:{name:string|string[], symbol:any}[]; // see http://formidable.com/open-source/victory/docs/victory-legend/#data
-    log?:IAxisLogScaleParams;
+    log?:IAxisLogScaleParams|undefined;
     useLogSpaceTicks?:boolean; // if log scale for an axis, then this prop determines whether the ticks are shown in post-log coordinate, or original data coordinate space
     axisLabel?:string;
     fontFamily?:string;
@@ -395,7 +395,7 @@ export default class WaterfallPlot<D extends IBaseWaterfallPlotData> extends Rea
 
             // determine direction of offset for symbols (above or below line y=0)
             const localOffset = d.value! <= d.offset! ? offset : -offset;
-            const labelPos = d.offset + localOffset;
+            const labelPos = d.offset! + localOffset;
 
             d.symbol = "plus";
 

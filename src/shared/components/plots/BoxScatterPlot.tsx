@@ -48,7 +48,7 @@ export interface IBoxScatterPlotProps<D extends IBaseBoxScatterPlotPoint> {
     symbol?: string | ((d:D)=>string); // see http://formidable.com/open-source/victory/docs/victory-scatter/#symbol for options
     tooltip?:(d:D)=>JSX.Element;
     legendData?:{name:string|string[], symbol:any}[]; // see http://formidable.com/open-source/victory/docs/victory-legend/#data
-    logScale?:IAxisLogScaleParams; // log scale along the point data axis
+    logScale?:IAxisLogScaleParams|undefined; // log scale along the point data axis
     excludeTruncatedValuesFromBoxPlot?:boolean;
     axisLabelX?:string;
     axisLabelY?:string;
