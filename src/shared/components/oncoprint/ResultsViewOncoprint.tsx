@@ -290,7 +290,7 @@ export default class ResultsViewOncoprint extends React.Component<IResultsViewOn
                 return self.props.store.heatmapMolecularProfiles;
             },
             get treatmentsPromise() {
-                return self.props.store.treatments;
+                return self.props.store.treatmentsInStudies;
             },
             get selectedHeatmapProfile() {
                 return self.selectedHeatmapProfile;

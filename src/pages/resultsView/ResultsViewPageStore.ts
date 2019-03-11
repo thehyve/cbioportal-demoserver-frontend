@@ -92,7 +92,8 @@ import {
     Geneset, 
     GenesetDataFilterCriteria,
     GenesetMolecularData,
-    Treatment
+    Treatment,
+    TreatmentFilter
 } from "../../shared/api/generated/CBioPortalAPIInternal";
 import internalClient from "../../shared/api/cbioportalInternalClientInstance";
 import {IndicatorQueryResp} from "../../shared/api/generated/OncoKbAPI";
@@ -815,7 +816,7 @@ export class ResultsViewPageStore {
             this.studyToDataQueryFilter,
             this.genes,
             this.genesets,
-            this.treatments
+            this.treatmentsInStudies
         ],
         invoke:async()=>{
             const ret:MolecularProfile[] = [];
@@ -2182,20 +2183,23 @@ export class ResultsViewPageStore {
         }
     });
 
-    readonly treatments = remoteData<Treatment[]>({
+    readonly treatmentsInStudies = remoteData<Treatment[]>({
+        await:()=>[this.studyIds],
         invoke: async () => {
-            return internalClient.getAllTreatmentsUsingGET({});
+            return internalClient.fetchTreatmentsUsingPOST({
+                treatmentFilter: { studyIds:this.studyIds.result! } as TreatmentFilter
+            })
         },
         onResult:(treatments:Treatment[])=>{
             this.treatmentCache.addData(treatments);
         }
     });
-    
+
     readonly selectedTreatments = remoteData<Treatment[]>({
-        await: ()=>[this.treatments],
+        await: ()=>[this.treatmentsInStudies],
         invoke: () => {
             const treatmentIdFromUrl =  this.rvQuery.treatmentIds;
-            return Promise.resolve(_.filter(this.treatments.result!, (d:Treatment) => treatmentIdFromUrl.includes(d.treatmentId)));
+            return Promise.resolve(_.filter(this.treatmentsInStudies.result!, (d:Treatment) => treatmentIdFromUrl.includes(d.treatmentId)));
         }
     });
 
@@ -2224,9 +2228,9 @@ export class ResultsViewPageStore {
     readonly treatmentLinkMap = remoteData<{[treatmentId: string]: string}>({
         invoke: async () => {
             if (this.rvQuery.treatmentIds && this.rvQuery.treatmentIds.length) {
-                const treatments = await internalClient.fetchTreatmentsUsingPOST(
-                    {treatmentIds: this.rvQuery.treatmentIds.slice()}
-                );
+                const treatments = await internalClient.fetchTreatmentsUsingPOST({
+                    treatmentFilter: { studyIds:this.studyIds.result! } as TreatmentFilter
+                });
                 const linkMap: {[treatmentId: string]: string} = {};
                 treatments.forEach(({treatmentId, refLink}) => {
                     linkMap[treatmentId] = refLink;

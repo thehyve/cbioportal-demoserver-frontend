@@ -1,5 +1,5 @@
 import LazyMobXCache from "../lib/LazyMobXCache";
-import {Treatment} from "../api/generated/CBioPortalAPIInternal";
+import {Treatment, TreatmentFilter} from "../api/generated/CBioPortalAPIInternal";
 import internalClient from "../api/cbioportalInternalClientInstance";
 
 type Query = {
@@ -11,7 +11,9 @@ function key(o:{treatmentId:string}) {
 }
 
 async function fetch(queries:Query[]) {
-    return internalClient.fetchTreatmentsUsingPOST({treatmentIds: queries.map(q=>q.treatmentId.toUpperCase())});
+    return internalClient.fetchTreatmentsUsingPOST({
+        treatmentFilter: {treatmentIds: queries.map(q=>q.treatmentId.toUpperCase())} as TreatmentFilter
+    });
 }
 
 export default class TreatmentCache extends LazyMobXCache<Treatment, Query> {

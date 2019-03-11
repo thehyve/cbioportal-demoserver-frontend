@@ -285,6 +285,12 @@ export type Treatment = {
     'refLink': string
 
 };
+export type TreatmentFilter = {
+    'treatmentIds': Array < string >
+
+    'studyIds': Array < string >
+
+};
 export type TreatmentDataFilterCriteria = {
     'treatmentIds': Array < string >
 
@@ -1735,11 +1741,16 @@ export default class CBioPortalAPIInternal {
         });
     };
     fetchTreatmentsUsingPOSTURL(parameters: {
-        'treatmentIds': Array < string > ,
+        'treatmentFilter': TreatmentFilter,
+        'projection' ? : "SUMMARY"| "META",
         $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
         let path = '/treatments/fetch';
+
+        if (parameters['projection'] !== undefined) {
+            queryParameters['projection'] = parameters['projection'];
+        }
 
         if (parameters.$queryParameters) {
             Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
@@ -1758,7 +1769,8 @@ export default class CBioPortalAPIInternal {
      * @param {} treatmentIds - List of Treatment IDs
      */
     fetchTreatmentsUsingPOSTWithHttpInfo(parameters: {
-        'treatmentIds': Array < string > ,
+        'treatmentFilter': TreatmentFilter,
+        'projection' ? : "SUMMARY" | "META",
         $queryParameters ? : any,
         $domain ? : string
     }): Promise < request.Response > {
@@ -1774,13 +1786,17 @@ export default class CBioPortalAPIInternal {
             headers['Accept'] = 'application/json';
             headers['Content-Type'] = 'application/json';
 
-            if (parameters['treatmentIds'] !== undefined) {
-                body = parameters['treatmentIds'];
+            if (parameters['treatmentFilter'] !== undefined) {
+                body = parameters['treatmentFilter'];
             }
 
-            if (parameters['treatmentIds'] === undefined) {
-                reject(new Error('Missing required  parameter: treatmentIds'));
+            if (parameters['treatmentFilter'] === undefined) {
+                reject(new Error('Missing required  parameter: treatmentFilter'));
                 return;
+            }
+
+            if (parameters['projection'] !== undefined) {
+                queryParameters['projection'] = parameters['projection'];
             }
 
             if (parameters.$queryParameters) {
@@ -1802,7 +1818,8 @@ export default class CBioPortalAPIInternal {
      * @param {} treatmentIds - List of Treatment IDs
      */
     fetchTreatmentsUsingPOST(parameters: {
-            'treatmentIds': Array < string > ,
+            'treatmentFilter': TreatmentFilter,
+            'projection' ? : "SUMMARY" | "META",
             $queryParameters ? : any,
             $domain ? : string
         }): Promise < Array < Treatment >
