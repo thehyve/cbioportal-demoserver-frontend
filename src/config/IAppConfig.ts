@@ -85,6 +85,7 @@ export interface IServerConfig {
     "skin_show_tools_tab": boolean;
     "skin_show_tutorials_tab": boolean;
     "skin_show_web_api_tab": boolean;
+    "skin_show_quick_search": boolean;
     "skin_show_tweet_button": boolean;
     "skin_show_tissue_image_tab": boolean;
     "skin_title": string;
@@ -101,5 +102,6 @@ export interface IServerConfig {
     "user_email_address": string;
     "sessionServiceEnabled": boolean;
     "session_url_length_threshold":string;
+    "mskWholeSlideViewerToken":string;
 
 }
