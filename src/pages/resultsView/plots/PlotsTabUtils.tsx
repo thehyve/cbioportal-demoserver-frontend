@@ -699,7 +699,7 @@ function makeAxisDataPromise_Treatment(
                     return {
                         uniqueSampleKey: d.uniqueSampleKey,
                         value: d.value,
-                        truncation: d.truncation
+                        truncation: d.thresholdType
                     }
                 }),
                 datatype: "number",

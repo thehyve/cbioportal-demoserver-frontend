@@ -1,12 +1,15 @@
 import {
     alterationInfoForCaseAggregatedDataByOQLLine,
     makeGeneticTrackWith,
-    percentAltered
+    percentAltered,
+    extractTreatmentSelections
 } from "./OncoprintUtils";
 import {observable} from "mobx";
 import * as _ from 'lodash';
 import {assert} from 'chai';
 import {IQueriedMergedTrackCaseData} from "../../../pages/resultsView/ResultsViewPageStore";
+import { splitHeatmapTextField } from 'shared/components/oncoprint/OncoprintUtils';
+import { ISelectOption } from 'shared/components/oncoprint/controls/OncoprintControls';
 
 describe('OncoprintUtils', () => {
     describe('alterationInfoForCaseAggregatedDataByOQLLine', () => {
@@ -392,4 +395,80 @@ describe('OncoprintUtils', () => {
             assert.equal(percentAltered(2,100), "2%");
         })
     });
+
+    describe('Treatment ruleset params', () => {
+
+        it('Is created from Track Spec param', () => {
+            const treatmentTracSpec = {
+                key: 'TREATMENTTRACK_1',
+                label: '',
+                molecularProfileId: "profile1",
+                molecularAlterationType: "TREATMENT_RESPONSE",
+                data: [
+                    {profile_data: 1, study: "study1", uid: "uid"}, 
+                    {profile_data: 2, study: "study1", uid: "uid"}, 
+                    {profile_data: 3, study: "study1", uid: "uid"}
+                ],
+                datatype: "TREATMENT_RESPONSE",
+                trackGroupIndex: 1,
+                onRemove: () => {}
+            };
+
+            // const ruleSetParams = getTreatmentTrackRuleSetParams(treatmentTracSpec);
+
+        });
+    });
+});
+
+describe('Split heatmap text field', () => {
+    it('Splits around spaces', () => {
+        const elements = splitHeatmapTextField("A B C");
+        assert.equal(elements.length, 3);
+    });
+    it('Splits around tabs', () => {
+        const elements = splitHeatmapTextField("A   B   C");
+        assert.equal(elements.length, 3);
+    });
+    it("Splits around comma's", () => {
+        const elements = splitHeatmapTextField("A,B,C");
+        assert.equal(elements.length, 3);
+    });
+    it("Splits around comma's and spaces", () => {
+        const elements = splitHeatmapTextField("A, B, C");
+        assert.equal(elements.length, 3);
+    });
+    it("Splits around comma's and tabs", () => {
+        const elements = splitHeatmapTextField("A,  B,  C");
+        assert.equal(elements.length, 3);
+    });
+    it("Splits around EOL's", () => {
+        const elements = splitHeatmapTextField(`
+        A
+        B
+        C`);
+        assert.equal(elements.length, 3);
+    });
+    it("Removes duplicate entries", () => {
+        const elements = splitHeatmapTextField("A B B");
+        assert.equal(elements.length, 2);
+    });
+});
+
+describe('Treatment selections extracted from text area', () => {
+
+    const selectedTreatments:ISelectOption[] = [];
+    const treatmentMap = {
+        'treatmentA': {value: "valueA", label: "labelA"}
+    };
+
+    it('Adds recognized treaments to selection', () => {
+        extractTreatmentSelections("treatmentA treatmentB", selectedTreatments, treatmentMap);
+        assert.equal(selectedTreatments.length, 1);
+    });
+
+    it('Removed recognized treaments from text field', () => {
+        const text = extractTreatmentSelections("treatmentC treatmentA treatmentB", selectedTreatments, treatmentMap);
+        assert.equal(text, "treatmentC  treatmentB");
+    });
+
 });

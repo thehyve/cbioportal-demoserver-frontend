@@ -23,10 +23,11 @@ import {ExtendedClinicalAttribute} from "../../../../pages/resultsView/ResultsVi
 import {getNCBIlink} from "../../../api/urls";
 import {GeneBoxType} from "../../GeneSelectionBox/GeneSelectionBox";
 import GeneSelectionBox from "../../GeneSelectionBox/GeneSelectionBox";
+import autobind from "autobind-decorator";
 import {SingleGeneQuery} from "../../../lib/oql/oql-parser";
 import {Treatment} from "shared/api/generated/CBioPortalAPIInternal";
-import autobind from "autobind-decorator";
-import TextIconArea, { ITextIconAreaItemProps } from "shared/components/divContentEditable/TextIconArea";
+import TextIconArea, { ITextIconAreaItemProps } from "shared/components/textIconArea/TextIconArea";
+import { splitHeatmapTextField, extractTreatmentSelections } from "../OncoprintUtils";
 const CheckedSelect = require("react-select-checked").CheckedSelect;
 
 export interface IOncoprintControlsHandlers {
@@ -132,7 +133,7 @@ export interface IOncoprintControlsProps {
     oncoprinterMode?:boolean;
 }
 
-interface ISelectOption {
+export interface ISelectOption {
     value:string,
     label:string
 }
@@ -178,10 +179,11 @@ const EVENT_KEY = {
 
 @observer
 export default class OncoprintControls extends React.Component<IOncoprintControlsProps, {}> {
+
     @observable horzZoomSliderState:number;
-    @observable heatmapGenesReady:boolean = false;
-    @observable _selectedTreatmentOptions:ISelectOption[] = [];
-    textareaTreatmentText:string = "";
+    @observable heatmapGenesReady = false;
+    @observable private _selectedTreatmentOptions:ISelectOption[] = [];
+    private textareaTreatmentText = "";
 
     constructor(props:IOncoprintControlsProps) {
         super(props);
@@ -406,10 +408,6 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
 
     private onType(event:React.ChangeEvent<HTMLTextAreaElement>) {
         switch ((event.target as HTMLTextAreaElement).name) {
-            case EVENT_KEY.heatmapGeneInput:
-                this.props.handlers.onChangeHeatmapGeneInputValue &&
-                this.props.handlers.onChangeHeatmapGeneInputValue(event.target.value);
-                break;
             case EVENT_KEY.annotateCBioPortalInput:
                 this.props.handlers.onChangeAnnotateCBioPortalInputValue &&
                 this.props.handlers.onChangeAnnotateCBioPortalInputValue(event.target.value);
@@ -422,36 +420,8 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
     }
 
     @autobind
-    private onChangeEditableDiv(text:string):string {
-
-        // get values from input string
-        const elements = this.splitTextField(text);
-
-        // check values for valid treatment ids
-        const selectedKeys:string[] = _.map(this._selectedTreatmentOptions,'value');
-        let detectedTreatments:string[] = [];
-        _.each(elements, (d:string)=> {
-            if (d in this.treatmentOptionsByValueMap) {
-                detectedTreatments.push(d);
-                if (! selectedKeys.includes(d)) {
-                    this._selectedTreatmentOptions.push( this.treatmentOptionsByValueMap[d] );
-                }
-            }
-        });
-
-        // remove valid treatment ids from the input string
-        if (detectedTreatments.length > 0) {
-            _.each(detectedTreatments, (d:string) => {
-                text = text.replace(d, "");
-            })
-        }
-
-        // return the input string
-        return text.trim().replace("\t+","\t").replace(" +"," ");
-    }
-
-    private splitTextField(text:string):string[] {
-        return _.uniq(text.split(/[,\s\n]/));
+    private onChangeTreamentTextArea(text:string):string {
+        return extractTreatmentSelections(text, this._selectedTreatmentOptions, this.treatmentOptionsByValueMap);
     }
 
     @autobind
@@ -579,21 +549,17 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                             options={this.heatmapProfileOptions}
                         />
                         {showGenesTextArea &&
-                            [<textarea
-                                    key="heatmapGeneInputArea"
-                                    placeholder="Type space- or comma-separated genes here, then click 'Add Genes to Heatmap'"
-                                    name={EVENT_KEY.heatmapGeneInput}
-                                    onChange={this.onType}
-                                    value={this.props.state.heatmapGeneInputValue}
-                                >
-                            </textarea>,
-
+                            [<GeneSelectionBox
+                                inputGeneQuery={this.props.state.heatmapGeneInputValue || ""}
+                                callback={this.onChangeHeatmapGeneInput}
+                                location={GeneBoxType.ONCOPRINT_HEATMAP}
+                            />,
                             <button
-                                    key="addGenesToHeatmapButton"
-                                    className="btn btn-sm btn-default"
-                                    name={EVENT_KEY.addGenesToHeatmap}
-                                    onClick={this.onButtonClick}
-                                    disabled={!this.heatmapGenesReady}
+                                key="addGenesToHeatmapButton"
+                                className="btn btn-sm btn-default"
+                                name={EVENT_KEY.addGenesToHeatmap}
+                                onClick={this.onButtonClick}
+                                disabled={!this.heatmapGenesReady}
                                 >Add Genes to Heatmap</button>
                             ]
                         }
@@ -602,10 +568,10 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 elements={this.textareaTreatmentEntries}
                                 text={this.textareaTreatmentText}
                                 placeholder="Type space- or comma-separated treatments here, then click 'Add Treatments to Heatmap'"
-                                onChange={this.onChangeEditableDiv}
-                                onItemRemove={this.onTreatmentRemoved}
-                            />,
-                            <div className={classNames("treatment-selector")}>
+                                onChangeTextArea={this.onChangeTreamentTextArea}
+                                onIconClicked={this.onTreatmentRemoved}
+                                />,
+                                <div className={classNames("treatment-selector")}>
                                 <CheckedSelect
                                     name="treatment-select"
                                     placeholder="Search for Treatments..."
@@ -613,13 +579,13 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                     value={this._selectedTreatmentOptions}
                                     onChange={this.onSelectTreatments}
                                     addAllTitle={"Select all"}
-                                />
+                                    />
                             </div>,
                             <button
-                            key="addTreatmentsToHeatmapButton"
-                            className="btn btn-sm btn-default"
-                            name={EVENT_KEY.addTreatmentsToHeatmap}
-                            onClick={this.onButtonClick}
+                                key="addTreatmentsToHeatmapButton"
+                                className="btn btn-sm btn-default"
+                                name={EVENT_KEY.addTreatmentsToHeatmap}
+                                onClick={this.onButtonClick}
                             >Add Treatments to Heatmap</button>
                             ]
                         }
@@ -639,7 +605,7 @@ export default class OncoprintControls extends React.Component<IOncoprintControl
                                 onClick={this.onButtonClick}
                             >Cluster Heatmap</button>)
                         }
-                </div>
+                    </div>
                 );
             }
         } else if (this.props.state.heatmapProfilesPromise.isError) {

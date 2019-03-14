@@ -31,3 +31,4 @@ errorshots/
 TESTS.xml
 key.pem
 cert.pem
+yarn-error.log
