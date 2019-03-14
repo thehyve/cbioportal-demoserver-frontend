@@ -14,6 +14,10 @@ jobs:
     <<: *defaults
     steps:
       - run:
+          name: "Install python3"
+          command:
+            sudo apt-get update && sudo apt-get install python3
+      - run:
           name: "Install yarn at specific version"
           command:
             sudo npm install --global yarn@1.13.0
@@ -56,10 +60,6 @@ jobs:
           root: /tmp
           paths:
             - repo
-      - run:
-          name: "Install python3"
-          command:
-            sudo apt-get update && sudo apt-get install python3
 
 #   api_sync:
 #     <<: *defaults
@@ -206,12 +206,12 @@ workflows:
     install_and_test:
         jobs:
             - install
-            - api_sync:
-                requires:
-                    - install
-            - unit_tests:
-                requires:
-                    - install
+            # - api_sync:
+            #     requires:
+            #         - install
+            # - unit_tests:
+            #     requires:
+            #         - install
             - end_to_end_tests:
                 requires:
                     - install
@@ -227,12 +227,12 @@ workflows:
                            - release-1.12.0
        jobs:
            - install
-           - api_sync:
-               requires:
-                   - install
-           - unit_tests:
-               requires:
-                   - install
+        #    - api_sync:
+        #        requires:
+        #            - install
+        #    - unit_tests:
+        #        requires:
+        #            - install
            - end_to_end_tests:
                requires:
                    - install
