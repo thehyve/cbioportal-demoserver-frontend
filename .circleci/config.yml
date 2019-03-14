@@ -122,7 +122,7 @@ jobs:
         #   when: always
     #   - run:
     #         name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against backend version specified in the PR"    
-    #         command:
+    #         command: |
     #             yarn serveDist & \
     #             cd end-to-end-tests && \
     #             yarn install --frozen-lockfile && \
@@ -149,26 +149,26 @@ jobs:
     #         FRONTEND_TEST_USE_LOCAL_DIST: true
     #       when: always
       - run:
-            name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against reference backend version (master or rc)"    
-            command:
-                yarn serveDist & \
-                cd end-to-end-tests && \
-                yarn install --frozen-lockfile && \
-                ./node_modules/webdriver-manager/bin/webdriver-manager update --versions.chrome '2.42' && \
-                ./node_modules/webdriver-manager/bin/webdriver-manager start --versions.chrome '2.42' & \
-                curl $CBIOPORTAL_URL > /dev/null && \
-                sleep 5s && \
-                curl $CBIOPORTAL_URL > /dev/null && \
-                sleep 5s && \
-                curl $CBIOPORTAL_URL > /dev/null && \
-                sleep 20s && \
-                (curl --insecure https://localhost:3000 || curl http://localhost:3000) > /dev/null && \
-                sleep 1s && \
-                cd end-to-end-tests/local_database/runtime-config && \
-                setup_environment.sh $BACKEND_REF_FLAG && \
-                cd end-to-end-tests && \
-                local_database/docker/setup_dockers.sh && \
-                yarn run test-webdriver-manager
+          name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against reference backend version (master or rc)"    
+          command: |
+            yarn serveDist & \
+            cd end-to-end-tests && \
+            yarn install --frozen-lockfile && \
+            ./node_modules/webdriver-manager/bin/webdriver-manager update --versions.chrome '2.42' && \
+            ./node_modules/webdriver-manager/bin/webdriver-manager start --versions.chrome '2.42' & \
+            curl $CBIOPORTAL_URL > /dev/null && \
+            sleep 5s && \
+            curl $CBIOPORTAL_URL > /dev/null && \
+            sleep 5s && \
+            curl $CBIOPORTAL_URL > /dev/null && \
+            sleep 20s && \
+            (curl --insecure https://localhost:3000 || curl http://localhost:3000) > /dev/null && \
+            sleep 1s && \
+            cd end-to-end-tests/local_database/runtime-config && \
+            setup_environment.sh $BACKEND_REF_FLAG && \
+            cd end-to-end-tests && \
+            local_database/docker/setup_dockers.sh && \
+            yarn run test-webdriver-manager
           environment:
             REF_BACKEND_FLAG: -r
             CBIOPORTAL_URL: https//localhost:8081
