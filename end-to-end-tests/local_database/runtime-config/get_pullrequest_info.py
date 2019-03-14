@@ -7,14 +7,15 @@ import re
 
 issue_number=sys.argv[1]
 
-url = "https://api.github.com/repos/cBioPortal/cbioportal-frontend/pulls/"+issue_number
+# TODO !!!! change back to cbioportal --> 
+url = "https://api.github.com/repos/thehyve/cbioportal-frontend/pulls/"+issue_number
 
 myResponse = requests.get(url)
 
 # For successful API call, response code will be 200 (OK)
 if(myResponse.ok):
 
-    jData = json.loads(myResponse.content)
+    jData = json.loads(myResponse.content.decode('utf-8'))
 
     frontend_branch_name = jData['head']['ref']
     frontend_commit_hash = jData['head']['sha']

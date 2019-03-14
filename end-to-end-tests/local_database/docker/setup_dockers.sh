@@ -4,6 +4,23 @@ set -e
 set -u # unset variables throw error
 set -o pipefail # pipes fail when partial command fails
 
+usage() {
+    echo "Build docker with cbioportal backend specified in the pull request or a reference (master/rc) cbioportal backend."
+    echo "Pass a filename with environmental variables via the -e parameter."
+    echo "Example: ./setup_dockers.sh -e /tmp/env_vars.sh"
+}
+
+while getopts "e:" opt; do
+  case "${opt}" in
+    r) env_vars_filename=true
+    ;;
+    \?) usage; exit 1
+    ;;
+  esac
+done
+
+source env_vars_filename
+
 build_and_run_database() {
     # create local database from with cbioportal db and seed data
     download_db_seed
