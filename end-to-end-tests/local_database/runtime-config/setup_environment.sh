@@ -31,7 +31,7 @@ fi
 
 echo "Retrieving pull request information (CIRCLE_PR_NUMBER: '$CIRCLE_PR_NUMBER'):"
 python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER && echo
-python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER >> env_vars.sh
+eval "$(python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER)"
 # retrieves
     # FRONTEND_BRANCH_NAME          ->  (e.g. 'superawesome_feature_branch')
     # FRONTEND_COMMIT_HASH          ->  (e.g. '3as8sAs4')
@@ -46,7 +46,7 @@ python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER >> env_vars.sh
 
 echo "Read portal.properties for local database connection:"
 python3 read_portalproperties.py portal.properties && echo
-python3 read_portalproperties.py portal.properties >> env_vars.sh
+eval "$(python3 read_portalproperties.py portal.properties)"
 # retrieves
     # DB_USER                       ->  (e.g. 'cbio_user')
     # DB_PASSWORD                   ->  (e.g. 'cbio_pass')
@@ -65,6 +65,8 @@ else
     fi
 fi
 
-echo "export E2E_CBIOPORTAL_HOST_NAME=cbioportale2e" >> env_vars.sh
+export E2E_CBIOPORTAL_HOST_NAME="cbioportale2e"
+
+../docker/setup_dockers.sh
 
 exit

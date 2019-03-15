@@ -4,23 +4,6 @@ set -e
 set -u # unset variables throw error
 set -o pipefail # pipes fail when partial command fails
 
-usage() {
-    echo "Build docker with cbioportal backend specified in the pull request or a reference (master/rc) cbioportal backend."
-    echo "Pass a filename with environmental variables via the -e parameter."
-    echo "Example: ./setup_dockers.sh -e /tmp/env_vars.sh"
-}
-
-while getopts "e:" opt; do
-  case "${opt}" in
-    r) env_vars_filename=true
-    ;;
-    \?) usage; exit 1
-    ;;
-  esac
-done
-
-source env_vars_filename
-
 build_and_run_database() {
     # create local database from with cbioportal db and seed data
     download_db_seed
@@ -51,7 +34,7 @@ build_and_run_cbioportal() {
     
     cd /tmp
     rm -rf cbioportal
-    git clone --depth 1 -b $BACKEND_BRANCH_NAMe "https://github.com/$BACKEND_ORGANIZATION/cbioportal.git"
+    git clone --depth 1 -b $BACKEND_BRANCH_NAME "https://github.com/$BACKEND_ORGANIZATION/cbioportal.git"
     (docker stop $E2E_CBIOPORTAL_HOST_NAME 2> /dev/null && docker rm $E2E_CBIOPORTAL_HOST_NAME  2> /dev/null) || true 
     cp $TEST_HOME/docker_images/* cbioportal
     cp $TEST_HOME/runtime-config/portal.properties cbioportal
@@ -104,7 +87,7 @@ load_studies_in_db() {
 check_jitpack_download_frontend() {
     # check whether jitpack versions for the frontend exist
     url="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH/cbioportal-frontend-$FRONTEND_COMMIT_HASH.jar"
-    if !( curl -s --head $url | head -n 1 | grep "HTTP/2 200") ; then
+    if !( curl -s --head $url | head -n 1 | egrep "HTTP/[0-9.]+ 200") ; then
         echo "Could not find frontend .jar (version: $FRONTEND_COMMIT_HASH, org: $FRONTEND_ORGANIZATION) at jitpack (url: $url)"
         exit 1
     fi
