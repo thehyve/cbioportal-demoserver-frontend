@@ -316,7 +316,7 @@ export type TreatmentMolecularData = {
 
     'value': any
 
-    'truncation': string | undefined
+    'thresholdType': '>'|'<'|undefined
     
 };
 export type Gistic = {
