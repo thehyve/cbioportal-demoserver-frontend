@@ -1686,7 +1686,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     <div className="checkbox"><label>
                                         <input
                                             data-test="ViewMutationType"
-                                            type="checkbox"
+                                            type={this.plotType.result === PlotType.WaterfallPlot? "radio": "checkbox"}
                                             name="utilities_viewMutationType"
                                             value={EventKey.utilities_viewMutationType}
                                             checked={this.viewMutationType}
@@ -1699,7 +1699,7 @@ export default class PlotsTab extends React.Component<IPlotsTabProps,{}> {
                                     <div className="checkbox"><label>
                                         <input
                                             data-test="ViewCopyNumber"
-                                            type="checkbox"
+                                            type={this.plotType.result === PlotType.WaterfallPlot? "radio": "checkbox"}
                                             name="utilities_viewCopyNumber"
                                             value={EventKey.utilities_viewCopyNumber}
                                             checked={this.viewCopyNumber}
