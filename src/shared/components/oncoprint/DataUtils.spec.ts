@@ -1303,7 +1303,7 @@ describe("DataUtils", ()=>{
            )
            assert.deepEqual(
             partialTrackDatum,
-            {treatment_id: "TREATMENT_ID_1", study_id:"study", profile_data:-10, thresholdType: '>', category: '>8.00'}
+            {treatment_id: "TREATMENT_ID_1", study_id:"study", profile_data: 8, thresholdType: '>', category: '>8.00'}
            );
        });
    });
