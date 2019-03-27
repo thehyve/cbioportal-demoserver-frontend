@@ -17,8 +17,7 @@ import {getTextWidth} from "../../lib/wrapText";
 import autobind from "autobind-decorator";
 import { dataPointIsTruncated } from 'shared/components/plots/PlotUtils';
 import _ from "lodash";
-import { IBoxScatterPlotPoint } from '../../../../target/classes/tsDist/pages/resultsView/plots/PlotsTabUtils';
-import { IAxisLogScaleParams } from "pages/resultsView/plots/PlotsTabUtils";
+import { IAxisLogScaleParams, IBoxScatterPlotPoint } from "pages/resultsView/plots/PlotsTabUtils";
 
 export interface IBaseBoxScatterPlotPoint {
     value:number;
