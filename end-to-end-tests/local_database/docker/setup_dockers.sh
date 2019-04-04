@@ -109,4 +109,4 @@ build_and_run_database
 build_and_run_cbioportal $BACKEND_BRANCH_NAME $BACKEND_ORGANIZATION $FRONTEND_COMMIT_HASH $frontend_groupId
 load_studies_in_db
 
-exit
+exit 0

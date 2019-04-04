@@ -29,9 +29,9 @@ if [[ -z "$CIRCLE_PR_NUMBER" ]]; then
     fi
 fi
 
-echo "Retrieving pull request information (CIRCLE_PR_NUMBER: '$CIRCLE_PR_NUMBER'):"
-python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER && echo
-eval "$(python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER)"
+#echo "Retrieving pull request information (CIRCLE_PR_NUMBER: '$CIRCLE_PR_NUMBER'):"
+python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER
+#eval "$(python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER)"
 # retrieves
     # FRONTEND_BRANCH_NAME          ->  (e.g. 'superawesome_feature_branch')
     # FRONTEND_COMMIT_HASH          ->  (e.g. '3as8sAs4')
@@ -44,9 +44,9 @@ eval "$(python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER)"
     # BACKEND_ORGANIZATION          ->  (e.g. 'cbioportal')
     # BACKEND_BRANCH_NAME           ->  (e.g. 'rc')
 
-echo "Read portal.properties for local database connection:"
-python3 read_portalproperties.py portal.properties && echo
-eval "$(python3 read_portalproperties.py portal.properties)"
+# echo "Read portal.properties for local database connection:"
+python3 read_portalproperties.py portal.properties
+# eval "$(python3 read_portalproperties.py portal.properties)"
 # retrieves
     # DB_USER                       ->  (e.g. 'cbio_user')
     # DB_PASSWORD                   ->  (e.g. 'cbio_pass')
@@ -65,8 +65,8 @@ else
     fi
 fi
 
-export E2E_CBIOPORTAL_HOST_NAME="cbioportale2e"
+echo export E2E_CBIOPORTAL_HOST_NAME="cbioportale2e"
 
-../docker/setup_dockers.sh
+# ../docker/setup_dockers.sh
 
 exit
