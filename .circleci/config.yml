@@ -93,29 +93,29 @@ jobs:
   end_to_end_tests_localdb_reference_backend:
     working_directory: /tmp/repo
     machine:
-        enabled: true
-        image: circleci/classic:201808-01
+      enabled: true
+      image: circleci/classic:201808-01
     steps:
-        - attach_workspace:
-            at: /tmp/
-        - run:
-            name: setup cbioportal docker containers
-            command: |
-                cd end-to-end-tests/local_database/runtime-config && \
-                eval "$(setup_environment.sh -r) && \
-                cd - && \
-                cd  end-to-end-test/ && \
-                local_database/docker/setup_dockers.sh
-        - run: 
-            name: end-2-end tests
-            command: end-to-end-tests/local_database/runtime-config/run_screenshot_test.sh
-          environment:
-            CBIOPORTAL_URL: https//localhost:8081
-            DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
-            SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
-            JUNIT_REPORT_PATH: ./junit/
-            PORTAL_HOME: /tmp/repo
-            FRONTEND_TEST_USE_LOCAL_DIST: true
+      - attach_workspace:
+          at: /tmp/
+      - run:
+          name: setup cbioportal docker containers
+          command: |
+              cd end-to-end-tests/local_database/runtime-config && \
+              eval "$(setup_environment.sh -r) && \
+              cd - && \
+              cd  end-to-end-test/ && \
+              local_database/docker/setup_dockers.sh
+      - run: 
+          name: end-2-end tests
+          command: end-to-end-tests/local_database/runtime-config/run_screenshot_test.sh
+        environment:
+          CBIOPORTAL_URL: https//localhost:8081
+          DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
+          SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
+          JUNIT_REPORT_PATH: ./junit/
+          PORTAL_HOME: /tmp/repo
+          FRONTEND_TEST_USE_LOCAL_DIST: true
           when: always
 
 #   end_to_end_tests:
@@ -181,8 +181,8 @@ jobs:
     #         FRONTEND_TEST_USE_LOCAL_DIST: true
     #       when: always
       - run:
-          name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against reference backend version (master or rc)"    
-          command: |
+        name: "Spin up frontend over ssl if necessary and run end-to-end tests with local database against reference backend version (master or rc)"    
+        command: |
             # yarn serveDist & \
             # cd end-to-end-tests && \
             # yarn install --frozen-lockfile && \
