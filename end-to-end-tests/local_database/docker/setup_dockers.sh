@@ -39,11 +39,10 @@ build_and_run_cbioportal() {
     cp $TEST_HOME/docker_images/* cbioportal
     cp $TEST_HOME/runtime-config/portal.properties cbioportal
     cd cbioportal
-    export FRONTEND_VERSION=$FRONTEND_COMMIT_HASH
-    export FRONTEND_GROUPID=$FRONTEND_GROUPID
     # docker build -f Dockerfile.local -t cbioportal-backend-endtoend .
     docker rm cbioportal-endtoend-image 2> /dev/null || true
-    docker build -f Dockerfile -t cbioportal-endtoend-image . --build-arg FRONTEND_VERSION --build-arg FRONTEND_GROUPID
+    docker build -f Dockerfile -t cbioportal-endtoend-image . \
+        --build-arg FRONTEND_VERSION=$FRONTEND_COMMIT_HASH --build-arg FRONTEND_GROUPID=$FRONTEND_GROUPID
 
     # migrate database schema to most recent version
     echo Migrating database schema to most recent version ...
@@ -58,8 +57,6 @@ build_and_run_cbioportal() {
         --name=$E2E_CBIOPORTAL_HOST_NAME \
         --net=endtoendlocaldb_default \
         -e CATALINA_OPTS='-Xms2g -Xmx4g' \
-        -p 127.0.0.1:8000:8000 \
-        -p 8081:8080 \
         cbioportal-endtoend-image \
         catalina.sh jpda run
 
@@ -68,13 +65,12 @@ build_and_run_cbioportal() {
 
 load_studies_in_db() {
 
-    for DIR in $TEST_HOME/end-to-end-tests/studies/*/ ; do
+    for DIR in $TEST_HOME/end-to-end-tests/local_database/studies/*/ ; do
         docker run --rm \
             --name=cbioportal-importer \
             --net=endtoendlocaldb_default \
             -v "$TEST_HOME/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
             -v "$DIR:/study:ro" \
-            -v "$DIR:/outdir" \
             cbioportal-endtoend-image \
             python3 /cbioportal/core/src/main/scripts/importer/metaImport.py \
             --url_server http://$E2E_CBIOPORTAL_HOST_NAME:8080 \
