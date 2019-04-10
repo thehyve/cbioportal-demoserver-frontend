@@ -95,31 +95,30 @@ jobs:
     machine:
       enabled: true
       image: ubuntu-1604:201903-01
-    environment: <- probeer of
-        E2E_CBIOPORTAL_HOST_NAME: cbioportal
+    environment:
+      E2E_CBIOPORTAL_HOST_NAME: cbioportal
+      CBIOPORTAL_URL: http://$E2E_CBIOPORTAL_HOST_NAME:8081
+      DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
+      SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
+      JUNIT_REPORT_PATH: ./junit/
+      PORTAL_HOME: /tmp/repo
+      FRONTEND_TEST_USE_LOCAL_DIST: true
     steps:
       - attach_workspace:
           at: /tmp/
       - run:
-          name: setup cbioportal docker containers
-          command: |
-              cd end-to-end-tests/local_database/runtime-config && \
-              eval "$(setup_environment.sh -r) && \
-              cd - && \
-              cd  end-to-end-test/ && \
-              local_database/docker/setup_dockers.sh
+        name: setup cbioportal docker containers
+        command: |
+            cd end-to-end-tests/local_database/runtime-config && \
+            eval "$(setup_environment.sh) && \
+            python3 check_pullrequest_draft_state.py $CIRCLE_PR_NUMBER && \
+            cd - && \
+            cd  end-to-end-test/ && \
+            local_database/docker/setup_dockers.sh
       - run: 
-          name: end-2-end tests
-          command: end-to-end-tests/local_database/runtime-config/run_screenshot_test.sh
-        environment:
-          CBIOPORTAL_URL: http://$E2E_CBIOPORTAL_HOST_NAME:8081
-          DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
-          SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
-          JUNIT_REPORT_PATH: ./junit/
-          PORTAL_HOME: /tmp/repo
-          FRONTEND_TEST_USE_LOCAL_DIST: true
-          when: always
-
+        name: run end-2-end tests with studies in local database
+        command: end-to-end-tests/local_database/runtime-config/run_screenshot_test.sh
+    when: always
 
 #   end_to_end_tests:
 #     <<: *defaults

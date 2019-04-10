@@ -27,8 +27,13 @@ if(myResponse.ok):
     frontend_base_organization = jData['base']['repo']['full_name'].split("/")[0].lower()
     frontend_base_repo_name = jData['base']['repo']['name']
 
-    backend_organization = ""
-    backend_branch_name = ""
+    # By default a backend is selected that is identical to the base branch of the frontend
+    # e.g. for a frontend PR based on rc, the rc backend is selected 
+    backend_organization = "cbioportal"
+    backend_branch_name = frontend_base_branch_name
+
+    # When a specific backend version is selected (recognized by the `BACKEND_BRANCH` parameter in the PR body),
+    # this backend version is selected.  
     pr_match = re.search(r"BACKEND_BRANCH=([^\s]+):([^\s]+)", jData['body'])
     if pr_match is not None :
         backend_organization = pr_match.group(1).lower()

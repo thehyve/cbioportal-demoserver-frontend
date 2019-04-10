@@ -2,24 +2,7 @@
 
 set -e
 
-usage() {
-    echo "Build docker with cbioportal backend specified in the pull request or a reference (master/rc) cbioportal backend."
-    echo "To run with reference backend provide the -r flag to this script."
-    echo "Example: ./setup.sh -r"
-}
-
-use_reference_backend=false
-
-while getopts "r" opt; do
-  case "${opt}" in
-    r) use_reference_backend=true
-    ;;
-    \?) usage; exit 1
-    ;;
-  esac
-done
-
-# evaluate the pull request number
+# evaluate the pull request number. This is sometimes not set by CirclCI 
 if [[ -z "$CIRCLE_PR_NUMBER" ]]; then
     if [[ "$CIRCLE_PULL_REQUEST" =~ \/([0-9]+)$ ]] ; then
         export CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
@@ -29,9 +12,7 @@ if [[ -z "$CIRCLE_PR_NUMBER" ]]; then
     fi
 fi
 
-#echo "Retrieving pull request information (CIRCLE_PR_NUMBER: '$CIRCLE_PR_NUMBER'):"
 python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER
-#eval "$(python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER)"
 # retrieves
     # FRONTEND_BRANCH_NAME          ->  (e.g. 'superawesome_feature_branch')
     # FRONTEND_COMMIT_HASH          ->  (e.g. '3as8sAs4')
@@ -44,9 +25,7 @@ python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER
     # BACKEND_ORGANIZATION          ->  (e.g. 'cbioportal')
     # BACKEND_BRANCH_NAME           ->  (e.g. 'rc')
 
-# echo "Read portal.properties for local database connection:"
 python3 read_portalproperties.py portal.properties
-# eval "$(python3 read_portalproperties.py portal.properties)"
 # retrieves
     # DB_USER                       ->  (e.g. 'cbio_user')
     # DB_PASSWORD                   ->  (e.g. 'cbio_pass')
@@ -54,19 +33,4 @@ python3 read_portalproperties.py portal.properties
     # DB_CONNECTION_STRING          ->  (e.g. 'jdbc:mysql://cbiodb-endtoend:3306/')
     # DB_HOST                       ->  (e.g. 'cbiodb-endtoend')
 
-if [[ "$use_reference_backend" == true ]]; then
-    backend_branch_name=$FRONTEND_BASE_BRANCH_NAME
-    backend_organization="cbioportal"
-else
-    if [[ -z $BACKEND_ORGANIZATION ]] || [[ -z $BACKEND_BRANCH_NAME ]]; then
-        echo "Error: information on the specified backend branch could not be retrieved."
-        echo "Make sure to include 'BACKEND_BRANCH=<org>:<name>'' in the pull request text where '<org>' is the organization (e.g. cbioportal) and '<name>' is the name of the backend branch."
-        exit 1
-    fi
-fi
-
-echo export E2E_CBIOPORTAL_HOST_NAME="cbioportale2e"
-
-# ../docker/setup_dockers.sh
-
-exit
+exit 0
