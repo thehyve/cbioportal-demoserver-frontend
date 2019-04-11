@@ -42,7 +42,7 @@ jobs:
             - save_cache:
                 paths:
                         - node_modules
-                key: v2-dependencies-{{ checksum "yarn.41ddc87f1061bc01f2dc1a99a317e6deb21d74ecock" }}
+                key: v2-dependencies-{{ checksum "yarn.lock" }}
             - run:
                 name: "Run build if no dist folder"
                 command: 'ls dist || yarn run build'
@@ -51,7 +51,7 @@ jobs:
                     - node_modules
                     - dist
                     - common-dist
-                key: v2-dependencies-plus-dist-{{ check41ddc87f1061bc01f2dc1a99a317e6deb21d74ecum "has_source_changed" }}
+                key: v2-dependencies-plus-dist-{{ checksum "has_source_changed" }}
             - persist_to_workspace:
                 root: /tmp
                 paths:
