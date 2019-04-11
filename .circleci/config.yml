@@ -104,11 +104,11 @@ jobs:
             - run:
                 # needed to get python3 on the path (https://discuss.circleci.com/t/pyenv-pyvenv-command-not-found/4087/2)
                 name: add python3 to path [corrects bug in circle ci image and may be removed in the future]
-                command:  pyenv local 3.5.2 && virtualenv venv
+                command: pyenv local 3.5.2 && virtualenv venv
             - run:
                 name: setup python libraries
                 command: |
-                    sudo apt-get install python3-requests python3-yaml
+                    pip3 install requests pyyaml
             - run:
                 name: setup cbioportal docker containers
                 command: |
