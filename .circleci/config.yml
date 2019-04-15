@@ -97,6 +97,7 @@ jobs:
             SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
             JUNIT_REPORT_PATH: ./junit/
             PORTAL_HOME: /tmp/repo
+            TEST_HOME: $PORTAL_HOME/end-to-end-tests
             FRONTEND_TEST_USE_LOCAL_DIST: true
         steps:
             - attach_workspace:
