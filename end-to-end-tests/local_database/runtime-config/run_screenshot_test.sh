@@ -2,8 +2,8 @@
 
 CUR_DIR=$PWD
 
-cd $PORTAL_HOME/end-to-end-tests/local_database/docker
-docker build -f Dockerfile.screenshottest -t cbioportal:screenshot .
+cd $TEST_HOME/local_database/docker
+docker build -f Dockerfile.screenshottest -t cbioportal:screenshot $PORTAL_SOURCE_DIR
 
 docker run cbioportal:screenshot
 
