@@ -11,7 +11,7 @@ build_and_run_database() {
     docker stop $DB_HOST && docker rm $DB_HOST
     docker run -d \
         --name=$DB_HOST \
-        --net=endtoendlocaldb_default \
+        --net=$network_name \
         -e MYSQL_ROOT_PASSWORD=$DB_USER \
         -e MYSQL_USER=$DB_USER \
         -e MYSQL_PASSWORD=$DB_PASSWORD \
@@ -47,7 +47,7 @@ build_and_run_cbioportal() {
     # migrate database schema to most recent version
     echo Migrating database schema to most recent version ...
     docker run --rm \
-        --net=endtoendlocaldb_default \
+        --net=$network_name \
         -v "$TEST_HOME/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
         cbioportal-endtoend-image \
         python3 /cbioportal/core/src/main/scripts/migrate_db.py -y -p /cbioportal/portal.properties -s /cbioportal/db-scripts/src/main/resources/migration.sql
@@ -55,7 +55,7 @@ build_and_run_cbioportal() {
     # start cbioportal
     docker run -d --restart=always \
         --name=$E2E_CBIOPORTAL_HOST_NAME \
-        --net=endtoendlocaldb_default \
+        --net=$network_name \
         -e CATALINA_OPTS='-Xms2g -Xmx4g' \
         cbioportal-endtoend-image \
         catalina.sh jpda run
@@ -68,7 +68,7 @@ load_studies_in_db() {
     for DIR in $TEST_HOME/end-to-end-tests/local_database/studies/*/ ; do
         docker run --rm \
             --name=cbioportal-importer \
-            --net=endtoendlocaldb_default \
+            --net=$network_name \
             -v "$TEST_HOME/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
             -v "$DIR:/study:ro" \
             cbioportal-endtoend-image \
@@ -99,8 +99,10 @@ download_db_seed() {
 }
 
 frontend_groupId="com.github.$FRONTEND_ORGANIZATION"
+network_name=endtoendlocaldb_default
 
 check_jitpack_download_frontend $FRONTEND_ORGANIZATION $FRONTEND_COMMIT_HASH
+docker network create $network_name 2> /dev/null || true
 build_and_run_database
 build_and_run_cbioportal $BACKEND_BRANCH_NAME $BACKEND_ORGANIZATION $FRONTEND_COMMIT_HASH $frontend_groupId
 load_studies_in_db
