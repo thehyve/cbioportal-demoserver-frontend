@@ -36,7 +36,7 @@ build_and_run_cbioportal() {
     rm -rf cbioportal
     git clone --depth 1 -b $BACKEND_BRANCH_NAME "https://github.com/$BACKEND_ORGANIZATION/cbioportal.git"
     (docker stop $E2E_CBIOPORTAL_HOST_NAME 2> /dev/null && docker rm $E2E_CBIOPORTAL_HOST_NAME  2> /dev/null) || true 
-    cp $TEST_HOME/docker_images/* cbioportal
+    cp $TEST_HOME/docker/Dockerfile cbioportal
     cp $TEST_HOME/runtime-config/portal.properties cbioportal
     cd cbioportal
     # docker build -f Dockerfile.local -t cbioportal-backend-endtoend .
