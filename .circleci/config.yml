@@ -93,6 +93,7 @@ jobs:
         environment:
             E2E_CBIOPORTAL_HOST_NAME: cbioportal
             CBIOPORTAL_URL: http://cbioportal:8081
+            SESSION_SERVICE_HOST_NAME: cbio-session-service
             DIFF_SCREENSHOT_DIR_NAME: diff_localdb_specified
             SPEC_FILE_PATTERN: ./local_database/specs/**/*.spec.js
             JUNIT_REPORT_PATH: ./junit/

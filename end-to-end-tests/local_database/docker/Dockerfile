@@ -6,8 +6,7 @@
 FROM tomcat:8-jre8
 MAINTAINER Fedde Schaeffer <fedde@thehyve.nl>
 
-ARG FRONTEND_VERSION=""
-ARG FRONTEND_GROUPID=""
+ARG MAVEN_OPTS=""
 
 # install build and runtime dependencies and configure Tomcat for production
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -31,7 +30,7 @@ WORKDIR $PORTAL_HOME
 
 # build and install, placing the scripts jar back in the target folder
 # where import scripts expect it after cleanup
-RUN if [[ "$FRONTEND_VERSION" = "" ]]; then mvn -DskipTests clean install; else mvn -DskipTests clean install -Dfrontend.version=$FRONTEND_VERSION -Dfrontend.groupId=$FRONTEND_GROUPID; \
+RUN mvn -DskipTests clean install $MAVEN_OPTS \
 	&& unzip portal/target/cbioportal*.war -d $CATALINA_HOME/webapps/cbioportal \
 	&& mv scripts/target/scripts-*.jar /root/ \
 	&& mvn clean \

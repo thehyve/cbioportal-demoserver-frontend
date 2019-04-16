@@ -42,7 +42,7 @@ build_and_run_cbioportal() {
     # docker build -f Dockerfile.local -t cbioportal-backend-endtoend .
     docker rm cbioportal-endtoend-image 2> /dev/null || true
     docker build -f Dockerfile -t cbioportal-endtoend-image . \
-        --build-arg FRONTEND_VERSION=$FRONTEND_COMMIT_HASH --build-arg FRONTEND_GROUPID=$FRONTEND_GROUPID
+        --build-arg MAVEN_OPTS="-Dfrontend.version=$FRONTEND_COMMIT_HASH -Dfrontend.groupId=$FRONTEND_GROUPID"
 
     # migrate database schema to most recent version
     echo Migrating database schema to most recent version ...
