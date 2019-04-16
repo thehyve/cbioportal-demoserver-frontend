@@ -48,7 +48,7 @@ build_and_run_cbioportal() {
     echo Migrating database schema to most recent version ...
     docker run --rm \
         --net=$network_name \
-        -v "$TEST_HOME/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
+        -v "$TEST_HOME/local_database/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
         cbioportal-endtoend-image \
         python3 /cbioportal/core/src/main/scripts/migrate_db.py -y -p /cbioportal/portal.properties -s /cbioportal/db-scripts/src/main/resources/migration.sql
 
