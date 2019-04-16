@@ -115,6 +115,7 @@ jobs:
                 name: setup cbioportal docker containers
                 command: |
                     cd end-to-end-tests/local_database/runtime-config && \
+                    ./setup_environment.sh && \
                     eval "$(./setup_environment.sh)" && \
                     python3 check_pullrequest_draft_state.py $CIRCLE_PR_NUMBER && \
                     cd ../docker && \
