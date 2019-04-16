@@ -13,7 +13,7 @@ import AppConfig from "appConfig";
 import CNSegments from "./cnSegments/CNSegments";
 import Fusion from './fusion/Fusions';
 import './styles.scss';
-import {genes, parseOQLQuery} from "shared/lib/oql/oqlfilter.js";
+import {parseOQLQuery} from "shared/lib/oql/oqlfilter.js";
 import Network from "./network/Network";
 import ResultsViewOncoprint from "shared/components/oncoprint/ResultsViewOncoprint";
 import QuerySummary from "./querySummary/QuerySummary";

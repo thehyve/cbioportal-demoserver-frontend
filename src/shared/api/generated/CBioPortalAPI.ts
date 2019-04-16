@@ -6982,5 +6982,3 @@ export default class CBioPortalAPI {
         });
     };
 }
-
-}
