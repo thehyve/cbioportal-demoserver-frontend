@@ -95,7 +95,7 @@ check_jitpack_download_frontend() {
     wait=0
     cur_time=$(date +%s)
     while (($wait < $max_wait)); do
-        if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
+        if !(curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
             echo Waiting for jitpack to build the frontend package...
             sleep 10
             wait=wait+$(date +%s)-cur_time
@@ -104,7 +104,7 @@ check_jitpack_download_frontend() {
         fi
     done
 
-    if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
+    if !(curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
         echo "Could not find frontend .jar (version: $FRONTEND_COMMIT_HASH, org: $FRONTEND_ORGANIZATION) at jitpack (url: $url_short)"
         exit 1
     fi
