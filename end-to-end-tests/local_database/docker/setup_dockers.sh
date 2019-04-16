@@ -53,12 +53,11 @@ build_and_run_cbioportal() {
         python3 /cbioportal/core/src/main/scripts/migrate_db.py -y -p /cbioportal/portal.properties -s /cbioportal/db-scripts/src/main/resources/migration.sql
 
     # start cbioportal
-    docker run -d --restart=always \
+    docker run --restart=always \
         --name=$E2E_CBIOPORTAL_HOST_NAME \
         --net=$network_name \
         -e CATALINA_OPTS='-Xms2g -Xmx4g' \
-        cbioportal-endtoend-image \
-        catalina.sh jpda run
+        cbioportal-endtoend-image &
 
     cd $curdir
 }
@@ -73,7 +72,7 @@ load_studies_in_db() {
             -v "$DIR:/study:ro" \
             cbioportal-endtoend-image \
             python3 /cbioportal/core/src/main/scripts/importer/metaImport.py \
-            --url_server http://$E2E_CBIOPORTAL_HOST_NAME:8080 \
+            --url_server "http://$E2E_CBIOPORTAL_HOST_NAME:8080" \
             --study_directory /study \
             --override_warning
     done
