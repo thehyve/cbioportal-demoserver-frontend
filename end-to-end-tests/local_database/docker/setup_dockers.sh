@@ -69,7 +69,7 @@ load_studies_in_db() {
         docker run --rm \
             --name=cbioportal-importer \
             --net=$network_name \
-            -v "$TEST_HOME/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
+            -v "$TEST_HOME/local_database/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
             -v "$DIR:/study:ro" \
             cbioportal-endtoend-image \
             python3 /cbioportal/core/src/main/scripts/importer/metaImport.py \
