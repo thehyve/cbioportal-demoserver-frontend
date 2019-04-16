@@ -4,7 +4,7 @@ set -e
 set -u # unset variables throw error
 set -o pipefail # pipes fail when partial command fails
 
-build_and_run_database() {
+run_database_container() {
     # create local database from with cbioportal db and seed data
     download_db_seed
     docker volume rm MYSQL_DATA_DIR 2> /dev/null || true
@@ -26,9 +26,17 @@ build_and_run_database() {
         echo Waiting for cbioportal database to initialize...
         sleep 10
     done
+
+    # migrate database schema to most recent version
+    echo Migrating database schema to most recent version ...
+    docker run --rm \
+        --net=$network_name \
+        -v "$TEST_HOME/local_database/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
+        cbioportal-endtoend-image \
+        python3 /cbioportal/core/src/main/scripts/migrate_db.py -y -p /cbioportal/portal.properties -s /cbioportal/db-scripts/src/main/resources/migration.sql
 }
 
-build_and_run_cbioportal() {
+build_cbioportal_image() {
 
     curdir=$PWD
     
@@ -42,15 +50,13 @@ build_and_run_cbioportal() {
     # docker build -f Dockerfile.local -t cbioportal-backend-endtoend .
     docker rm cbioportal-endtoend-image 2> /dev/null || true
     docker build -f Dockerfile -t cbioportal-endtoend-image . \
-        --build-arg MAVEN_OPTS="-Dfrontend.version=$FRONTEND_COMMIT_HASH -Dfrontend.groupId=$FRONTEND_GROUPID"
+        --build-arg MAVEN_OPTS="-Dfrontend.version=$FRONTEND_COMMIT_HASH -Dfrontend.groupId=$FRONTEND_GROUPID" \
+        --build-arg SESSION_SERVICE_HOST_NAME=$SESSION_SERVICE_HOST_NAME
 
-    # migrate database schema to most recent version
-    echo Migrating database schema to most recent version ...
-    docker run --rm \
-        --net=$network_name \
-        -v "$TEST_HOME/local_database/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
-        cbioportal-endtoend-image \
-        python3 /cbioportal/core/src/main/scripts/migrate_db.py -y -p /cbioportal/portal.properties -s /cbioportal/db-scripts/src/main/resources/migration.sql
+    cd $curdir
+}
+
+run_cbioportal_container() {
 
     # start cbioportal
     docker run --restart=always \
@@ -59,7 +65,6 @@ build_and_run_cbioportal() {
         -e CATALINA_OPTS='-Xms2g -Xmx4g' \
         cbioportal-endtoend-image &
 
-    cd $curdir
 }
 
 load_studies_in_db() {
@@ -82,7 +87,23 @@ load_studies_in_db() {
 check_jitpack_download_frontend() {
     # check whether jitpack versions for the frontend exist
     url="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH/cbioportal-frontend-$FRONTEND_COMMIT_HASH.jar"
-    if !( curl -s --head $url | head -n 1 | egrep "HTTP/[0-9.]+ 200") ; then
+    # trigger build
+    curl curl -s --head $url | head -n 0
+    FRONTEND_COMMIT_HASH_SHORT=substring $FRONTEND_COMMIT_HASH 0 10
+    url_short="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH_SHORT/cbioportal-frontend-$FRONTEND_COMMIT_HASH_SHORT.jar"
+    max_wait=1200
+    wait=0
+    cur_time=$(date +%s)
+    while [["$wait" < "$max_wait"]]; do
+        if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200") ; then
+            sleep 10
+            wait=wait+$(date +%s)-cur_time
+        else
+            wait=max_wait+1
+        fi
+    fi
+
+    if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200") ; then
         echo "Could not find frontend .jar (version: $FRONTEND_COMMIT_HASH, org: $FRONTEND_ORGANIZATION) at jitpack (url: $url)"
         exit 1
     fi
@@ -97,19 +118,35 @@ download_db_seed() {
     cd $curdir
 }
 
+run_session_service() {
+    docker run -d --name=mongoDB --net=$network_name \
+        -e MONGO_INITDB_DATABASE=session_service \
+        mongo:4.0
+
+    docker run -d --name=cbio-session-service --net=$network_name -p 8084:8080 \
+        -e JAVA_OPTS="-Dspring.data.mongodb.uri=mongodb://mongoDB:27017/session-service" \
+        thehyve/cbioportal-session-service:cbiov2.1.0
+}
+
 network_name=endtoendlocaldb_default
+docker network create $network_name 2> /dev/null || true
 
 echo Check JitPack download of frontend code 
 check_jitpack_download_frontend
-docker network create $network_name 2> /dev/null || true
 
-echo Build and run database docker 
-build_and_run_database
+echo Build portal image
+build_cbioportal_image
 
-echo Build and run portal docker
-build_and_run_cbioportal
+echo Run database container, import seed and migrate schema
+run_database_container
 
-echo Load test studies into database
+echo Start session service
+run_session_service
+
+echo Run cbioportal container
+run_cbioportal_container
+
+echo Load studies into local database
 load_studies_in_db
 
 exit 0
