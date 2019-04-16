@@ -42,7 +42,7 @@ if(myResponse.ok):
     # TODO: attempt to shorten git commit hash for jitpack compat
     frontend_commit_hash = frontend_commit_hash[:10]
 
-    frontend_group_id = "com.git."+frontend_organization
+    frontend_group_id = "com.github."+frontend_organization
 
     print(
       "export FRONTEND_BRANCH_NAME="+ frontend_branch_name + "\n"
