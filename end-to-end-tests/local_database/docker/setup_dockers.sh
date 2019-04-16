@@ -86,9 +86,9 @@ load_studies_in_db() {
 
 check_jitpack_download_frontend() {
     # check whether jitpack versions for the frontend exist
-    url="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH/cbioportal-frontend-$FRONTEND_COMMIT_HASH.jar"
-    # trigger build
-    curl -s --head $url | head -n 0
+    # url="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH/cbioportal-frontend-$FRONTEND_COMMIT_HASH.jar"
+    # # trigger build
+    # curl -s --head $url | head -n 0
     FRONTEND_COMMIT_HASH_SHORT=$(echo FRONTEND_COMMIT_HASH | awk '{print substr($0,0,10)}')
     url_short="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH_SHORT/cbioportal-frontend-$FRONTEND_COMMIT_HASH_SHORT.jar"
     max_wait=1200
@@ -96,6 +96,7 @@ check_jitpack_download_frontend() {
     cur_time=$(date +%s)
     while [["$wait" < "$max_wait"]]; do
         if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
+            echo Waiting for jitpack to build the frontend package...
             sleep 10
             wait=wait+$(date +%s)-cur_time
         else
@@ -131,7 +132,7 @@ run_session_service() {
 network_name=endtoendlocaldb_default
 docker network create $network_name 2> /dev/null || true
 
-echo Check JitPack download of frontend code 
+echo Wait for JitPack download of frontend code 
 check_jitpack_download_frontend
 
 echo Build portal image
