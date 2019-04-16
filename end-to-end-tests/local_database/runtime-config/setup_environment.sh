@@ -34,4 +34,7 @@ python3 read_portalproperties.py portal.properties
     # DB_CONNECTION_STRING          ->  (e.g. 'jdbc:mysql://cbiodb-endtoend:3306/')
     # DB_HOST                       ->  (e.g. 'cbiodb-endtoend')
 
+export FRONTEND_GROUPID="com.github.$FRONTEND_ORGANIZATION"
+echo export FRONTEND_GROUPID="com.github.$FRONTEND_ORGANIZATION"
+
 exit 0

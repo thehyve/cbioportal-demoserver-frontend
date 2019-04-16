@@ -98,18 +98,17 @@ download_db_seed() {
     cd $curdir
 }
 
-frontend_groupId="com.github.$FRONTEND_ORGANIZATION"
 network_name=endtoendlocaldb_default
 
 echo Check JitPack download of frontend code 
-check_jitpack_download_frontend $FRONTEND_ORGANIZATION $FRONTEND_COMMIT_HASH
+check_jitpack_download_frontend
 docker network create $network_name 2> /dev/null || true
 
 echo Build and run database docker 
 build_and_run_database
 
 echo Build and run portal docker
-build_and_run_cbioportal $BACKEND_BRANCH_NAME $BACKEND_ORGANIZATION $FRONTEND_COMMIT_HASH $frontend_groupId
+build_and_run_cbioportal
 
 echo Load test studies into database
 load_studies_in_db
