@@ -88,23 +88,23 @@ check_jitpack_download_frontend() {
     # check whether jitpack versions for the frontend exist
     url="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH/cbioportal-frontend-$FRONTEND_COMMIT_HASH.jar"
     # trigger build
-    curl curl -s --head $url | head -n 0
-    FRONTEND_COMMIT_HASH_SHORT=substring $FRONTEND_COMMIT_HASH 0 10
+    curl -s --head $url | head -n 0
+    FRONTEND_COMMIT_HASH_SHORT=$(echo FRONTEND_COMMIT_HASH | awk '{print substr($0,0,10)}')
     url_short="https://jitpack.io/com/github/$FRONTEND_ORGANIZATION/cbioportal-frontend/$FRONTEND_COMMIT_HASH_SHORT/cbioportal-frontend-$FRONTEND_COMMIT_HASH_SHORT.jar"
     max_wait=1200
     wait=0
     cur_time=$(date +%s)
     while [["$wait" < "$max_wait"]]; do
-        if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200") ; then
+        if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
             sleep 10
             wait=wait+$(date +%s)-cur_time
         else
             wait=max_wait+1
         fi
-    fi
+    done
 
-    if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200") ; then
-        echo "Could not find frontend .jar (version: $FRONTEND_COMMIT_HASH, org: $FRONTEND_ORGANIZATION) at jitpack (url: $url)"
+    if !( curl -s --head $url_short | head -n 1 | egrep "HTTP/[0-9.]+ 200"); then
+        echo "Could not find frontend .jar (version: $FRONTEND_COMMIT_HASH_SHORT, org: $FRONTEND_ORGANIZATION) at jitpack (url: $url_short)"
         exit 1
     fi
 }
