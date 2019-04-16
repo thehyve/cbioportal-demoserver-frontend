@@ -5,7 +5,7 @@ set -e
 # evaluate the pull request number. This is sometimes not set by CirclCI 
 if [[ -z "$CIRCLE_PR_NUMBER" ]]; then
     if [[ "$CIRCLE_PULL_REQUEST" =~ \/([0-9]+)$ ]] ; then
-        export CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
+        # export CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
         echo export CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
     else
         echo "Error: could not identify pull request number (CIRCLE_PULL_REQUEST: '$CIRCLE_PULL_REQUEST')."
@@ -34,7 +34,7 @@ python3 read_portalproperties.py portal.properties
     # DB_CONNECTION_STRING          ->  (e.g. 'jdbc:mysql://cbiodb-endtoend:3306/')
     # DB_HOST                       ->  (e.g. 'cbiodb-endtoend')
 
-export FRONTEND_GROUPID=com.github.$FRONTEND_ORGANIZATION
+# export FRONTEND_GROUPID=com.github.$FRONTEND_ORGANIZATION
 echo export FRONTEND_GROUPID=com.github.$FRONTEND_ORGANIZATION
 
 exit 0
