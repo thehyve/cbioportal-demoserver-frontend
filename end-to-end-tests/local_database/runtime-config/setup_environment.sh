@@ -4,7 +4,7 @@ set -e
 
 # evaluate the pull request number. This is sometimes not set by CirclCI 
 if [[ -z "$CIRCLE_PR_NUMBER" ]]; then
-    if [[ "$CIRCLE_PULL_REQUEST" =~ \/([0-9]+)$ ]] ; thenx
+    if [[ "$CIRCLE_PULL_REQUEST" =~ \/([0-9]+)$ ]] ; then
         CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
         echo export CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
     else
