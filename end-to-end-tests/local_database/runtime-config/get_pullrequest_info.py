@@ -39,6 +39,9 @@ if(myResponse.ok):
         backend_organization = pr_match.group(1).lower()
         backend_branch_name = pr_match.group(2)
 
+    # TODO: attempt to shorten git commit hash for jitpack compat
+    frontend_commit_hash = frontend_commit_hash[:10]
+
     print(
       "export FRONTEND_BRANCH_NAME="+ frontend_branch_name + "\n"
       "export FRONTEND_COMMIT_HASH="+ frontend_commit_hash + "\n"
