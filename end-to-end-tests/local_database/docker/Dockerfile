@@ -41,7 +41,7 @@ RUN mvn -DskipTests clean install $MAVEN_OPTS \
 # add runtime plumbing to Tomcat config:
 # - make cBioPortal honour db config in portal.properties
 # temporarily add session.service.url here since it does not work in portal.properties
-RUN echo 'CATALINA_OPTS="-Dauthenticate=false -Dsession.service.url=http://$SESSION_SERVICE_HOST_NAME:8080/api/sessions/main_session/ $CATALINA_OPTS -Ddbconnector=dbcp"' >>$CATALINA_HOME/bin/setenv.sh
+RUN echo "CATALINA_OPTS=\"-Dauthenticate=false -Dsession.service.url=http://$SESSION_SERVICE_HOST_NAME:8080/api/sessions/main_session/ $CATALINA_OPTS -Ddbconnector=dbcp\"" >>$CATALINA_HOME/bin/setenv.sh
 # - tweak server-wide config file
 COPY ./catalina_server.xml.patch /root/
 RUN patch $CATALINA_HOME/conf/server.xml </root/catalina_server.xml.patch
