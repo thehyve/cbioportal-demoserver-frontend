@@ -45,16 +45,16 @@ if(myResponse.ok):
     frontend_group_id = "com.github."+frontend_organization
 
     print(
-      "export FRONTEND_BRANCH_NAME="+ frontend_branch_name + "\n"
-      "export FRONTEND_COMMIT_HASH="+ frontend_commit_hash + "\n"
-      "export FRONTEND_ORGANIZATION="+ frontend_organization + "\n"
-      "export FRONTEND_REPO_NAME="+ frontend_repo_name + "\n"
-      "export FRONTEND_GROUPID="+ frontend_group_id + "\n"
-      "export FRONTEND_BASE_BRANCH_NAME="+ frontend_base_branch_name + "\n"
-      "export FRONTEND_BASE_COMMIT_HASH="+ frontend_base_commit_hash + "\n"
-      "export FRONTEND_BASE_ORGANIZATION="+ frontend_base_organization + "\n"
-      "export FRONTEND_BASE_REPO_NAME="+ frontend_base_repo_name + "\n"
-      "export BACKEND_ORGANIZATION="+ backend_organization + "\n"
+      "export FRONTEND_BRANCH_NAME="+ frontend_branch_name +"\n"
+      "export FRONTEND_COMMIT_HASH="+ frontend_commit_hash +"\n"
+      "export FRONTEND_ORGANIZATION="+ frontend_organization +"\n"
+      "export FRONTEND_REPO_NAME="+ frontend_repo_name +"\n"
+      "export FRONTEND_GROUPID="+ frontend_group_id +"\n"
+      "export FRONTEND_BASE_BRANCH_NAME="+ frontend_base_branch_name +"\n"
+      "export FRONTEND_BASE_COMMIT_HASH="+ frontend_base_commit_hash +"\n"
+      "export FRONTEND_BASE_ORGANIZATION="+ frontend_base_organization +"\n"
+      "export FRONTEND_BASE_REPO_NAME="+ frontend_base_repo_name +"\n"
+      "export BACKEND_ORGANIZATION="+ backend_organization +"\n"
       "export BACKEND_BRANCH_NAME="+ backend_branch_name)
 
 else:

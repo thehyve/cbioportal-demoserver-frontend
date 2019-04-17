@@ -22,7 +22,7 @@ if(myResponse.ok):
     # functioning of cbioportal). Therefore, a PR that has a `BACKEND_BRANCH` parameter
     # must be of the `draft pull request` type. If it is not, we return an error and the
     # circleCI test fails.
-    pr_match = re.search(r"BACKEND_BRANCH=([^\s]+):([^\s]+)", jData['body'])
+    pr_match = re.search(r"BACKEND_BRANCH=", jData['body'])
     if pr_match is not None and jData['mergeable_state'] != 'draft':
         print("Error: `BACKEND_BRANCH` parameter defined in pull request body, but pull request state is not `draft`")
         print("Remove `BACKEND_BRANCH` parameter or change the pull request into a draft pull request.")
