@@ -49,6 +49,7 @@ build_cbioportal_image() {
     cd cbioportal
     # docker build -f Dockerfile.local -t cbioportal-backend-endtoend .
     docker rm cbioportal-endtoend-image 2> /dev/null || true
+    cp $TEST_HOME/local_database/docker/catalina_server.xml.patch .
     docker build -f Dockerfile -t cbioportal-endtoend-image . \
         --build-arg MAVEN_OPTS="-Dfrontend.version=$FRONTEND_COMMIT_HASH -Dfrontend.groupId=$FRONTEND_GROUPID" \
         --build-arg SESSION_SERVICE_HOST_NAME=$SESSION_SERVICE_HOST_NAME

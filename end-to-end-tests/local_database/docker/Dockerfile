@@ -44,8 +44,7 @@ RUN mvn -DskipTests clean install $MAVEN_OPTS \
 RUN echo "CATALINA_OPTS=\"-Dauthenticate=false -Dsession.service.url=http://$SESSION_SERVICE_HOST_NAME:8080/api/sessions/main_session/ $CATALINA_OPTS -Ddbconnector=dbcp\"" >>$CATALINA_HOME/bin/setenv.sh
 # - tweak server-wide config file
 
-ENV TEST_HOME=/tmp/repo/end-to-end-tests
-COPY $TEST_HOME/local_database/docker/catalina_server.xml.patch /root/
+COPY ./catalina_server.xml.patch /root/
 RUN patch $CATALINA_HOME/conf/server.xml </root/catalina_server.xml.patch
 
 # add importer scripts to PATH for easy running in containers
