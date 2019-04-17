@@ -60,17 +60,20 @@ build_cbioportal_image() {
 run_cbioportal_container() {
 
     # start cbioportal
-    docker run --restart=always \
+    docker run -d --restart=always \
         --name=$E2E_CBIOPORTAL_HOST_NAME \
         --net=$network_name \
         -e CATALINA_OPTS='-Xms2g -Xmx4g' \
-        cbioportal-endtoend-image &
+        cbioportal-endtoend-image
+    
+    echo Wait 2 minutes for the server to initialize
+    sleep 120
 
 }
 
 load_studies_in_db() {
 
-    for DIR in $TEST_HOME/end-to-end-tests/local_database/studies/*/ ; do
+    for DIR in $TEST_HOME/local_database/studies/*/; do
         docker run --rm \
             --name=cbioportal-importer \
             --net=$network_name \
