@@ -1462,7 +1462,9 @@ export class QueryStore {
 			}
 		}
 		
-		
+		if (this.isQueryLimitReached) {
+            return "Please limit your queries to 200 genes or fewer.";
+        }
 
 		if (this.genes.result.suggestions.length)
 			return "Please edit the gene symbols.";

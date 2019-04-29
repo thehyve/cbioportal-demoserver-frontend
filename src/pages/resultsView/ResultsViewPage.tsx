@@ -439,7 +439,7 @@ export default class ResultsViewPage extends React.Component<IResultsViewPagePro
                 (this.resultsViewPageStore.isQueryInvalid) && (
                     <div className="alert alert-danger queryInvalid" style={{marginBottom: "15px"}} role="alert">
                         <p>
-                            Queries are limited to 100 genes. Please <a href={`mailto:${AppConfig.serverConfig.skin_email_contact}`}>let us know</a> your use case(s) if you need to query more than 100 genes.
+                            Queries are limited to 200 genes. Please <a href={`mailto:${AppConfig.serverConfig.skin_email_contact}`}>let us know</a> your use case(s) if you need to query more than 200 genes.
                         </p>
                     </div>
                 )
