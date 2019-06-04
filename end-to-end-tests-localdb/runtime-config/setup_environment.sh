@@ -53,6 +53,7 @@ if $CIRCLECI && [[ -n $CIRCLECI ]]; then
         CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
         echo export CIRCLE_PR_NUMBER=${BASH_REMATCH[1]}
         python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER $GITHUB_PR_API_PATH
+        eval $(python3 get_pullrequest_info.py $CIRCLE_PR_NUMBER $GITHUB_PR_API_PATH)
         # retrieves
             # PULL_REQUEST_STATE        ->  (e.g. 'draft')
             # FRONTEND_BASE_BRANCH      ->  (e.g. 'rc')

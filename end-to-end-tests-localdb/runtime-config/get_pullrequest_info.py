@@ -36,9 +36,9 @@ if(myResponse.ok):
 
     frontend_group_id = "com.github."+frontend_user
 
-    pr_state = ''
+    pr_state = ""
     if jData['mergeable_state'] == 'draft':
-      pr_state = 'draft'
+      pr_state = "draft"
 
     print(
       "export PULL_REQUEST_STATE="+ pr_state +"\n"
