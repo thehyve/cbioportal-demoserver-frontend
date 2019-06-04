@@ -189,27 +189,27 @@ jobs:
               ./setup_docker_containers.sh && \
               cd $PORTAL_SOURCE_DIR && \
               $TEST_HOME/runtime-config/run_screenshot_test.sh
-      -  store_artifacts:
-          path: $TEST_HOME/screenshots
-          destination: /screenshots-localdb
-      -  store_artifacts:
-          path: $TEST_HOME/image-compare
-          destination: /image-compare-localdb
-      -  store_artifacts:
-          path: $TEST_HOME/errorShots
-          destination: /errorShots-localdb
-      - store_test_results:
-          path: $TEST_HOME/junit
-      - store_artifacts:
-          path: $TEST_HOME/junit
-      - store_artifacts:
-          path: $TEST_HOME/imageCompare.html
-          destination: /imageCompare-localdb.html
     environment:
       PORTAL_SOURCE_DIR: /tmp/repo
       TEST_HOME: /tmp/repo/end-to-end-tests-localdb
       FRONTEND_TEST_USE_LOCAL_DIST: true
       NO_PARALLEL: true
+      -  store_artifacts:
+          path: /tmp/repo/end-to-end-tests-localdb/screenshots
+          destination: /screenshots-localdb
+      -  store_artifacts:
+          path: /tmp/repo/end-to-end-tests-localdb/image-compare
+          destination: /image-compare-localdb
+      -  store_artifacts:
+          path: /tmp/repo/end-to-end-tests-localdb/errorShots
+          destination: /errorShots-localdb
+      - store_test_results:
+          path: /tmp/repo/end-to-end-tests-localdb/junit
+      - store_artifacts:
+          path: /tmp/repo/end-to-end-tests-localdb/junit
+      - store_artifacts:
+          path: /tmp/repo/end-to-end-tests-localdb/imageCompare.html
+          destination: /imageCompare-localdb.html
 
 workflows:
     version: 2
