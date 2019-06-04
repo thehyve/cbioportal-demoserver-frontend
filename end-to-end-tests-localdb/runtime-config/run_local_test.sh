@@ -2,15 +2,16 @@
 
 set -e
 
-# Activate options below to simulate different CircleCI job contexts
-
+# Uncomment options below to simulate different CircleCI job contexts
 ## 1. Uncomment to simulate CircleCI job:
 # export CIRCLECI=true
 # export CIRCLE_PROJECT_USERNAME=thehyve
 # export CIRCLE_SHA1=$(git rev-parse HEAD 2> /dev/null | sed "s/\(.*\)/\1/")
-
-## 2. Uncomment to simulate pull request context (replace '8' with valid PR number)
+## 2. Uncomment to simulate pull request CircleCI context (replace '8' with valid PR number)
 # export CIRCLE_PULL_REQUEST=/8
+
+yarn
+yarn build
 
 export PORTAL_SOURCE_DIR=~/git/cbioportal-frontend
 export TEST_HOME=$PORTAL_SOURCE_DIR/end-to-end-tests-localdb
