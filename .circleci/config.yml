@@ -196,11 +196,11 @@ jobs:
           name: run end-2-end tests with studies in local database
           command: | 
               cd $PORTAL_SOURCE_DIR && $TEST_HOME/runtime-config/run_screenshot_test.sh
-    environment:
-      PORTAL_SOURCE_DIR: /tmp/repo
-      TEST_HOME: /tmp/repo/end-to-end-tests-localdb
-      FRONTEND_TEST_USE_LOCAL_DIST: true
-      NO_PARALLEL: true
+        environment:
+            PORTAL_SOURCE_DIR: /tmp/repo
+            TEST_HOME: /tmp/repo/end-to-end-tests-localdb
+            FRONTEND_TEST_USE_LOCAL_DIST: true
+            NO_PARALLEL: true
       -  store_artifacts:
           path: /tmp/repo/end-to-end-tests-localdb/screenshots
           destination: /screenshots-localdb
