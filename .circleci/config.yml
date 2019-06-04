@@ -183,10 +183,20 @@ jobs:
           command: |
               source $PORTAL_SOURCE_DIR/env/custom.sh || true && \
               cd $TEST_HOME/runtime-config && \
-              ./setup_environment.sh && eval "$(./setup_environment.sh)" && \
-              docker network create $DOCKER_NETWORK_NAME && \
+              ./setup_environment.sh && eval "$(./setup_environment.sh)" >> $BASH_ENV && \
+              source $BASH_ENV
+      - run:
+          name: create docker network
+          command: |
+              docker network create $DOCKER_NETWORK_NAME
+      - run:
+          name: setup docker images and containers
+          command: |
               cd $TEST_HOME/docker && \
-              ./setup_docker_containers.sh && \
+              ./setup_docker_containers.sh
+      - run: 
+          name: run end-2-end tests with studies in local database
+          command: |
               cd $PORTAL_SOURCE_DIR && \
               ./$TEST_HOME/runtime-config/run_screenshot_test.sh
       -  store_artifacts:
