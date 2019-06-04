@@ -188,7 +188,7 @@ jobs:
               cd $TEST_HOME/docker && \
               ./setup_docker_containers.sh && \
               cd $PORTAL_SOURCE_DIR && \
-              ./$TEST_HOME/runtime-config/run_screenshot_test.sh
+              $TEST_HOME/runtime-config/run_screenshot_test.sh
       -  store_artifacts:
           path: $TEST_HOME/screenshots
           destination: /screenshots-localdb
