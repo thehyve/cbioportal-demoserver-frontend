@@ -1,4 +1,4 @@
-var assertScreenShotMatch = require('../../../shared/lib/testUtils').assertScreenShotMatch;
+var assertScreenShotMatch = require('../../lib/testUtils').assertScreenShotMatch;
 var assert = require('assert');
 var waitForOncoprint = require('../../../shared/specUtils').waitForOncoprint;
 var goToUrlAndSetLocalStorage = require('../../../shared/specUtils').goToUrlAndSetLocalStorage;

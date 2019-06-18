@@ -1,3 +1,6 @@
+const clipboardy = require('clipboardy');
+
+
 function waitForQueryPage(timeout) {
     var studyContainer = browser.$('div[data-test="cancerTypeListContainer"]');
     studyContainer.waitForExist(timeout || 10000);
@@ -65,7 +68,7 @@ function waitForNumberOfStudyCheckboxes(expectedNumber, text) {
             }
         }
         return ret;
-    }, 2000);
+    }, 60000);
 }
 
 function getNthOncoprintTrackOptionsElements(n) {
@@ -81,6 +84,7 @@ function getNthOncoprintTrackOptionsElements(n) {
         dropdown_selector
     };
 }
+
 
 const useExternalFrontend = !process.env.FRONTEND_TEST_DO_NOT_LOAD_EXTERNAL_FRONTEND;
 
@@ -114,6 +118,13 @@ function toStudyViewClinicalDataTab() {
     }
 }
 
+function removeAllStudyViewFilters() {
+    const clearAllFilter = "[data-test='clear-all-filters']";
+    if (browser.isVisible(clearAllFilter)) {
+        browser.click(clearAllFilter);
+    }
+}
+
 function waitForStudyViewSelectedInfo() {
     browser.waitForVisible("[data-test='selected-info']", 5000);
     // pause to wait the animation finished
@@ -133,6 +144,13 @@ function setInputText(selector, text){
     browser.setValue(selector, '\uE003'.repeat(browser.getValue(selector).length) + text);
 }
 
+function pasteToElement(elementSelector, text){
+
+    clipboardy.writeSync(text);
+    browser.setValue(elementSelector, ["Shift","Insert"]);
+
+}
+
 function selectReactSelectOption(parent, optionText) {
     reactSelectOption(parent, optionText).click();
 }
@@ -141,6 +159,15 @@ function reactSelectOption(parent, optionText) {
     parent.$('.Select-value-label').click();
     return parent.$('.Select-option='+optionText);
 }
+
+
+function checkOncoprintElement(selector) {
+    browser.execute(function() {
+        frontendOnc.clearMouseOverEffects(); // clear mouse hover effects for uniform screenshot
+    });
+    return browser.checkElement(selector || "#oncoprintDiv", { hide:[".qtip", '.dropdown-menu', ".oncoprintjs__track_options__dropdown", ".oncoprintjs__cell_overlay_div"] });
+}
+
 
 module.exports = {
     waitForPlotsTab: waitForPlotsTab,
@@ -154,12 +181,17 @@ module.exports = {
     getTextInOncoprintLegend: getTextInOncoprintLegend,
     toStudyViewSummaryTab: toStudyViewSummaryTab,
     toStudyViewClinicalDataTab: toStudyViewClinicalDataTab,
+    removeAllStudyViewFilters: removeAllStudyViewFilters,
     waitForStudyViewSelectedInfo: waitForStudyViewSelectedInfo,
     getTextFromElement: getTextFromElement,
     getNumberOfStudyViewCharts: getNumberOfStudyViewCharts,
     setOncoprintMutationsMenuOpen: setOncoprintMutationsMenuOpen,
     getNthOncoprintTrackOptionsElements: getNthOncoprintTrackOptionsElements,
     setInputText: setInputText,
+    pasteToElement: pasteToElement,
+    checkOncoprintElement: checkOncoprintElement,
     selectReactSelectOption: selectReactSelectOption,
     reactSelectOption: reactSelectOption,
 };
+
+
