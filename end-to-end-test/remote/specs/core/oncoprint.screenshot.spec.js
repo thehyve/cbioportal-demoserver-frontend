@@ -1,6 +1,6 @@
 var waitForOncoprint = require('../../../shared/specUtils').waitForOncoprint;
 var goToUrlAndSetLocalStorage = require('../../../shared/specUtils').goToUrlAndSetLocalStorage;
-var assertScreenShotMatch = require('../../../shared/lib/testUtils').assertScreenShotMatch;
+var assertScreenShotMatch = require('../../lib/testUtils').assertScreenShotMatch;
 var setInputText = require('../../../shared/specUtils').setInputText;
 var waitForNumberOfStudyCheckboxes = require('../../../shared/specUtils').waitForNumberOfStudyCheckboxes;
 var checkOncoprintElement = require('../../../shared/specUtils').checkOncoprintElement;

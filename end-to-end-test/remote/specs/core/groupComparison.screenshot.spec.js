@@ -1,7 +1,7 @@
 var assert = require('assert');
 var goToUrlAndSetLocalStorage = require('../../../shared/specUtils').goToUrlAndSetLocalStorage;
 var waitForNetworkQuiet = require('../../../shared/specUtils').waitForNetworkQuiet;
-var assertScreenShotMatch = require('../../../shared/lib/testUtils').assertScreenShotMatch;
+var assertScreenShotMatch = require('../../lib/testUtils').assertScreenShotMatch;
 
 const CBIOPORTAL_URL = process.env.CBIOPORTAL_URL.replace(/\/$/, "");
 
