@@ -10,6 +10,8 @@ BUILD_DATABASE=false
 BUILD_E2E=false
 INCLUDE_FRONTEND_IN_PORTAL=false
 
+backend_image_name=cbioportal-endtoend-image
+
 usage() {
     echo "-d: build database image and load studies into database"
     echo "-p: build cbioportal image and container"
@@ -80,7 +82,7 @@ build_database_container() {
     docker run --rm \
         --net=$DOCKER_NETWORK_NAME \
         -v "$TEST_HOME/local/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
-        cbioportal-endtoend-image \
+        $backend_image_name \
         python3 /cbioportal/core/src/main/scripts/migrate_db.py -y -p /cbioportal/portal.properties -s /cbioportal/db-scripts/src/main/resources/migration.sql
 }
 
@@ -105,15 +107,21 @@ build_cbioportal_image() {
     curdir=$PWD
     
     docker stop $E2E_CBIOPORTAL_HOST_NAME 2> /dev/null && docker rm $E2E_CBIOPORTAL_HOST_NAME  2> /dev/null
-    docker rm cbioportal-endtoend-image 2> /dev/null || true
+    docker rm $backend_image_name 2> /dev/null || true
     
-    # docker build -f Dockerfile -t cbioportal-endtoend-image . \
+    # docker build -f Dockerfile -t $backend_image_name . \
     #     --build-arg MAVEN_OPTS="$mvn_opts" \
     #     --build-arg SESSION_SERVICE_HOST_NAME=$SESSION_SERVICE_HOST_NAME
 
+    # rc, master and tagged releases (e.g. 3.0.1) of cbioportal are available as prebuilt images
+    # update the reference to the corresponding image name when prebuilt image exists
+    if [[$BACKEND_PROJECT_USERNAME == "cbioportal"]] && ( [[$BACKEND_BRANCH == "rc"]] || [[$BACKEND_BRANCH == "master"]] || [[$BACKEND_BRANCH =~ [0-9.]+]] ); then
+        backend_image_name="cbioportal/cbioportal:$BACKEND_BRANCH"
+    else
     docker build https://github.com/$BACKEND_PROJECT_USERNAME/cbioportal.git#$BACKEND_BRANCH \
         -f docker/web-and-data/Dockerfile \
-        -t cbioportal-endtoend-image
+        -t $backend_image_name
+    fi
 
     cd $curdir
 }
@@ -129,13 +137,12 @@ run_cbioportal_container() {
         --name=$E2E_CBIOPORTAL_HOST_NAME \
         --net=$DOCKER_NETWORK_NAME \
         -v "$TEST_HOME/local/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
-        -e CATALINA_OPTS='-Xms2g -Xmx4g' \
         -p 8081:8080 \
-        cbioportal-endtoend-image
+        $backend_image_name
     
     sleeptime=0
     maxtime=180
-    while ! docker run --rm --net=$DOCKER_NETWORK_NAME cbioportal-endtoend-image ping -c 1 "$E2E_CBIOPORTAL_HOST_NAME" &> /dev/null; do
+    while ! docker run --rm --net=$DOCKER_NETWORK_NAME $backend_image_name ping -c 1 "$E2E_CBIOPORTAL_HOST_NAME" &> /dev/null; do
         echo Waiting for cbioportal to initialize...
         sleeptime=$sleeptime+10
         if (($sleeptime > $maxtime)); then 
@@ -154,7 +161,7 @@ load_studies_in_db() {
         --name=cbioportal-importer \
         --net=$DOCKER_NETWORK_NAME \
         -v "$TEST_HOME/local/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
-        cbioportal-endtoend-image \
+        $backend_image_name \
         sh -c 'cd /cbioportal/core/src/main/scripts; for FILE in /cbioportal/core/src/test/scripts/test_data/study_es_0/data_gene_panel_testpanel*.txt; do ./importGenePanel.pl --data $FILE; done'
 
     # import study_es_0
@@ -162,7 +169,7 @@ load_studies_in_db() {
         --name=cbioportal-importer \
         --net=$DOCKER_NETWORK_NAME \
         -v "$TEST_HOME/local/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
-        cbioportal-endtoend-image \
+        $backend_image_name \
         python3 /cbioportal/core/src/main/scripts/importer/metaImport.py \
         --url_server "http://$E2E_CBIOPORTAL_HOST_NAME:8080/cbioportal" \
         --study_directory /cbioportal/core/src/test/scripts/test_data/study_es_0 \
@@ -176,7 +183,7 @@ load_studies_in_db() {
             --net=$DOCKER_NETWORK_NAME \
             -v "$TEST_HOME/local/runtime-config/portal.properties:/cbioportal/portal.properties:ro" \
             -v "$DIR:/study:ro" \
-            cbioportal-endtoend-image \
+            $backend_image_name \
             python3 /cbioportal/core/src/main/scripts/importer/metaImport.py \
             --url_server "http://$E2E_CBIOPORTAL_HOST_NAME:8080/cbioportal" \
             --study_directory /study \
