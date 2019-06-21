@@ -5,7 +5,7 @@ var setOncoprintMutationsMenuOpen = require('../../../shared/specUtils').setOnco
 var goToUrlAndSetLocalStorage = require('../../../shared/specUtils').goToUrlAndSetLocalStorage;
 var waitForNetworkQuiet = require('../../../shared/specUtils').waitForNetworkQuiet;
 var sessionServiceIsEnabled = require('../../../shared/specUtils').sessionServiceIsEnabled;
-var assertScreenShotMatch = require('../../lib/testUtils').assertScreenShotMatch;
+var assertScreenShotMatch = require('../../../shared/lib/testUtils').assertScreenShotMatch;
 
 const CBIOPORTAL_URL = process.env.CBIOPORTAL_URL.replace(/\/$/, "");
 
