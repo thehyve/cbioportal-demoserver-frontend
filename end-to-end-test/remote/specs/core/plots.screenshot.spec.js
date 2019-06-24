@@ -1,10 +1,10 @@
 var assert = require('assert');
 var expect = require('chai').expect;
-var waitForOncoprint = require('./../specUtils').waitForOncoprint;
-var setOncoprintMutationsMenuOpen = require('./../specUtils').setOncoprintMutationsMenuOpen;
-var goToUrlAndSetLocalStorage = require('./../specUtils').goToUrlAndSetLocalStorage;
-var waitForNetworkQuiet = require('./../specUtils').waitForNetworkQuiet;
-var sessionServiceIsEnabled = require('./../specUtils').sessionServiceIsEnabled;
+var waitForOncoprint = require('../../../shared/specUtils').waitForOncoprint;
+var setOncoprintMutationsMenuOpen = require('../../../shared/specUtils').setOncoprintMutationsMenuOpen;
+var goToUrlAndSetLocalStorage = require('../../../shared/specUtils').goToUrlAndSetLocalStorage;
+var waitForNetworkQuiet = require('../../../shared/specUtils').waitForNetworkQuiet;
+var sessionServiceIsEnabled = require('../../../shared/specUtils').sessionServiceIsEnabled;
 var assertScreenShotMatch = require('../../../shared/lib/testUtils').assertScreenShotMatch;
 
 const CBIOPORTAL_URL = process.env.CBIOPORTAL_URL.replace(/\/$/, "");
