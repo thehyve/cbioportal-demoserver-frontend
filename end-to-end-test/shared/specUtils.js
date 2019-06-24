@@ -83,7 +83,6 @@ function getNthOncoprintTrackOptionsElements(n) {
     };
 }
 
-
 const useExternalFrontend = !process.env.FRONTEND_TEST_DO_NOT_LOAD_EXTERNAL_FRONTEND;
 
 const useLocalDist = process.env.FRONTEND_TEST_USE_LOCAL_DIST;
@@ -158,7 +157,6 @@ function reactSelectOption(parent, optionText) {
     return parent.$('.Select-option='+optionText);
 }
 
-
 function checkOncoprintElement(selector) {
     browser.execute(function() {
         frontendOnc.clearMouseOverEffects(); // clear mouse hover effects for uniform screenshot
@@ -166,6 +164,25 @@ function checkOncoprintElement(selector) {
     return browser.checkElement(selector || "#oncoprintDiv", { hide:[".qtip", '.dropdown-menu', ".oncoprintjs__track_options__dropdown", ".oncoprintjs__cell_overlay_div"] });
 }
 
+function executeInBrowser(callback){
+    return browser.execute(callback).value;
+}
+
+function checkElementWithTemporaryClass(selectorForChecking, selectorForTemporaryClass, temporaryClass, pauseTime) {
+    browser.execute(function(selectorForTemporaryClass, temporaryClass){
+        $(selectorForTemporaryClass).addClass(temporaryClass);
+    }, selectorForTemporaryClass, temporaryClass);
+    browser.pause(pauseTime);
+    var res = browser.checkElement(selectorForChecking);
+    browser.execute(function(selectorForTemporaryClass, temporaryClass){
+        $(selectorForTemporaryClass).removeClass(temporaryClass);
+    }, selectorForTemporaryClass, temporaryClass);
+    return res;
+}
+
+function checkElementWithMouseDisabled(selector, pauseTime) {
+    return checkElementWithTemporaryClass(selector, selector, "disablePointerEvents", pauseTime || 0);
+}
 
 module.exports = {
     waitForPlotsTab: waitForPlotsTab,
@@ -188,6 +205,9 @@ module.exports = {
     setInputText: setInputText,
     pasteToElement: pasteToElement,
     checkOncoprintElement: checkOncoprintElement,
+    executeInBrowser: executeInBrowser,
+    checkElementWithTemporaryClass: checkElementWithTemporaryClass,
+    checkElementWithMouseDisabled: checkElementWithMouseDisabled,
     selectReactSelectOption: selectReactSelectOption,
     reactSelectOption: reactSelectOption,
 };
