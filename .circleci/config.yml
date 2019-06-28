@@ -191,7 +191,7 @@ jobs:
           command: |
               if (ls $DB_DATA_DIR/* 2> /dev/null > /dev/null); then \
                 export OPTS="-p -e"; \
-              then \
+              else \
                 export OPTS="-p -e -d"; \
               fi && \
               cd $TEST_HOME/local/docker && ./setup_docker_containers.sh $OPTS
