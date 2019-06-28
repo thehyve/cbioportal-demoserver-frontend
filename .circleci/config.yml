@@ -190,7 +190,7 @@ jobs:
           name: Setup docker images and containers
           command: |
               export OPTS="-p -e" && \
-              if (! ls $DB_DATA_DIR/* 2> /dev/null > /dev/null); then OPTS="$OPTS -d"; fi
+              if (! ls $DB_DATA_DIR/* 2> /dev/null > /dev/null); then export OPTS="$OPTS -d"; fi && \
               cd $TEST_HOME/local/docker && ./setup_docker_containers.sh $OPTS
       - run:
           name: Run end-2-end tests with studies in local database
