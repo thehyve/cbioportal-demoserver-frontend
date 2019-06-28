@@ -68,7 +68,7 @@ build_database_container() {
         -e MYSQL_USER=$DB_USER \
         -e MYSQL_PASSWORD=$DB_PASSWORD \
         -e MYSQL_DATABASE=$DB_PORTAL_DB_NAME \
-        -v "MYSQL_DATA_DIR:/var/lib/mysql/" \
+        -v "$DB_DATA_DIR:/var/lib/mysql/" \
         mysql:5.7
 
     # migrate database schema to most recent version
@@ -91,7 +91,7 @@ run_database_container() {
         -e MYSQL_USER=$DB_USER \
         -e MYSQL_PASSWORD=$DB_PASSWORD \
         -e MYSQL_DATABASE=$DB_PORTAL_DB_NAME \
-        -v "MYSQL_DATA_DIR:/var/lib/mysql/" \
+        -v "$DB_DATA_DIR:/var/lib/mysql/" \
         mysql:5.7
 
 }

@@ -182,7 +182,7 @@ jobs:
           keys:
           - e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
       - run:
-          name: Create mysql directory if no cache exists
+          name: Create MySQL data directory when no cache found
           command: |         
               mkdir -p $DB_DATA_DIR
       - run:
@@ -200,6 +200,10 @@ jobs:
       - run:
           name: "Make sure all screenshots are tracked (otherwise the test will always be successful)"
           command: 'for f in $TEST_HOME/local/screenshots/reference/*.png; do git ls-files --error-unmatch $f > /dev/null 2> /dev/null || (echo -e "\033[0;31m $f not tracked \033[0m" && touch screenshots_not_tracked); done; ls screenshots_not_tracked > /dev/null 2> /dev/null && exit 1 || exit 0'
+      - save_cache:
+          paths:
+            - $DB_DATA_DIR
+          key: e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
       -  store_artifacts:
           path: /tmp/repo/end-to-end-test/local/screenshots
           destination: /screenshots
@@ -216,10 +220,6 @@ jobs:
       - store_artifacts:
           path: /tmp/repo/end-to-end-test/shared/imageCompare.html
           destination: /imageCompare.html
-      - save_cache:
-          paths:
-            - $DB_DATA_DIR
-          key: e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
     environment:
         PORTAL_SOURCE_DIR: /tmp/repo
         TEST_HOME: /tmp/repo/end-to-end-test
