@@ -205,7 +205,8 @@ jobs:
       - run:
           name: Set owner of MySQL database files
           command: |         
-              chmod -R 777 $DB_DATA_DIR
+              sudo chmod -R 777 $DB_DATA_DIR && \
+              sudo chown -R circleci:circleci $DB_DATA_DIR && \
       - save_cache:
           paths:
             - /tmp/mysql
