@@ -173,7 +173,7 @@ load_studies_in_db() {
             --url_server "http://$E2E_CBIOPORTAL_HOST_NAME:8080" \
             --study_directory /study \
             --override_warning
-            
+
     done
 
 }
@@ -211,7 +211,7 @@ build_e2e_image() {
 if [ "$BUILD_PORTAL" = true ]; then
 
     echo Build portal image
-    ./$TEST_HOME/local/docker/build_portal_image.sh
+    $TEST_HOME/local/docker/build_portal_image.sh
 
 fi
 
