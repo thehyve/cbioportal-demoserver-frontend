@@ -172,6 +172,20 @@ jobs:
               cd $TEST_HOME/local/runtime-config && \
               ./setup_environment.sh && ./setup_environment.sh >> $BASH_ENV
       - run:
+          name: Generate checksum of data from study_es_0 and custom e2e-test studies
+          command: |         
+              cd $TEST_HOME/local/docker && ./build_portal_image.sh && \
+              export MD5_ES_0=$(docker run --rm cbioportal/cbioportal:rc sh -c 'find /cbioportal/core/src/test/scripts/test_data/study_es_0/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//"') && \
+              export MD5_CUSTOM=$(find $TEST_HOME/local/studies/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//") && \
+              echo $MD5_ES_0$MD5_CUSTOM > studydata_md5key
+      - restore_cache:
+          keys:
+          - e2e-database-files-{{ checksum "studydata_md5key" }}
+      - run:
+          name: Create mysql directory if no cache exists
+          command: |         
+              mkdir -p $DB_DATA_DIR
+      - run:
           name: Create docker network
           command: |         
               docker network create $DOCKER_NETWORK_NAME
@@ -202,9 +216,14 @@ jobs:
       - store_artifacts:
           path: /tmp/repo/end-to-end-test/shared/imageCompare.html
           destination: /imageCompare.html
+      - save_cache:
+          paths:
+            - $DB_DATA_DIR
+          key: e2e-database-files-{{ checksum "studydata_md5key" }}
     environment:
         PORTAL_SOURCE_DIR: /tmp/repo
         TEST_HOME: /tmp/repo/end-to-end-test
+        DB_DATA_DIR: /tmp/mysql
         FRONTEND_TEST_USE_LOCAL_DIST: true
         NO_PARALLEL: true
 
