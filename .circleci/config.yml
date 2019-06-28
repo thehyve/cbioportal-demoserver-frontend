@@ -181,8 +181,7 @@ jobs:
       - run:
           name: Create MySQL data directory when no cache found
           command: |         
-              mkdir -p $DB_DATA_DIR && \
-              chown -R mysql:mysql $DB_DATA_DIR
+              mkdir -p $DB_DATA_DIR
       - run:
           name: Create docker network
           command: |         
@@ -201,7 +200,8 @@ jobs:
       - run:
           name: Set owner of MySQL database files
           command: |         
-              chown -R cirlcleci:circleci $DB_DATA_DIR
+              chown -R cirlcleci:circleci $DB_DATA_DIR && \
+              chmod -R 777 $DB_DATA_DIR
       - save_cache:
           paths:
             - /tmp/mysql
