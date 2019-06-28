@@ -175,7 +175,7 @@ jobs:
           name: Generate checksum of data from study_es_0 and custom e2e-test studies
           command: |         
               cd $TEST_HOME/local/docker && ./build_portal_image.sh && \
-              export MD5_ES_0=$(docker run --rm cbioportal/cbioportal:rc sh -c 'find /cbioportal/core/src/test/scripts/test_data/study_es_0/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//"') && \
+              export MD5_ES_0=$(docker run --rm $BACKEND_PROJECT_USERNAME/cbioportal:$BACKEND_BRANCH sh -c 'find /cbioportal/core/src/test/scripts/test_data/study_es_0/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//"') && \
               export MD5_CUSTOM=$(find $TEST_HOME/local/studies/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//") && \
               echo $MD5_ES_0$MD5_CUSTOM > studydata_md5key
       - restore_cache:
