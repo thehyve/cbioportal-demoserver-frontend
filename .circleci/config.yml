@@ -177,10 +177,10 @@ jobs:
               cd $TEST_HOME/local/docker && ./build_portal_image.sh && \
               export MD5_ES_0=$(docker run --rm $BACKEND_PROJECT_USERNAME/cbioportal:$BACKEND_BRANCH sh -c 'find /cbioportal/core/src/test/scripts/test_data/study_es_0/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//"') && \
               export MD5_CUSTOM=$(find $TEST_HOME/local/studies/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//") && \
-              echo $MD5_ES_0$MD5_CUSTOM > studydata_md5key
+              echo $MD5_ES_0$MD5_CUSTOM > /tmp/studydata_md5key
       - restore_cache:
           keys:
-          - e2e-database-files-{{ checksum "studydata_md5key" }}
+          - e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
       - run:
           name: Create mysql directory if no cache exists
           command: |         
@@ -219,7 +219,7 @@ jobs:
       - save_cache:
           paths:
             - $DB_DATA_DIR
-          key: e2e-database-files-{{ checksum "studydata_md5key" }}
+          key: e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
     environment:
         PORTAL_SOURCE_DIR: /tmp/repo
         TEST_HOME: /tmp/repo/end-to-end-test
