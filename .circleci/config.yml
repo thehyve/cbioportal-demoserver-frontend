@@ -176,11 +176,12 @@ jobs:
           command: |         
               cd $TEST_HOME/local/docker && ./build_portal_image.sh && \
               export MD5_ES_0=$(docker run --rm $BACKEND_PROJECT_USERNAME/cbioportal:$BACKEND_BRANCH sh -c 'find /cbioportal/core/src/test/scripts/test_data/study_es_0/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//"') && \
-              export MD5_CUSTOM=$(find $TEST_HOME/local/studies/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//") && \
-              echo $MD5_ES_0$MD5_CUSTOM > /tmp/studydata_md5key
+              export MD5_TEST_STUDIES=$(find $TEST_HOME/local/studies/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//") && \
+              export MD5_MIGRATION_SQL=$(docker run --rm $BACKEND_PROJECT_USERNAME/cbioportal:$BACKEND_BRANCH sh -c 'md5sum /cbioportal/db-scripts/src/main/resources/migration.sql | sed "s/\s.*$//"') && \
+              echo "$MD5_ES_0 $MD5_TEST_STUDIES $MD5_MIGRATION_SQL $DB_CGDS_URL $DB_SEED_URL" > /tmp/db_data_md5key
       - restore_cache:
           keys:
-          - e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
+          - e2e-database-files-{{ checksum "/tmp/db_data_md5key" }}
       - run:
           name: Create MySQL data directory when no cache found
           command: |         
@@ -203,7 +204,7 @@ jobs:
       - save_cache:
           paths:
             - /tmp/mysql
-          key: e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
+          key: e2e-database-files-{{ checksum "/tmp/db_data_md5key" }}
       -  store_artifacts:
           path: /tmp/repo/end-to-end-test/local/screenshots
           destination: /screenshots
