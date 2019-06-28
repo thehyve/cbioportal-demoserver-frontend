@@ -172,13 +172,9 @@ jobs:
               cd $TEST_HOME/local/runtime-config && \
               ./setup_environment.sh && ./setup_environment.sh >> $BASH_ENV
       - run:
-          name: Generate checksum of data from study_es_0 and custom e2e-test studies
+          name: Generate checksum of data that populates the test database
           command: |         
-              cd $TEST_HOME/local/docker && ./build_portal_image.sh && \
-              export MD5_ES_0=$(docker run --rm $BACKEND_PROJECT_USERNAME/cbioportal:$BACKEND_BRANCH sh -c 'find /cbioportal/core/src/test/scripts/test_data/study_es_0/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//"') && \
-              export MD5_TEST_STUDIES=$(find $TEST_HOME/local/studies/ -type f -exec md5sum {} \; | md5sum | sed "s/\s.*$//") && \
-              export MD5_MIGRATION_SQL=$(docker run --rm $BACKEND_PROJECT_USERNAME/cbioportal:$BACKEND_BRANCH sh -c 'md5sum /cbioportal/db-scripts/src/main/resources/migration.sql | sed "s/\s.*$//"') && \
-              echo "$MD5_ES_0 $MD5_TEST_STUDIES $MD5_MIGRATION_SQL $DB_CGDS_URL $DB_SEED_URL" > /tmp/db_data_md5key
+              $TEST_HOME/local/runtime-config/db_content_fingerprint.sh > /tmp/db_data_md5key
       - restore_cache:
           keys:
           - e2e-database-files-{{ checksum "/tmp/db_data_md5key" }}
