@@ -202,7 +202,7 @@ jobs:
           command: 'for f in $TEST_HOME/local/screenshots/reference/*.png; do git ls-files --error-unmatch $f > /dev/null 2> /dev/null || (echo -e "\033[0;31m $f not tracked \033[0m" && touch screenshots_not_tracked); done; ls screenshots_not_tracked > /dev/null 2> /dev/null && exit 1 || exit 0'
       - save_cache:
           paths:
-            - $DB_DATA_DIR
+            - /tmp/mysql
           key: e2e-database-files-{{ checksum "/tmp/studydata_md5key" }}
       -  store_artifacts:
           path: /tmp/repo/end-to-end-test/local/screenshots
