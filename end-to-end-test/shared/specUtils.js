@@ -13,12 +13,9 @@ function waitForCoExpressionTab(timeout) {
 }
 
 function waitForOncoprint(timeout) {
-    browser.pause(100); // give oncoprint time to disappear
-    browser.waitUntil(()=>{
-        return !browser.isExisting(".oncoprintLoadingIndicator") // wait for loading indicator to hide, and
-            && browser.isExisting('#oncoprintDiv svg rect')// as a proxy for oncoprint being rendered, wait for an svg rectangle to appear in the legend
-            && (browser.getCssProperty(".oncoprintContainer", "opacity").value === 1); // oncoprint has faded in
-    }, timeout);
+    browser.waitForExist(".oncoprintLoadingIndicator", true); // oncoprint is not loading (spinner not shown)
+    browser.waitForExist("#oncoprintDiv svg rect"); // oncoprint is shown
+    browser.waitForExist(".oncoprintContainer.fadeIn"); // oncoprint has faded in
 }
 
 function getTextInOncoprintLegend() {
