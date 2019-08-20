@@ -5,7 +5,7 @@ function waitForQueryPage(timeout) {
 }
 
 function waitForPlotsTab(timeout) {
-    $('div.axisBlock').waitForVisible(timeout || 20000);
+    $('div.axisBlock').waitForExist(timeout || 20000);
 }
 
 function waitForCoExpressionTab(timeout) {
@@ -13,7 +13,7 @@ function waitForCoExpressionTab(timeout) {
 }
 
 function waitForOncoprint(timeout) {
-    browser.waitForExist(".oncoprintLoadingIndicator", true); // oncoprint is not loading (spinner not shown)
+    browser.waitForExist(".oncoprintLoadingIndicator", timeout, true); // oncoprint is not loading (spinner not shown)
     browser.waitForExist("#oncoprintDiv svg rect"); // oncoprint is shown
     browser.waitForExist(".oncoprintContainer.fadeIn"); // oncoprint has faded in
 }
