@@ -60,7 +60,6 @@ describe('gsva feature', function() {
                 browser.setValue('[data-test=GENESETS_TEXT_AREA]', 'GO_ATP_DEPENDENT_CHROMATIN_REMODELING');
                 var queryButton = browser.$('[data-test=queryButton]');
                 queryButton.waitForEnabled(1000);
-                browser.scroll(0,0);
                 queryButton.click();
                 var url = browser.url().value;
                 var regex = /geneset_list=GO_ATP_DEPENDENT_CHROMATIN_REMODELING/;
@@ -78,7 +77,7 @@ describe('gsva feature', function() {
                 checkGSVAprofile();
                 browser.waitForExist('button[data-test=GENESET_HIERARCHY_BUTTON]');
                 browser.$('button[data-test=GENESET_HIERARCHY_BUTTON]').click();
-                $('div.modal-dialog').waitForExist();
+                $('div.modal-dialog').waitForExist(40000);
             });
 
             it('adds gene set name to entry component from hierachy selector', () => {
@@ -165,8 +164,9 @@ describe('gsva feature', function() {
 
             it('adds gene set name to entry component', () => {
 
+                browser.waitForExist('button[data-test=GENESET_VOLCANO_BUTTON]');
                 browser.$('button[data-test=GENESET_VOLCANO_BUTTON]').click();
-                $('div.modal-dialog').waitForExist();
+                $('div.modal-dialog').waitForExist(40000);
 
                 // find the GO_ATP_DEPENDENT_CHROMATIN_REMODELING entry and check its checkbox
                 var checkBox = $('span=GO_ATP_DEPENDENT_CHROMATIN_REMODELING').$('..').$('..').$$('td')[3].$('label input');
@@ -431,7 +431,6 @@ const checkTestStudy = () => {
     checkbox.click();
 
     clickQueryByGeneButton();
-
 }
 
 const checkGSVAprofile = () => {
