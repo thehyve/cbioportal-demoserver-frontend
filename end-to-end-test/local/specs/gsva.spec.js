@@ -187,6 +187,7 @@ describe('gsva feature', function() {
                 var textArea = browser.$('[data-test=GENESETS_TEXT_AREA]');
                 textArea.setValue('GO_ATP_DEPENDENT_CHROMATIN_REMODELING');
 
+                browser.scroll(0,0);
                 browser.$('button[data-test=GENESET_VOLCANO_BUTTON]').click();
 
                 $('div.modal-dialog').waitForExist();
@@ -200,7 +201,8 @@ describe('gsva feature', function() {
 
                 var textArea = browser.$('[data-test=GENESETS_TEXT_AREA]');
                 textArea.setValue('GO_ATP_DEPENDENT_CHROMATIN_REMODELING');
-
+                
+                browser.scroll(0,0);
                 browser.$('button[data-test=GENESET_VOLCANO_BUTTON]').click();
 
                 $('div.modal-dialog').waitForExist();
