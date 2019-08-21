@@ -60,7 +60,7 @@ describe('gsva feature', function() {
                 browser.setValue('[data-test=GENESETS_TEXT_AREA]', 'GO_ATP_DEPENDENT_CHROMATIN_REMODELING');
                 browser.setValue('[data-test=geneSet]', 'TP53');
                 var queryButton = browser.$('[data-test=queryButton]');
-                queryButton.waitForEnabled();
+                queryButton.waitForEnabled(10000);
                 queryButton.click();
                 var url = browser.url().value;
                 var regex = /geneset_list=GO_ATP_DEPENDENT_CHROMATIN_REMODELING/;
