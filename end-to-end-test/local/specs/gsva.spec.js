@@ -435,7 +435,7 @@ const checkTestStudy = () => {
 const checkGSVAprofile = () => {
     $("[data-test=GENESET_SCORE]").waitForVisible(40000);
     browser.execute(function() {
-        document.querySelectorAll('[data-test="GENESET_SCORE"]').click();
+        document.querySelectorAll('[data-test="GENESET_SCORE"]').item(0).click();
     });
     $("[data-test=GENESET_SCORE]").click();
     browser.waitForSelected("[data-test=GENESET_SCORE]", 10000);
