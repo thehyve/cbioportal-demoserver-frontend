@@ -1,7 +1,11 @@
 const clipboardy = require('clipboardy');
 
-function waitForQueryPage(timeout) {
+function waitForStudyQueryPage(timeout) {
     $('div[data-test="cancerTypeListContainer"]').waitForExist(timeout || 10000);
+}
+
+function waitForGeneQueryPage(timeout) {
+    $('div[data-test="molecularProfileSelector"]').waitForExist(timeout || 10000);
 }
 
 function waitForPlotsTab(timeout) {
@@ -205,7 +209,8 @@ function clickModifyStudySelectionButton (){
 
 module.exports = {
     waitForPlotsTab: waitForPlotsTab,
-    waitForQueryPage: waitForQueryPage,
+    waitForStudyQueryPage: waitForStudyQueryPage,
+    waitForGeneQueryPage: waitForGeneQueryPage,
     waitForOncoprint: waitForOncoprint,
     waitForCoExpressionTab: waitForCoExpressionTab,
     goToUrlAndSetLocalStorage: goToUrlAndSetLocalStorage,

@@ -1,6 +1,7 @@
 var assert = require('assert');
 var goToUrlAndSetLocalStorage = require('../../shared/specUtils').goToUrlAndSetLocalStorage;
-var waitForQueryPage = require('../../shared/specUtils').waitForQueryPage;
+var waitForStudyQueryPage = require('../../shared/specUtils').waitForStudyQueryPage;
+var waitForGeneQueryPage = require('../../shared/specUtils').waitForGeneQueryPage;
 var waitForOncoprint = require('../../shared/specUtils').waitForOncoprint;
 var waitForPlotsTab = require('../../shared/specUtils').waitForPlotsTab;
 var waitForCoExpressionTab = require('../../shared/specUtils').waitForCoExpressionTab;
@@ -29,7 +30,7 @@ describe('gsva feature', function() {
 
             beforeEach(()=>{
                 goToUrlAndSetLocalStorage(CBIOPORTAL_URL);
-                waitForQueryPage();
+                waitForStudyQueryPage();
             });
 
             it('shows GSVA-profile option when selecting study_es_0', () => {
@@ -72,7 +73,7 @@ describe('gsva feature', function() {
 
             beforeEach(()=>{
                 goToUrlAndSetLocalStorage(CBIOPORTAL_URL);
-                waitForQueryPage();
+                waitForStudyQueryPage();
                 checkTestStudy();
                 checkGSVAprofile();
                 browser.waitForExist('button[data-test=GENESET_HIERARCHY_BUTTON]');
@@ -157,7 +158,7 @@ describe('gsva feature', function() {
 
             beforeEach(()=>{
                 goToUrlAndSetLocalStorage(CBIOPORTAL_URL);
-                waitForQueryPage();
+                waitForStudyQueryPage();
                 checkTestStudy();
                 checkGSVAprofile();
             });
@@ -428,7 +429,7 @@ const checkTestStudy = () => {
     checkbox.click();
 
     clickQueryByGeneButton();
-
+    waitForGeneQueryPage();
 }
 
 const checkGSVAprofile = () => {
