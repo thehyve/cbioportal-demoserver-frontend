@@ -433,7 +433,7 @@ const checkTestStudy = () => {
 }
 
 const checkGSVAprofile = () => {
-    $("[data-test=GENESET_SCORE]").waitForExist(40000);
+    $("[data-test=GENESET_SCORE]").waitForVisible(40000);
     $("[data-test=GENESET_SCORE]").click();
     browser.waitForSelected("[data-test=GENESET_SCORE]", 10000);
     $('[data-test=GENESETS_TEXT_AREA]').waitForExist(40000);
