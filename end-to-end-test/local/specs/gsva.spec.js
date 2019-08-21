@@ -433,10 +433,10 @@ const checkTestStudy = () => {
 }
 
 const checkGSVAprofile = () => {
-    $("[data-test=GENESET_SCORE]").waitForExist();
+    $("[data-test=GENESET_SCORE]").waitForExist(40000);
     var gsvaProfileCheckbox = browser.$("[data-test=GENESET_SCORE]");
-    gsvaProfileCheckbox.click();
-    $('[data-test=GENESETS_TEXT_AREA]').waitForExist();
+    $("[data-test=GENESET_SCORE]").click();
+    $('[data-test=GENESETS_TEXT_AREA]').waitForExist(40000);
 }
 
 module.exports = {
