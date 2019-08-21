@@ -57,10 +57,10 @@ describe('gsva feature', function() {
                 checkTestStudy();
                 checkGSVAprofile();
 
-                browser.setValue('[data-test=geneSet]', 'TP53');
                 browser.setValue('[data-test=GENESETS_TEXT_AREA]', 'GO_ATP_DEPENDENT_CHROMATIN_REMODELING');
+                browser.setValue('[data-test=geneSet]', 'TP53');
                 var queryButton = browser.$('[data-test=queryButton]');
-                queryButton.waitForEnabled(1000);
+                queryButton.waitForEnabled();
                 queryButton.click();
                 var url = browser.url().value;
                 var regex = /geneset_list=GO_ATP_DEPENDENT_CHROMATIN_REMODELING/;
@@ -436,6 +436,7 @@ const checkGSVAprofile = () => {
     $("[data-test=GENESET_SCORE]").waitForExist();
     var gsvaProfileCheckbox = browser.$("[data-test=GENESET_SCORE]");
     gsvaProfileCheckbox.click();
+    $('[data-test=GENESETS_TEXT_AREA]').waitForExist();
 }
 
 module.exports = {
