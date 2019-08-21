@@ -199,6 +199,7 @@ function checkElementWithMouseDisabled(selector, pauseTime) {
 }
 
 function clickQueryByGeneButton(){
+    browser.waitForEnabled('a=Query By Gene');
     browser.click('a=Query By Gene');
     browser.scroll(0,0);
 };
