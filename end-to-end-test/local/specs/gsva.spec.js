@@ -432,14 +432,22 @@ const checkTestStudy = () => {
     waitForGeneQueryPage();
 }
 
+// const checkGSVAprofile = () => {
+//     $("[data-test=GENESET_SCORE]").waitForVisible(40000);
+//     browser.debug();
+//     browser.execute(function() {
+//         let elements =  document.querySelectorAll('[data-test="GENESET_SCORE"]');
+//         elements.item(0).click();
+//     });
+//     // $("[data-test=GENESET_SCORE]").click();
+//     browser.waitForSelected("[data-test=GENESET_SCORE]", 10000);
+//     $('[data-test=GENESETS_TEXT_AREA]').waitForExist(40000);
+// }
+
 const checkGSVAprofile = () => {
-    $("[data-test=GENESET_SCORE]").waitForVisible(40000);
-    browser.execute(function() {
-        document.querySelectorAll('[data-test="GENESET_SCORE"]').item(0).click();
-    });
-    $("[data-test=GENESET_SCORE]").click();
-    browser.waitForSelected("[data-test=GENESET_SCORE]", 10000);
-    $('[data-test=GENESETS_TEXT_AREA]').waitForExist(40000);
+    $("[data-test=GENESET_SCORE]").waitForExist();
+    var gsvaProfileCheckbox = browser.$("[data-test=GENESET_SCORE]");
+    gsvaProfileCheckbox.click();
 }
 
 module.exports = {
