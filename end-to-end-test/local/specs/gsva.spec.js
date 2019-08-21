@@ -22,7 +22,7 @@ const coexpressionTabUrl = CBIOPORTAL_URL+'/results/coexpression?Action=Submit&R
 
 describe('gsva feature', function() {
 
-    //this.retries(2);
+    this.retries(2);
 
     if (useExternalFrontend) {
 
@@ -446,7 +446,9 @@ const checkTestStudy = () => {
 
 const checkGSVAprofile = () => {
     $("[data-test=GENESET_SCORE]").waitForExist();
+    // browser.debug();
     var gsvaProfileCheckbox = browser.$("[data-test=GENESET_SCORE]");
+    browser.pause(1000);
     gsvaProfileCheckbox.click();
 }
 
