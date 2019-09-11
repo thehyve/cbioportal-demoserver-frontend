@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import {
     fetchVariantAnnotationsByMutation as fetchDefaultVariantAnnotationsByMutation,
     fetchVariantAnnotationsIndexedByGenomicLocation as fetchDefaultVariantAnnotationsIndexedByGenomicLocation,
-} from "react-mutation-mapper"
+} from "react-mutation-mapper";
 import {
     default as CBioPortalAPI,
     MolecularProfile,
@@ -20,7 +20,9 @@ import {
     NumericGeneMolecularData,
     SampleFilter,
     Gene,
-    ReferenceGenomeGene
+    ReferenceGenomeGene,
+    GenePanelDataFilter,
+    GenePanelToGene
 } from "shared/api/generated/CBioPortalAPI";
 import defaultClient from "shared/api/cbioportalClientInstance";
 import internalClient from "shared/api/cbioportalInternalClientInstance";
@@ -40,7 +42,7 @@ import {
 } from "shared/lib/CivicUtils";
 import {Query, default as OncoKbAPI, Gene as OncoKbGene, CancerGene} from "public-lib/api/generated/OncoKbAPI";
 import {getAlterationString} from "shared/lib/CopyNumberUtils";
-import {MobxPromise} from "mobxpromise";
+import {MobxPromise, MobxPromiseInputUnion} from "mobxpromise";
 import {keywordToCosmic, geneToMyCancerGenome} from "shared/lib/AnnotationUtils";
 import {indexPdbAlignments} from "shared/lib/PdbUtils";
 import {IOncoKbData} from "shared/model/OncoKB";
@@ -55,11 +57,20 @@ import {AlterationTypeConstants} from "../../pages/resultsView/ResultsViewPageSt
 import {stringListToIndexSet} from "public-lib/lib/StringUtils";
 import {GeneticTrackDatum_Data} from "../components/oncoprint/Oncoprint";
 import {normalizeMutations} from "../components/mutationMapper/MutationMapperUtils";
+import client from 'shared/api/cbioportalClientInstance';
 
 export const ONCOKB_DEFAULT: IOncoKbData = {
     uniqueSampleKeyToTumorType : {},
     indicatorMap : {}
 };
+
+export const CompleteProfileTypeSignature = {
+    UNKNOWN: undefined,
+    WHOLE_EXOME_SEQ: 'WES',
+    WHOLE_GENOME_SEQ: 'WGS'
+};
+
+export const noGenePanelUsed:(o:string|undefined) => boolean = (o) => o === CompleteProfileTypeSignature.UNKNOWN || o === CompleteProfileTypeSignature.WHOLE_EXOME_SEQ || o === CompleteProfileTypeSignature.WHOLE_GENOME_SEQ;
 
 export type MutationIdGenerator = (mutation:Mutation) => string;
 
@@ -526,6 +537,27 @@ export async function fetchCopyNumberData(discreteCNAData:MobxPromise<DiscreteCo
     } else {
         return [];
     }
+}
+
+export async function fetchSampleGenePanelData(molecularProfileId:string|undefined, sampleIds:string[]):Promise<{[sampleId: string]: string|undefined}> {
+    const genePanelDataFilter = {sampleIds} as GenePanelDataFilter;
+    if (molecularProfileId) {
+        const remoteData = await client.getGenePanelDataUsingPOST({molecularProfileId, genePanelDataFilter});
+        return _(remoteData).keyBy('sampleId').mapValues('genePanelId').value();
+    }
+    return {};
+}
+
+export async function fetchGenePanelGeneData(genePanelIds:(string|undefined)[]):Promise<{[genePanelId:string]: number[]}> {
+    let genePanelId2Genes = {} as {[genePanelId:string]: number[]};
+    for (const genePanelId of genePanelIds) {
+        if (genePanelId) {
+            const genePanel = await client.getGenePanelUsingGET({genePanelId});
+            const entrezGeneIds = _.map(genePanel.genes, (d:GenePanelToGene) => d.entrezGeneId);
+            genePanelId2Genes[genePanelId] = entrezGeneIds;
+        }
+    }
+    return genePanelId2Genes;
 }
 
 export function fetchMyCancerGenomeData(): IMyCancerGenomeData
