@@ -51,6 +51,7 @@ import {remoteData} from "../../public-lib/api/remoteData";
 import 'cbioportal-frontend-commons/styles.css';
 import 'react-mutation-mapper/dist/styles.css';
 import 'react-table/react-table.css';
+import { GeneFilterOption } from "./mutation/GeneFilterMenu";
 
 const patientViewPageStore = new PatientViewPageStore();
 
@@ -87,7 +88,6 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
     constructor(props: IPatientViewPageProps) {
 
         super(props);
-
 
         //TODO: this should be done by a module so that it can be reused on other pages
         const reaction1 = reaction(
@@ -218,6 +218,16 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
             return undefined;
         }
     });
+
+    @autobind
+    private onFilterGenesMutationTable(option:GeneFilterOption):void {
+        patientViewPageStore.mutationTableGeneFilterOption = option;
+    }
+
+    @autobind
+    private onFilterGenesCopynumberTable(option:GeneFilterOption):void {
+        patientViewPageStore.copynumberTableGeneFilterOption = option;
+    }
 
     public render() {
 
@@ -432,7 +442,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     genomeNexusMyVariantInfoCache={patientViewPageStore.genomeNexusMyVariantInfoCache}
                                                     mrnaExprRankMolecularProfileId={patientViewPageStore.mrnaRankMolecularProfileId.result || undefined}
                                                     discreteCNAMolecularProfileId={patientViewPageStore.molecularProfileIdDiscrete.result}
-                                                    data={patientViewPageStore.mergedMutationDataIncludingUncalled}
+                                                    data={patientViewPageStore.mergedMutationDataIncludingUncalledFilteredByGene}
                                                     downloadDataFetcher={patientViewPageStore.downloadDataFetcher}
                                                     mutSigData={patientViewPageStore.mutSigData.result}
                                                     myCancerGenomeData={patientViewPageStore.myCancerGenomeData}
@@ -449,6 +459,8 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     enableMyCancerGenome={AppConfig.serverConfig.mycancergenome_show}
                                                     enableCivic={AppConfig.serverConfig.show_civic}
                                                     columnVisibility={this.mutationTableColumnVisibility}
+                                                    currentGeneFilter={patientViewPageStore.mutationTableGeneFilterOption}
+                                                    onFilterGenes={this.onFilterGenesMutationTable}
                                                     columnVisibilityProps={{
                                                         onColumnToggled: this.onMutationTableColumnVisibilityToggled
                                                     }}
@@ -481,17 +493,19 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     userEmailAddress={AppConfig.serverConfig.user_email_address}
                                                     pubMedCache={patientViewPageStore.pubMedCache}
                                                     referenceGenes={patientViewPageStore.referenceGenes.result}
-                                                    data={patientViewPageStore.mergedDiscreteCNAData}
+                                                    data={patientViewPageStore.mergedDiscreteCNADataFilteredByGene}
                                                     copyNumberCountCache={patientViewPageStore.copyNumberCountCache}
                                                     mrnaExprRankCache={patientViewPageStore.mrnaExprRankCache}
                                                     gisticData={patientViewPageStore.gisticData.result}
                                                     mrnaExprRankMolecularProfileId={patientViewPageStore.mrnaRankMolecularProfileId.result || undefined}
                                                     status={this.cnaTableStatus}
                                                     columnVisibility={this.cnaTableColumnVisibility}
+                                                    currentGeneFilter={patientViewPageStore.copynumberTableGeneFilterOption}
+                                                    onFilterGenes={this.onFilterGenesCopynumberTable}
                                                     columnVisibilityProps={{
                                                         onColumnToggled: this.onCnaTableColumnVisibilityToggled
                                                     }}
-                                                />
+                                                    />
                                             </div>
                                         )
                                     }

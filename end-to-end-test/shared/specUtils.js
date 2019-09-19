@@ -20,7 +20,8 @@ function waitForCoExpressionTab(timeout) {
 
 function waitForPatientView(timeout) {
     $('//*[@id="patientViewPageTabs"]').waitForExist(timeout || 20000);
-    waitForNetworkQuiet();
+    $('[data-test=patientview-copynumber-table]').waitForVisible(timeout || 20000);
+    $('[data-test=patientview-mutation-table]').waitForVisible(timeout || 20000);
 }
 
 function waitForOncoprint(timeout) {
