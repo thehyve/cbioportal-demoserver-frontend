@@ -23,11 +23,6 @@ interface IGenomicOverviewProps {
 
 export default class GenomicOverview extends React.Component<IGenomicOverviewProps, { frequencies:MutationFrequenciesBySample }> {
 
-    shouldComponentUpdate(nextProps:IGenomicOverviewProps){
-        // only rerender to resize
-        return nextProps.containerWidth !== this.props.containerWidth;
-    }
-
     constructor(props:IGenomicOverviewProps) {
         super(props);
         const frequencies = this.computeMutationFrequencyBySample(props.mergedMutations);

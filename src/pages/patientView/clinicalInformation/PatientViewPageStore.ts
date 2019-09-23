@@ -832,9 +832,16 @@ export class PatientViewPageStore {
     @computed get mergedMutationData(): Mutation[][] {
         return mergeMutations(this.mutationData);
     }
-
+    
     @computed get mergedMutationDataIncludingUncalled(): Mutation[][] {
         return mergeMutationsIncludingUncalled(this.mutationData, this.uncalledMutationData);
+    }
+    
+    @computed get mergedMutationDataFilteredByGene():Mutation[][] {
+        if (this.mutationTableGeneFilterOption === GeneFilterOption.ALL_SAMPLES) {
+            return filterMutationsByProfiledGene(this.mergedMutationData, this.sampleIds, this.sampleToMutationGenePanelId, this.genePanelIdToEntrezGeneIds);
+        }
+        return this.mergedMutationData;
     }
 
     @computed get mergedMutationDataIncludingUncalledFilteredByGene():Mutation[][] {
