@@ -15,11 +15,11 @@ function waitForPlotsTab(timeout) {
 }
 
 function waitForCoExpressionTab(timeout) {
-    $('//*[@id="coexpressionTabGeneTabs"]').waitForExist(timeout || 20000);
+    $('#coexpressionTabGeneTabs').waitForExist(timeout || 20000);
 }
 
 function waitForPatientView(timeout) {
-    $('//*[@id="patientViewPageTabs"]').waitForExist(timeout || 20000);
+    $('#patientViewPageTabs').waitForExist(timeout || 20000);
     $('[data-test=patientview-copynumber-table]').waitForVisible(timeout || 20000);
     $('[data-test=patientview-mutation-table]').waitForVisible(timeout || 20000);
 }
