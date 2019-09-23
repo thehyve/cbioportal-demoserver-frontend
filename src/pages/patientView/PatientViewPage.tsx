@@ -225,8 +225,8 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
     }
 
     @autobind
-    private onFilterGenesCopynumberTable(option:GeneFilterOption):void {
-        patientViewPageStore.copynumberTableGeneFilterOption = option;
+    private onFilterGenesCopyNumberTable(option:GeneFilterOption):void {
+        patientViewPageStore.copyNumberTableGeneFilterOption = option;
     }
 
     public render() {
@@ -500,8 +500,8 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     mrnaExprRankMolecularProfileId={patientViewPageStore.mrnaRankMolecularProfileId.result || undefined}
                                                     status={this.cnaTableStatus}
                                                     columnVisibility={this.cnaTableColumnVisibility}
-                                                    currentGeneFilter={patientViewPageStore.copynumberTableGeneFilterOption}
-                                                    onFilterGenes={this.onFilterGenesCopynumberTable}
+                                                    currentGeneFilter={patientViewPageStore.copyNumberTableGeneFilterOption}
+                                                    onFilterGenes={this.onFilterGenesCopyNumberTable}
                                                     columnVisibilityProps={{
                                                         onColumnToggled: this.onCnaTableColumnVisibilityToggled
                                                     }}
