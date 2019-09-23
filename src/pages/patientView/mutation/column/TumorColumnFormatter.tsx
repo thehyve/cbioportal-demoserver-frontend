@@ -97,13 +97,10 @@ export default class TumorColumnFormatter {
             const genePanelId = sampleToGenePanelId[nextSampleId];
             
             const wholeGenome = noGenePanelUsed(genePanelId);
-            const isInGenePanel = !wholeGenome && genePanelId && genePanelId in genePanelIdToEntrezGeneIds && genePanelIdToEntrezGeneIds[genePanelId].includes(entrezGeneId);
+            const isInGenePanel = !wholeGenome && !!genePanelId && genePanelId in genePanelIdToEntrezGeneIds && genePanelIdToEntrezGeneIds[genePanelId].includes(entrezGeneId);
 
-            if (wholeGenome || isInGenePanel) {
-                map[nextSampleId] = true;
-            } else {
-                map[nextSampleId] = false;
-            }
+            map[nextSampleId] = wholeGenome || isInGenePanel;
+            
             return map;
         }, {} as {[s:string]:boolean});
     }
