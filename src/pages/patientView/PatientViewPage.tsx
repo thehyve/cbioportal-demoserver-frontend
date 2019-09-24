@@ -412,6 +412,8 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     sampleColors={sampleManager.sampleColors}
                                                     sampleManager={sampleManager}
                                                     containerWidth={WindowStore.size.width-20}
+                                                    sampleIdToMutationGenePanelId={patientViewPageStore.sampleToMutationGenePanelId}
+                                                    sampleIdToCopyNumberGenePanelId={patientViewPageStore.sampleToDiscreteGenePanelId}
                                                 />
                                                 <hr />
                                             </div>

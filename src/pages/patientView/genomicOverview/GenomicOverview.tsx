@@ -9,6 +9,8 @@ import {Mutation, Sample} from "../../../shared/api/generated/CBioPortalAPI";
 import SampleManager from "../SampleManager";
 import {ClinicalDataBySampleId} from "../../../shared/api/api-types-extended";
 import {MutationFrequenciesBySample} from "../vafPlot/VAFPlot";
+import { computed } from 'mobx';
+import { sampleIdToIconData, IKeyedIconData, genePanelIdToIconData } from './GenomicOverviewUtils';
 
 interface IGenomicOverviewProps {
     mergedMutations: Mutation[][];
@@ -19,6 +21,8 @@ interface IGenomicOverviewProps {
     sampleColors: {[s:string]:string};
     sampleManager: SampleManager;
     containerWidth: number;
+    sampleIdToMutationGenePanelId?:{[sampleId:string]:string};
+    sampleIdToCopyNumberGenePanelId?:{[sampleId:string]:string};
 }
 
 export default class GenomicOverview extends React.Component<IGenomicOverviewProps, { frequencies:MutationFrequenciesBySample }> {
@@ -29,17 +33,26 @@ export default class GenomicOverview extends React.Component<IGenomicOverviewPro
         this.state = {
             frequencies
         };
-
     }
 
-    /*componentDidMount(){
+    @computed get genePanelIds() {
+        return _.uniq(_.concat(
+                    _.values(this.props.sampleIdToMutationGenePanelId),
+                    _.values(this.props.sampleIdToCopyNumberGenePanelId)
+                ));
+    }
 
-        var debouncedResize =  _.debounce(()=>this.forceUpdate(),500);
+    @computed get genePanelIdToIconData():IKeyedIconData {
+        return genePanelIdToIconData(this.genePanelIds);
+    }
+        
+    @computed get sampleIdToMutationGenePanelIconData():IKeyedIconData {
+        return sampleIdToIconData(this.props.sampleIdToMutationGenePanelId, this.genePanelIdToIconData);
+    }
 
-        $(window).resize(debouncedResize);
-
-    }*/
-
+    @computed get sampleIdToCopyNumberGenePanelIconData():IKeyedIconData {
+        return sampleIdToIconData(this.props.sampleIdToCopyNumberGenePanelId, this.genePanelIdToIconData);
+    }
 
     public render() {
 
@@ -56,6 +69,8 @@ export default class GenomicOverview extends React.Component<IGenomicOverviewPro
                         width={this.getTracksWidth()}
                         cnaSegments={this.props.cnaSegments}
                         samples={this.props.samples}
+                        mutationGenePanelIconData={this.sampleIdToMutationGenePanelIconData}
+                        copyNumberGenePanelIconData={this.sampleIdToCopyNumberGenePanelIconData}
                 />
                 <If condition={this.shouldShowVAFPlot()}>
                     <ThumbnailExpandVAFPlot
