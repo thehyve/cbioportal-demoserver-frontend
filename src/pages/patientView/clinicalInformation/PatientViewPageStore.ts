@@ -182,11 +182,11 @@ export class PatientViewPageStore {
 
     @observable _sampleId = '';
 
-    @observable public mutationTableGeneFilterOption:GeneFilterOption = getGeneFilterDefault(getBrowserWindow().frontendConfig.serverConfig);
-    @observable public copyNumberTableGeneFilterOption:GeneFilterOption = getGeneFilterDefault(getBrowserWindow().frontendConfig.serverConfig);
-    
     @observable modalSettings = { name: '', isOpen: false };
     
+    @observable public mutationTableGeneFilterOption:GeneFilterOption = getGeneFilterDefault(getBrowserWindow().frontendConfig);
+    @observable public copyNumberTableGeneFilterOption:GeneFilterOption = getGeneFilterDefault(getBrowserWindow().frontendConfig);
+
     @computed get sampleId() {
         return this._sampleId;
     }
