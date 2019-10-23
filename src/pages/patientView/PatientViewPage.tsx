@@ -505,7 +505,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     columnVisibilityProps={{
                                                         onColumnToggled: this.onMutationTableColumnVisibilityToggled
                                                     }}
-                                                    />
+                                                />
                                             </div>
                                         )
                                     }
@@ -547,6 +547,7 @@ export default class PatientViewPage extends React.Component<IPatientViewPagePro
                                                     columnVisibilityProps={{
                                                         onColumnToggled: this.onCnaTableColumnVisibilityToggled
                                                     }}
+                                                    sampleToMutationGenePanelId={patientViewPageStore.sampleToMutationGenePanelId}
                                                     />
                                             </div>
                                         )
