@@ -348,7 +348,7 @@ export class LazyMobXTableStore<T> {
     @computed
     get headers():JSX.Element[] {
 
-        return this.visibleColumns.map((column:Column<T>)=>{
+        return this.visibleColumns.map((column:Column<T>, index:number)=>{
             const headerProps:{
                 role?:"button",
                 className?:"multilineHeader sort-asc"|"multilineHeader sort-des",
