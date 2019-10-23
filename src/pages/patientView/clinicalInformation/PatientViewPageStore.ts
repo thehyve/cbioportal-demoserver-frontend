@@ -85,6 +85,7 @@ import { GeneFilterOption } from '../mutation/GeneFilterMenu';
 import TumorColumnFormatter from '../mutation/column/TumorColumnFormatter';
 import { getGeneFilterDefault } from './PatientViewPageStoreUtil';
 import getBrowserWindow from 'public-lib/lib/getBrowserWindow';
+import autobind from 'autobind-decorator';
 
 type PageMode = 'patient' | 'sample';
 
@@ -183,7 +184,9 @@ export class PatientViewPageStore {
 
     @observable public mutationTableGeneFilterOption:GeneFilterOption = getGeneFilterDefault(getBrowserWindow().frontendConfig.serverConfig);
     @observable public copyNumberTableGeneFilterOption:GeneFilterOption = getGeneFilterDefault(getBrowserWindow().frontendConfig.serverConfig);
-
+    
+    @observable modalSettings = { name: '', isOpen: false };
+    
     @computed get sampleId() {
         return this._sampleId;
     }
@@ -883,6 +886,10 @@ export class PatientViewPageStore {
             this.studiesForSamplesWithoutCancerTypeClinicalData,
             this.samplesWithoutCancerTypeClinicalData);
     }
+    
+    @computed get genePanelData() {
+        return this.genePanelIdToPanel.result[this.modalSettings.name];
+    }
 
     @action("SetSampleId") setSampleId(newId: string) {
         if (newId)
@@ -946,6 +953,14 @@ export class PatientViewPageStore {
 
     @action clearErrors() {
         this.ajaxErrors = [];
+    }
+    
+    @autobind
+    @action toggleModal(name?:string|undefined) {
+        this.modalSettings = {
+            isOpen: !this.modalSettings.isOpen,
+            name: typeof name === 'string' ? name : ''
+        };
     }
 
     readonly trialMatches = remoteData<ITrialMatch[]>({
