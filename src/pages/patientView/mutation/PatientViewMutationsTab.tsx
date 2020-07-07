@@ -24,6 +24,7 @@ import PatientViewUrlWrapper from '../PatientViewUrlWrapper';
 import WindowStore from '../../../shared/components/window/WindowStore';
 import Timeline from '../timeline/Timeline';
 import classnames from 'classnames';
+import Autosuggest from 'react-bootstrap-autosuggest';
 
 export interface IPatientViewMutationsTabProps {
     store: PatientViewPageStore;
@@ -88,6 +89,19 @@ export default class PatientViewMutationsTab extends React.Component<
     set vafLineChartLogScale(o: boolean) {
         this.props.urlWrapper.updateURL(currentParams => {
             currentParams.genomicEvolutionSettings.logScaleChart = o.toString();
+            return currentParams;
+        });
+    }
+
+    get vafShowTimeline() {
+        return (
+            this.props.urlWrapper.query.genomicEvolutionSettings
+                .vafShowTimeline === 'true'
+        );
+    }
+    set vafShowTimeline(o: boolean) {
+        this.props.urlWrapper.updateURL(currentParams => {
+            currentParams.genomicEvolutionSettings.vafShowTimeline = o.toString();
             return currentParams;
         });
     }
@@ -197,7 +211,65 @@ export default class PatientViewMutationsTab extends React.Component<
                         dontFade
                     />
                 </div>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 5,
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <LabeledCheckbox
+                            checked={this.vafShowTimeline}
+                            onChange={() =>
+                                (this.vafShowTimeline = !this.vafShowTimeline)
+                            }
+                            labelProps={{ style: { marginRight: 10 } }}
+                            inputProps={{ 'data-test': 'VAFShowTimeline' }}
+                        >
+                            <span style={{ marginTop: -3 }}>Show timeline</span>
+                        </LabeledCheckbox>
+                        <span style={{ marginTop: -3, marginRight: 3 }}>
+                            Group by:
+                        </span>
+                        <Autosuggest
+                            /*datalist={"none"}
+                            ref={(el: React.Component<any, any>) =>
+                                (this.autosuggest = el)
+                            }*/
+                            bsSize="small"
+                            /*onChange={(currentVal: string) => {
+                                if (searchTimeout !== null) {
+                                    window.clearTimeout(
+                                        searchTimeout
+                                    );
+                                    searchTimeout = null;
+                                }
+
+                                searchTimeout = window.setTimeout(
+                                    () => {
+                                    this.store.setSearchText(
+                                        currentVal
+                                    );
+                                    },
+                                    400
+                                    );
+                                }}
+                            onFocus={(value: string) => {
+                                    if (value.length === 0) {
+                                        setTimeout(() => {
+                                            this.autosuggest.setState({
+                                                open: true,
+                                            });
+                                        }, 400);
+                                    }
+                            }}*/
+                        />
+                    </div>
+                </div>
                 <VAFLineChart
+                    store={this.props.store}
                     dataStore={this.dataStore}
                     samples={this.props.store.samples.result!}
                     coverageInformation={
@@ -210,6 +282,7 @@ export default class PatientViewMutationsTab extends React.Component<
                     svgRef={this.vafLineChartSvgRef}
                     logScale={this.vafLineChartLogScale}
                     zeroToOneAxis={this.vafLineChartZeroToOneYAxis}
+                    vafTimeline={this.vafShowTimeline}
                 />
             </div>
         ),

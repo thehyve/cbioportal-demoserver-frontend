@@ -32,6 +32,10 @@ import invertIncreasingFunction, {
 import { mutationTooltip } from './PatientViewMutationsTabUtils';
 import { tickFormatNumeral } from '../../../shared/components/plots/TickUtils';
 import { computeRenderData, IPoint } from './VAFLineChartUtils';
+import VAFTimeline from '../timeline/Timeline';
+import { MakeMobxView } from '../../../shared/components/MobxView';
+import { PatientViewPageStore } from '../clinicalInformation/PatientViewPageStore';
+import { ClinicalEvent, ClinicalEventData } from 'cbioportal-ts-api-client';
 
 export interface IVAFLineChartProps {
     samples: Sample[];
@@ -42,6 +46,8 @@ export interface IVAFLineChartProps {
     svgRef: (elt: SVGElement | null) => void;
     logScale: boolean;
     zeroToOneAxis: boolean;
+    vafTimeline: boolean;
+    store: PatientViewPageStore;
 }
 
 export const SHOW_ONLY_SELECTED_LABEL = 'Show only selected mutations';
@@ -89,6 +95,40 @@ class Tick extends React.Component<any, any> {
                     textAnchor="start"
                     maxWidth={50}
                     dx={20}
+                />
+            </g>
+        );
+    }
+}
+
+class SamplePoint extends React.Component<any, any> {
+    render() {
+        let { sampleIdOrder, sampleManager, index, ...rest } = this.props;
+        const sampleId = sampleIdOrder[index];
+        console.info(rest.x + ' ' + rest.y);
+        console.info(index);
+        return (
+            <g transform={`rotate(50, ${rest.x}, ${rest.y})`}>
+                <SampleLabelSVG
+                    label={index + 1}
+                    color={
+                        sampleManager
+                            ? sampleManager.getColorForSample(sampleId)
+                            : 'black'
+                    }
+                    x={rest.x}
+                    y={rest.y}
+                    r={6}
+                    textDy={-1}
+                />
+                <TruncatedTextWithTooltipSVG
+                    text={sampleId}
+                    {...rest}
+                    verticalAnchor="start"
+                    textAnchor="start"
+                    maxWidth={50}
+                    dx={10}
+                    dy={5}
                 />
             </g>
         );
@@ -318,6 +358,37 @@ export default class VAFLineChart extends React.Component<
 
     @computed get sampleIdIndex() {
         return stringListToIndexSet(this.sampleIdOrder);
+    }
+
+    @computed get sampleData() {
+        let data: Array<object> = [];
+        const events = this.props.store.clinicalEvents.result;
+        let samplePerDate = new Map();
+
+        events.forEach((event, i) => {
+            event.attributes.forEach((attribute, i) => {
+                if (attribute.key === 'SAMPLE_ID') {
+                    // calculate x and y for the sample
+                    const xDate = event.startNumberOfDaysSinceDiagnosis / 365;
+                    let yDate = -0.27;
+                    if (samplePerDate[xDate] > 0) {
+                        yDate = -0.27 - 0.12 * samplePerDate[xDate];
+                        samplePerDate[xDate] = samplePerDate[xDate] + 1;
+                    } else samplePerDate[xDate] = 1;
+                    const dataObj = {
+                        x: xDate + 1,
+                        y: yDate,
+                    };
+
+                    // x and y data must be in order (by sample index)
+                    const sampleIndex = this.sampleIdOrder.findIndex(
+                        element => element === attribute.value
+                    );
+                    data[sampleIndex] = dataObj;
+                }
+            });
+        });
+        return data;
     }
 
     @computed get renderData() {
@@ -564,6 +635,22 @@ export default class VAFLineChart extends React.Component<
         }
     }
 
+    @computed
+    private get timelineTickValues() {
+        // get clinical events array
+        const events = this.props.store.clinicalEvents.result;
+        // get the start date of each event
+        const startDays = events.map(
+            event => event.startNumberOfDaysSinceDiagnosis
+        );
+        // find the max start date to calculate the years
+        const maxStartDay = Math.max.apply(Math, startDays);
+        const endYear = Math.floor(maxStartDay / 365) + 2;
+        const yearIndexes = Array.from(Array(endYear).keys());
+
+        return yearIndexes.map((v, i) => v + 'y');
+    }
+
     render() {
         if (this.renderData.lineData.length > 0) {
             return (
@@ -618,17 +705,44 @@ export default class VAFLineChart extends React.Component<
                                         },
                                     },
                                 }}
-                                tickValues={this.props.samples.map((s, i) => i)}
+                                tickValues={
+                                    this.props.vafTimeline === false
+                                        ? this.props.samples.map((s, i) => i)
+                                        : this.timelineTickValues.map(
+                                              (v, i) => v
+                                          )
+                                }
                                 tickLabelComponent={
-                                    <Tick
-                                        sampleIdOrder={this.sampleIdOrder}
-                                        sampleManager={this.props.sampleManager}
-                                    />
+                                    this.props.vafTimeline === false ? (
+                                        <Tick
+                                            sampleIdOrder={this.sampleIdOrder}
+                                            sampleManager={
+                                                this.props.sampleManager
+                                            }
+                                        />
+                                    ) : (
+                                        <VictoryLabel />
+                                    )
                                 }
                                 crossAxis={false}
                                 offsetY={50}
                                 orientation="bottom"
                             />
+                            {this.props.vafTimeline === false ? (
+                                <VictoryScatter data={[]} />
+                            ) : (
+                                <VictoryScatter
+                                    data={this.sampleData}
+                                    dataComponent={
+                                        <SamplePoint
+                                            sampleIdOrder={this.sampleIdOrder}
+                                            sampleManager={
+                                                this.props.sampleManager
+                                            }
+                                        />
+                                    }
+                                />
+                            )}
                             {this.renderData.lineData.map(dataForSingleLine => {
                                 if (dataForSingleLine.length > 1) {
                                     // cant show line with only 1 point - causes error in svg to pdf conversion

@@ -279,6 +279,15 @@ class SampleManager {
         }
         return '';
     }
+
+    /*    getSampleIndex(sampleId: string): number {
+     
+        console.info(this.sampleIndex);
+        if (sampleId in this.sampleIndex) {
+            return this.sampleIndex[sampleId];
+        }
+    }
+    */
 }
 
 export default SampleManager;
