@@ -80,7 +80,7 @@ export default class ProteinChangeColumnFormatter {
             />
         );
 
-        // add a germline indicator next to protein change if it is a germline mutation!
+        // add a Germline or LOH indicator next to protein change when applicable
         if (
             mutationStatus &&
             mutationStatus.toLowerCase().indexOf('germline') > -1
@@ -89,6 +89,17 @@ export default class ProteinChangeColumnFormatter {
                 <span>
                     {content}
                     <span className={styles.germline}>Germline</span>
+                </span>
+            );
+        }
+        else if (
+            mutationStatus &&
+            mutationStatus.toLowerCase().indexOf('loh') > -1
+        ) {
+            content = (
+                <span>
+                    {content}
+                    <span className={styles.germline}>LOH</span>
                 </span>
             );
         }
