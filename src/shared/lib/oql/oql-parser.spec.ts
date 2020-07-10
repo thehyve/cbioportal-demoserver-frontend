@@ -551,6 +551,21 @@ describe('OQL parser', () => {
             ],
         },
     ]);
+    doTest('TP53:LOH_MISSENSE', [
+        {
+            gene: 'TP53',
+            alterations: [
+                {
+                    alteration_type: 'mut',
+                    constr_rel: '=',
+                    constr_type: 'class',
+                    constr_val: 'MISSENSE',
+                    info: {},
+                    modifiers: [{ type: 'LOH' }],
+                },
+            ],
+        },
+    ]);
     doTest(
         'TP53:DRIVER GERMLINE_DRIVER DRIVER_GERMLINE TRUNC_DRIVER DRIVER_MISSENSE INFRAME_DRIVER_GERMLINE DRIVER_GERMLINE_INFRAME DRIVER_GERMLINE_INFRAME_(1-100*) MUT_(-500) GERMLINE_(51-)_DRIVER',
         [

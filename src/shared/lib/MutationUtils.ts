@@ -14,7 +14,7 @@ import { extractGenomicLocation } from 'cbioportal-utils';
 import { GenomicLocation } from 'genome-nexus-ts-api-client';
 import {
     MUTATION_STATUS_GERMLINE,
-    MOLECULAR_PROFILE_UNCALLED_MUTATIONS_SUFFIX,
+    MOLECULAR_PROFILE_UNCALLED_MUTATIONS_SUFFIX, MUTATION_STATUS_LOH,
 } from 'shared/constants';
 import { toSampleUuid } from './UuidUtils';
 import {
@@ -142,13 +142,40 @@ export function getProteinStartPositionsByRange(
     return _.uniq(positions);
 }
 
-export const GERMLINE_REGEXP = new RegExp(MUTATION_STATUS_GERMLINE, 'i');
 /**
  * Percentage of cases/samples with a germline mutation in given gene.
  * Assumes all given sample ids in the study had germline screening for all
  * genes (TODO: use gene panel).
  */
+export const GERMLINE_REGEXP = new RegExp(MUTATION_STATUS_GERMLINE, 'i');
 export function germlineMutationRate(
+    hugoGeneSymbol: string,
+    mutations: Mutation[],
+    molecularProfileIdToMolecularProfile: {
+        [molecularProfileId: string]: MolecularProfile;
+    },
+    samples: SampleIdentifier[]
+) {
+    return calulateMutationRate(GERMLINE_REGEXP, hugoGeneSymbol, mutations, molecularProfileIdToMolecularProfile, samples)
+}
+
+/**
+ * Percentage of cases/samples with a LOH mutation in given gene.
+ */
+export const LOH_REGEXP = new RegExp(MUTATION_STATUS_LOH, 'i');
+export function lohMutationRate(
+    hugoGeneSymbol: string,
+    mutations: Mutation[],
+    molecularProfileIdToMolecularProfile: {
+        [molecularProfileId: string]: MolecularProfile;
+    },
+    samples: SampleIdentifier[]
+) {
+    return calulateMutationRate(LOH_REGEXP, hugoGeneSymbol, mutations, molecularProfileIdToMolecularProfile, samples)
+}
+
+function calulateMutationRate(
+    mut_regex: RegExp,
     hugoGeneSymbol: string,
     mutations: Mutation[],
     molecularProfileIdToMolecularProfile: {
@@ -165,7 +192,7 @@ export function germlineMutationRate(
                 if (profile) {
                     return (
                         m.gene.hugoGeneSymbol === hugoGeneSymbol &&
-                        GERMLINE_REGEXP.test(m.mutationStatus) &&
+                        mut_regex.test(m.mutationStatus) &&
                         // filter for given sample IDs
                         !!sampleIds[toSampleUuid(profile.studyId, m.sampleId)]
                     );
@@ -226,8 +253,12 @@ export function somaticMutationRate(
     }
 }
 
-export function isNotGermlineMutation(m: { mutationStatus?: string }) {
-    return !m.mutationStatus || !GERMLINE_REGEXP.test(m.mutationStatus);
+export function isGermlineMutation(m: { mutationStatus?: string }) {
+    return m.mutationStatus && GERMLINE_REGEXP.test(m.mutationStatus);
+}
+
+export function isLohMutation(m: { mutationStatus?: string }) {
+    return m.mutationStatus && LOH_REGEXP.test(m.mutationStatus);
 }
 
 export function updateMissingGeneInfo(

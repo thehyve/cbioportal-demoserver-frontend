@@ -45,9 +45,9 @@ export interface IAccessorsForOqlFilter<T> {
     // or null
     mut_position: (d: T) => [number, number] | null;
 
-    // returns "germline" or "somatic"
+    // returns "germline", "somatic", "loh"
     // or null
-    mut_status: (d: T) => 'germline' | 'somatic' | null;
+    mut_status: (d: T) => 'germline' | 'somatic' | 'loh' | null;
 
     // returns a string, the amino acid change,
     // or null
@@ -692,6 +692,7 @@ function isDatumWantedByOQLMutationModifier<T>(
     switch (modifier.type) {
         case 'GERMLINE':
         case 'SOMATIC':
+        case 'LOH':
             return accessors.mut_status(datum) === modifier.type.toLowerCase();
         case 'RANGE':
             const mutationRange = accessors.mut_position(datum);

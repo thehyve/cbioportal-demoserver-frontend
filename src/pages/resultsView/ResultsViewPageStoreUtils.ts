@@ -1,53 +1,51 @@
 import {
+    CancerStudy,
+    ClinicalAttribute,
     Gene,
-    NumericGeneMolecularData,
     GenePanel,
     GenePanelData,
     MolecularProfile,
     Mutation,
+    NumericGeneMolecularData,
     Patient,
-    Sample,
-    CancerStudy,
-    ClinicalAttribute,
-    PatientIdentifier,
     PatientFilter,
+    PatientIdentifier,
     ReferenceGenomeGene,
+    Sample,
 } from 'cbioportal-ts-api-client';
-import { action, computed } from 'mobx';
-import AccessorsForOqlFilter, {
-    getSimplifiedMutationType,
-} from '../../shared/lib/oql/AccessorsForOqlFilter';
+import {action} from 'mobx';
+import AccessorsForOqlFilter, {getSimplifiedMutationType,} from '../../shared/lib/oql/AccessorsForOqlFilter';
 import {
-    OQLLineFilterOutput,
-    UnflattenedOQLLineFilterOutput,
     filterCBioPortalWebServiceDataByUnflattenedOQLLine,
     isMergedTrackFilter,
     MergedTrackLineFilterOutput,
+    OQLLineFilterOutput,
+    UnflattenedOQLLineFilterOutput,
 } from '../../shared/lib/oql/oqlfilter';
 import oql_parser from '../../shared/lib/oql/oql-parser';
-import { groupBy } from '../../shared/lib/StoreUtils';
+import {groupBy} from '../../shared/lib/StoreUtils';
 import {
+    AlterationTypeConstants,
     AnnotatedExtendedAlteration,
-    AnnotatedNumericGeneMolecularData,
     AnnotatedMutation,
+    AnnotatedNumericGeneMolecularData,
     CaseAggregatedData,
     IQueriedCaseData,
     IQueriedMergedTrackCaseData,
     ResultsViewPageStore,
-    AlterationTypeConstants,
 } from './ResultsViewPageStore';
-import { remoteData } from 'cbioportal-frontend-commons';
-import { IndicatorQueryResp } from 'oncokb-ts-api-client';
+import {remoteData} from 'cbioportal-frontend-commons';
+import {IndicatorQueryResp} from 'oncokb-ts-api-client';
 import _ from 'lodash';
 import client from 'shared/api/cbioportalClientInstance';
-import { VirtualStudy } from 'shared/model/VirtualStudy';
-import MobxPromise, { MobxPromise_await } from 'mobxpromise';
-import { calculateQValues } from '../../shared/lib/calculation/BenjaminiHochbergFDRCalculator';
-import { SpecialAttribute } from '../../shared/cache/ClinicalDataCache';
-import { isSampleProfiled } from 'shared/lib/isSampleProfiled';
-import { AlteredStatus } from './mutualExclusivity/MutualExclusivityUtil';
-import { Group } from '../../shared/api/ComparisonGroupClient';
-import { isNotGermlineMutation } from '../../shared/lib/MutationUtils';
+import {VirtualStudy} from 'shared/model/VirtualStudy';
+import MobxPromise, {MobxPromise_await} from 'mobxpromise';
+import {calculateQValues} from '../../shared/lib/calculation/BenjaminiHochbergFDRCalculator';
+import {SpecialAttribute} from '../../shared/cache/ClinicalDataCache';
+import {isSampleProfiled} from 'shared/lib/isSampleProfiled';
+import {AlteredStatus} from './mutualExclusivity/MutualExclusivityUtil';
+import {Group} from '../../shared/api/ComparisonGroupClient';
+import {isGermlineMutation} from "shared/lib/MutationUtils";
 
 type CustomDriverAnnotationReport = {
     hasBinary: boolean;
@@ -192,7 +190,7 @@ export function filterAndAnnotateMutations(
         ); // annotate
         annotatedMutation.hugoGeneSymbol =
             entrezGeneIdToGene[mutation.entrezGeneId].hugoGeneSymbol;
-        const isGermline = !isNotGermlineMutation(mutation);
+        const isGermline = isGermlineMutation(mutation);
         const isVus = !annotatedMutation.putativeDriver;
         if (isGermline && isVus) {
             vusAndGermline.push(annotatedMutation);

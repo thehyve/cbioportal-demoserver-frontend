@@ -38,6 +38,7 @@ export function getFilterOptionLabel(content: {
 type MutationStatusSelectorProps = MutationStatusBadgeSelectorProps & {
     somaticContent: { title: string; description?: string };
     germlineContent?: { title: string; description?: string };
+    lohContent?: { title: string; description?: string };
 };
 
 @observer
@@ -60,6 +61,15 @@ export default class MutationStatusSelector extends React.Component<
             options.push({
                 value: 'Germline',
                 label: getFilterOptionLabel(this.props.germlineContent),
+                badgeStyleOverride: MUTATION_STATUS_BADGE_STYLE_OVERRIDE,
+                badgeStyleSelectedOverride: MUTATION_STATUS_BADGE_STYLE_OVERRIDE,
+            });
+        }
+        
+        if (this.props.lohContent) {
+            options.push({
+                value: 'LOH',
+                label: getFilterOptionLabel(this.props.lohContent),
                 badgeStyleOverride: MUTATION_STATUS_BADGE_STYLE_OVERRIDE,
                 badgeStyleSelectedOverride: MUTATION_STATUS_BADGE_STYLE_OVERRIDE,
             });
@@ -89,14 +99,23 @@ export default class MutationStatusSelector extends React.Component<
             </div>
         );
     }
+    
+    private get lohPlaceholder() {
+        return (
+            <div data-test="lohMutationRate" className="invisible">
+                %
+            </div>
+        );
+    }
 
     public render() {
-        // Render the actual selector only if germline content exists.
+        // Render the actual selector only if germline or LOH content exists.
         // Otherwise just display the somatic info without a filter option.
-        return this.props.germlineContent === undefined ? (
+        return this.props.germlineContent === undefined && this.props.lohContent === undefined? (
             <React.Fragment>
                 {this.somaticInfo}
                 {this.germlinePlaceholder}
+                {this.lohPlaceholder}
             </React.Fragment>
         ) : (
             <MutationStatusBadgeSelector

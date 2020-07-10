@@ -8,6 +8,7 @@ import {
 import {
     germlineMutationRate,
     somaticMutationRate,
+    lohMutationRate
 } from 'shared/lib/MutationUtils';
 import { computed } from 'mobx';
 import { MobxPromise } from 'mobxpromise';
@@ -73,6 +74,18 @@ export default class MutationRateSummary extends React.Component<
               )
             : 0;
     }
+    
+    @computed
+    public get lohMutationRate() {
+        return this.props.samples.length > 0
+            ? lohMutationRate(
+                  this.props.hugoGeneSymbol,
+                  this.props.mutations,
+                  this.props.molecularProfileIdToMolecularProfile.result!,
+                  this.props.samples
+              )
+            : 0;
+    }
 
     render() {
         return (
@@ -83,6 +96,7 @@ export default class MutationRateSummary extends React.Component<
                     rates={{
                         Germline: this.germlineMutationRate,
                         Somatic: this.somaticMutationRate,
+                        LOH: this.lohMutationRate
                     }}
                     somaticContent={{
                         title: 'Somatic Mutation Frequency',
@@ -94,6 +108,14 @@ export default class MutationRateSummary extends React.Component<
                                   title: 'Germline Mutation Frequency',
                                   description: `Percentage of samples with a germline mutation in ${this.props.hugoGeneSymbol}`,
                               }
+                            : undefined
+                    }
+                    lohContent={
+                        this.lohMutationRate > 0
+                            ? {
+                                title: 'Loss of Heterozygosity Frequency',
+                                description: `Percentage of samples with a LOH mutation in ${this.props.hugoGeneSymbol}`,
+                             }
                             : undefined
                     }
                 />

@@ -18,7 +18,7 @@ import {
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import _ from 'lodash';
 import { alterationTypeToProfiledForText } from './ResultsViewOncoprintUtils';
-import { isNotGermlineMutation } from '../../lib/MutationUtils';
+import { isGermlineMutation } from '../../lib/MutationUtils';
 import ListIndexedMap, {
     ListIndexedMapOfCounts,
 } from '../../lib/ListIndexedMap';
@@ -627,7 +627,7 @@ export function makeGeneticTrackTooltip(
                         if (datum.isHotspot) {
                             tooltip_datum.cancer_hotspots_hotspot = true;
                         }
-                        if (!isNotGermlineMutation(datum)) {
+                        if (isGermlineMutation(datum)) {
                             tooltip_datum.germline = true;
                         }
                         const oncokb_oncogenic = datum.oncoKbOncogenic;

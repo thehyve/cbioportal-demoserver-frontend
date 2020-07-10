@@ -164,6 +164,7 @@ TrailingMutationModifier
 
 MutationModifier
     = "GERMLINE"i { return { type: "GERMLINE" };}
+    / "LOH"i { return { type: "LOH" };}
     / "SOMATIC"i { return { type: "SOMATIC" };}
     / mod:DriverModifier { return mod; }
     / range:RangeModifier { return range; }

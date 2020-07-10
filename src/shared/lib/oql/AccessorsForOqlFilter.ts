@@ -10,7 +10,7 @@ import {
     AnnotatedMutation,
     AnnotatedNumericGeneMolecularData,
 } from '../../../pages/resultsView/ResultsViewPageStore';
-import { isNotGermlineMutation } from '../MutationUtils';
+import { isGermlineMutation, isLohMutation } from '../MutationUtils';
 import { IAccessorsForOqlFilter } from './oqlfilter';
 
 export const cna_profile_data_to_string: any = {
@@ -165,11 +165,13 @@ export default class AccessorsForOqlFilter
 
     public mut_status(d: Datum) {
         if (this.isMutation(d)) {
-            if (isNotGermlineMutation(d)) {
-                return 'somatic';
-            } else {
+            if (isGermlineMutation(d)) {
                 return 'germline';
             }
+            if (isLohMutation(d)) {
+                return 'loh';
+            }
+            return 'somatic';
         } else {
             return null;
         }

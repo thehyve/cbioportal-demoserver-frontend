@@ -218,6 +218,7 @@ export declare type MutationType =
 export declare type MutationModifier =
     | { type: 'GERMLINE' }
     | { type: 'SOMATIC' }
+    | { type: 'LOH' }
     | RangeModifier
     | DriverModifier;
 

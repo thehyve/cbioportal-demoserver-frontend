@@ -14,7 +14,7 @@ import {
     PatientIdentifier,
     SampleIdentifier,
 } from 'cbioportal-ts-api-client';
-import { isNotGermlineMutation } from '../../../../shared/lib/MutationUtils';
+import { isGermlineMutation } from '../../../../shared/lib/MutationUtils';
 import { AlterationTypeConstants } from '../../../resultsView/ResultsViewPageStore';
 import { getOncoprintMutationType } from '../../../../shared/components/oncoprint/DataUtils';
 import { cna_profile_data_to_string } from '../../../../shared/lib/oql/AccessorsForOqlFilter';
@@ -60,7 +60,7 @@ function getOncoprinterParsedGeneticInputLine(
         oncoprinterInput.hugoGeneSymbol = d.hugoGeneSymbol;
         oncoprinterInput.alteration = alteration;
         oncoprinterInput.proteinChange = d.proteinChange;
-        oncoprinterInput.isGermline = !isNotGermlineMutation(d);
+        oncoprinterInput.isGermline = !!isGermlineMutation(d);
         oncoprinterInput.isCustomDriver = d.driverFilter === PUTATIVE_DRIVER;
         return oncoprinterInput as OncoprinterGeneticInputLineType2;
     } else {

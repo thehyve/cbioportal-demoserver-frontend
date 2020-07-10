@@ -8,17 +8,18 @@ import {
     updateMissingGeneInfo,
     isValidGenomicLocation,
     genomicLocationString,
-    generateHgvsgByMutation,
+    generateHgvsgByMutation, lohMutationRate,
 } from './MutationUtils';
 import { assert } from 'chai';
 import { Gene, MolecularProfile, Mutation } from 'cbioportal-ts-api-client';
 import { initMutation } from 'test/MutationMockUtils';
-import { MUTATION_STATUS_GERMLINE } from 'shared/constants';
+import {MUTATION_STATUS_GERMLINE, MUTATION_STATUS_LOH} from 'shared/constants';
 import { GenomicLocation } from 'genome-nexus-ts-api-client';
 
 describe('MutationUtils', () => {
     let somaticMutations: Mutation[];
     let germlineMutations: Mutation[];
+    let lohMutations: Mutation[];
     let molecularProfileIdToMolecularProfile: {
         [molecularProfileId: string]: MolecularProfile;
     };
@@ -84,6 +85,26 @@ describe('MutationUtils', () => {
                 mutationStatus: MUTATION_STATUS_GERMLINE,
                 molecularProfileId: 'GP1',
             }),
+        ];
+        lohMutations = [
+            initMutation({
+                // mutation
+                sampleId: 'PATIENT1',
+                gene: {
+                    hugoGeneSymbol: 'BRCA1',
+                },
+                mutationStatus: MUTATION_STATUS_LOH,
+                molecularProfileId: 'GP1',
+            }),
+            initMutation({
+                // mutation
+                sampleId: 'PATIENT2',
+                gene: {
+                    hugoGeneSymbol: 'BRCA2',
+                },
+                mutationStatus: MUTATION_STATUS_GERMLINE,
+                molecularProfileId: 'GP1',
+            })
         ];
         mutationsToCount = [
             initMutation({
@@ -341,6 +362,22 @@ describe('MutationUtils', () => {
         });
     });
 
+    describe('lohMutationRate', () => {
+        it('calculates rate correctly', () => {
+            // only half of patients have BRCA1 LOH mutation
+            let result: number = lohMutationRate(
+                'BRCA1',
+                lohMutations,
+                molecularProfileIdToMolecularProfile,
+                [
+                    { studyId: 'STUDY1', sampleId: 'PATIENT1' },
+                    { studyId: 'STUDY1', sampleId: 'PATIENT2' },
+                ]
+            );
+            assert.equal(result, 50);
+        });
+    });
+    
     describe('uniqueGenomicLocations', () => {
         it('extracts unique genomic locations', () => {
             const mutations = [
