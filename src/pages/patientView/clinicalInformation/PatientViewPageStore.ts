@@ -267,6 +267,13 @@ export class PatientViewPageStore {
         this.openResourceTabMap.set(resourceId, open);
     }
 
+    @action public setGroupById(groupById: string) {
+        this.urlWrapper.updateURL(currentParams => {
+            currentParams.genomicEvolutionSettings.groupById = groupById;
+            return currentParams;
+        });
+    }
+
     @observable
     public mutationTableGeneFilterOption: GeneFilterOption = getGeneFilterDefault(
         getBrowserWindow().frontendConfig

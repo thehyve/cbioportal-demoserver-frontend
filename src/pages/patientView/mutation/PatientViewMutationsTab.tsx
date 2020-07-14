@@ -43,6 +43,11 @@ enum PlotTab {
     TIMELINE = 'timeline',
 }
 
+export type PlotsTabOption = {
+    value: string;
+    label: string;
+};
+
 export const LOCAL_STORAGE_PLOT_TAB_KEY =
     'patient_view_mutations_tab__vaf_plot_choice';
 
@@ -73,6 +78,23 @@ export default class PatientViewMutationsTab extends React.Component<
     @action
     private toggleTimeline() {
         this.showTimeline = !this.showTimeline;
+    }
+
+    get groupById() {
+        return this.props.urlWrapper.query.genomicEvolutionSettings.groupById;
+    }
+
+    set groupById(o: string) {
+        this.props.urlWrapper.updateURL(currentParams => {
+            currentParams.genomicEvolutionSettings.groupById = o.toString();
+            return currentParams;
+        });
+    }
+
+    @autobind
+    @action
+    private onGroupBySelect(option: PlotsTabOption) {
+        this.groupById = option.value;
     }
 
     private dataStore = new PatientViewMutationsDataStore(
@@ -230,42 +252,30 @@ export default class PatientViewMutationsTab extends React.Component<
                         >
                             <span style={{ marginTop: -3 }}>Show timeline</span>
                         </LabeledCheckbox>
+
                         <span style={{ marginTop: -3, marginRight: 3 }}>
                             Group by:
                         </span>
-                        <Autosuggest
-                            /*datalist={"none"}
-                            ref={(el: React.Component<any, any>) =>
-                                (this.autosuggest = el)
-                            }*/
-                            bsSize="small"
-                            /*onChange={(currentVal: string) => {
-                                if (searchTimeout !== null) {
-                                    window.clearTimeout(
-                                        searchTimeout
-                                    );
-                                    searchTimeout = null;
-                                }
-
-                                searchTimeout = window.setTimeout(
-                                    () => {
-                                    this.store.setSearchText(
-                                        currentVal
-                                    );
-                                    },
-                                    400
-                                    );
-                                }}
-                            onFocus={(value: string) => {
-                                    if (value.length === 0) {
-                                        setTimeout(() => {
-                                            this.autosuggest.setState({
-                                                open: true,
-                                            });
-                                        }, 400);
+                        <div style={{ minWidth: 355, width: 355, zIndex: 20 }}>
+                            <ReactSelect
+                                options={this.props.sampleManager.getClinicalAttributeDisplayNames(
+                                    this.props.sampleManager.samples
+                                )}
+                                onChange={(option: PlotsTabOption | null) => {
+                                    if (option) {
+                                        //this.onGroupBySelect(option);
+                                        this.groupById = option.value;
                                     }
+                                }}
+                                value={this.groupById}
+                                /*value={{
+                                value : this.groupById,
+                                label : this.props.sampleManager.getClinicalAttributeLabel(this.props.sampleManager.samples, this.groupById)
                             }}*/
-                        />
+                                clearable={false}
+                                searchable={true}
+                            />
+                        </div>
                     </div>
                 </div>
                 <VAFLineChart
@@ -283,6 +293,7 @@ export default class PatientViewMutationsTab extends React.Component<
                     logScale={this.vafLineChartLogScale}
                     zeroToOneAxis={this.vafLineChartZeroToOneYAxis}
                     vafTimeline={this.vafShowTimeline}
+                    groupById={this.groupById}
                 />
             </div>
         ),

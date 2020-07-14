@@ -230,6 +230,93 @@ class SampleManager {
         });
     }
 
+    getClinicalAttributeDisplayNames(samples: Array<ClinicalDataBySampleId>) {
+        let clinicalAttributes: Array<object> = [];
+        let clinicalAttributesIds: string[] = [];
+        const clinicalAttribute = {
+            value: 'none',
+            label: 'none',
+        };
+        clinicalAttributes.push(clinicalAttribute);
+
+        samples.forEach((sample, sampleIndex) => {
+            sample.clinicalData.forEach((clinicalData, clinicalDataIndex) => {
+                if (
+                    clinicalAttributesIds.find(
+                        id => id === clinicalData.clinicalAttributeId
+                    ) === undefined
+                ) {
+                    clinicalAttributesIds.push(
+                        clinicalData.clinicalAttributeId
+                    );
+                    const clinicalAttribute = {
+                        value: clinicalData.clinicalAttributeId,
+                        label: clinicalData.clinicalAttribute.displayName,
+                    };
+                    clinicalAttributes.push(clinicalAttribute);
+                }
+            });
+        });
+        console.info(clinicalAttributes);
+        return clinicalAttributes;
+    }
+
+    getClinicalAttributeLabel(
+        samples: Array<ClinicalDataBySampleId>,
+        clinicalAttributeId: string
+    ) {
+        samples.forEach((sample, sampleIndex) => {
+            const result = _.find(sample.clinicalData, data => {
+                return data.clinicalAttributeId === clinicalAttributeId;
+            });
+            if (result != undefined)
+                return result.clinicalAttribute.clinicalAttributeId;
+        });
+    }
+
+    getClinicalAttributeSampleList(
+        samples: Array<ClinicalDataBySampleId>,
+        clinicalAttributeId: string
+    ) {
+        let clinicalAttributeSamplesMap = new Map();
+        if (clinicalAttributeId === undefined) return [];
+
+        samples.forEach((sample, sampleIndex) => {
+            sample.clinicalData.forEach((clinicalData, clinicalDataIndex) => {
+                if (clinicalData.clinicalAttributeId === clinicalAttributeId) {
+                    let sampleList = clinicalAttributeSamplesMap.get(
+                        clinicalData.value
+                    );
+                    if (sampleList === undefined) sampleList = [];
+                    sampleList.push(sample.id);
+
+                    clinicalAttributeSamplesMap.set(
+                        clinicalData.value,
+                        sampleList
+                    );
+                }
+            });
+        });
+        return clinicalAttributeSamplesMap;
+    }
+
+    getClinicalAttributeSampleIds(
+        samples: Array<ClinicalDataBySampleId>,
+        clinicalAttributeId: string
+    ) {
+        let sampleIds: string[] = [];
+
+        samples.forEach((sample, sampleIndex) => {
+            sample.clinicalData.forEach((clinicalData, clinicalDataIndex) => {
+                if (clinicalData.clinicalAttributeId === clinicalAttributeId) {
+                    sampleIds.push(sample.id);
+                }
+            });
+        });
+
+        return sampleIds;
+    }
+
     getComponentForSample(
         sampleId: string,
         fillOpacity: number = 1,
@@ -279,15 +366,6 @@ class SampleManager {
         }
         return '';
     }
-
-    /*    getSampleIndex(sampleId: string): number {
-     
-        console.info(this.sampleIndex);
-        if (sampleId in this.sampleIndex) {
-            return this.sampleIndex[sampleId];
-        }
-    }
-    */
 }
 
 export default SampleManager;

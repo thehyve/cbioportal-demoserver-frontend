@@ -4,6 +4,8 @@ import { isSampleProfiled } from '../../../shared/lib/isSampleProfiled';
 import _ from 'lodash';
 import { Mutation, Sample } from 'cbioportal-ts-api-client';
 import { CoverageInformation } from '../../resultsView/ResultsViewPageStoreUtils';
+import SampleManager from '../SampleManager';
+import { group } from 'yargs';
 
 export interface IPoint {
     x: number;
@@ -20,17 +22,51 @@ function isPointBasedOnRealVAF(d: { mutationStatus: MutationStatus }) {
     );
 }
 
+function splitMutationsBySampleGroup(
+    mutations: Mutation[][],
+    sampleGroup: { [s: string]: string }
+) {
+    let groupedMutation: { [s: string]: Mutation[] } = {};
+    let groupedMutations: Mutation[][] = [];
+
+    mutations.forEach((mutation, i) => {
+        groupedMutation = {};
+        //console.info(mutation);
+        mutation.forEach((sample, j) => {
+            if (groupedMutation[sampleGroup[sample.sampleId]] === undefined) {
+                groupedMutation[sampleGroup[sample.sampleId]] = [];
+            }
+            sample.groupByValue = sampleGroup[sample.sampleId];
+            groupedMutation[sampleGroup[sample.sampleId]].push(sample);
+        });
+        //console.info(groupedMutation);
+        for (const m in groupedMutation) {
+            groupedMutations.push(groupedMutation[m]);
+        }
+    });
+    return groupedMutations;
+}
+
 export function computeRenderData(
     samples: Sample[],
     mutations: Mutation[][],
     sampleIdIndex: { [sampleId: string]: number },
     mutationProfileId: string,
-    coverageInformation: CoverageInformation
+    coverageInformation: CoverageInformation,
+    vafTimeline: boolean,
+    sampleTimelinePosition: number[],
+    groupById: string,
+    sampleGroup: { [s: string]: string }
 ) {
     const grayPoints: IPoint[] = []; // points that are purely interpolated for rendering, dont have data of their own
     const lineData: IPoint[][] = [];
 
-    for (const mergedMutation of mutations) {
+    if (groupById != undefined && groupById != 'none')
+        mutations = splitMutationsBySampleGroup(mutations, sampleGroup);
+
+    for (let mergedMutation of mutations) {
+        //mergedMutation = removeSamplesInSameGroup(mergedMutation, groupById, sampleGroup);
+        //console.info(mergedMutation);
         // determine data points in line for this mutation
 
         // first add data points for each mutation
@@ -41,14 +77,21 @@ export function computeRenderData(
             const sampleKey = mutation.uniqueSampleKey;
             const sampleId = mutation.sampleId;
             const vaf = getVariantAlleleFrequency(mutation);
+
             if (vaf !== null) {
                 // has VAF data
 
                 if (mutation.mutationStatus.toLowerCase() === 'uncalled') {
                     if (mutation.tumorAltCount > 0) {
                         // add point for uncalled mutation with supporting reads
+                        //console.info("new line for "+sampleId+" at "+sampleTimelinePosition[sampleIdIndex[sampleId]]+","+vaf+" mutation:"+mutation);
                         thisLineData.push({
-                            x: sampleIdIndex[sampleId],
+                            x:
+                                vafTimeline === false
+                                    ? sampleIdIndex[sampleId]
+                                    : sampleTimelinePosition[
+                                          sampleIdIndex[sampleId]
+                                      ],
                             y: vaf,
                             sampleId,
                             mutation,
@@ -59,8 +102,14 @@ export function computeRenderData(
                     }
                 } else {
                     // add point for called mutation with VAF data
+                    //console.info("new line for "+sampleId+" at "+sampleTimelinePosition[sampleIdIndex[sampleId]]+","+vaf+" mutation:"+mutation);
                     thisLineData.push({
-                        x: sampleIdIndex[sampleId],
+                        x:
+                            vafTimeline === false
+                                ? sampleIdIndex[sampleId]
+                                : sampleTimelinePosition[
+                                      sampleIdIndex[sampleId]
+                                  ],
                         y: vaf,
                         sampleId,
                         mutation,
@@ -70,8 +119,12 @@ export function computeRenderData(
                 }
             } else {
                 // no VAF data - add point which will be extrapolated
+                //console.info("new point? for "+sampleId+" at "+sampleTimelinePosition[sampleIdIndex[sampleId]]+" mutation:"+mutation);
                 thisLineData.push({
-                    x: sampleIdIndex[sampleId],
+                    x:
+                        vafTimeline === false
+                            ? sampleIdIndex[sampleId]
+                            : sampleTimelinePosition[sampleIdIndex[sampleId]],
                     sampleId,
                     mutation,
                     mutationStatus: MutationStatus.MUTATED_BUT_NO_VAF,
@@ -93,15 +146,27 @@ export function computeRenderData(
                     )
                 ) {
                     // not profiled
+                    //console.info("new data point for "+sample.sampleId+" at "+sampleTimelinePosition[sampleIdIndex[sample.sampleId]]+" mutation:"+mutation);
                     thisLineData.push({
-                        x: sampleIdIndex[sample.sampleId],
+                        x:
+                            vafTimeline === false
+                                ? sampleIdIndex[sample.sampleId]
+                                : sampleTimelinePosition[
+                                      sampleIdIndex[sample.sampleId]
+                                  ],
                         sampleId: sample.sampleId,
                         mutation,
                         mutationStatus: MutationStatus.NOT_PROFILED,
                     });
                 } else {
+                    //console.info("new data point for "+sample.sampleId+" at "+sampleTimelinePosition[sampleIdIndex[sample.sampleId]]+",0 mutation:"+mutation);
                     thisLineData.push({
-                        x: sampleIdIndex[sample.sampleId],
+                        x:
+                            vafTimeline === false
+                                ? sampleIdIndex[sample.sampleId]
+                                : sampleTimelinePosition[
+                                      sampleIdIndex[sample.sampleId]
+                                  ],
                         y: 0,
                         sampleId: sample.sampleId,
                         mutation,
@@ -173,6 +238,7 @@ export function computeRenderData(
         //  it was gray, in which case it would have been made empty and skipped above.
         grayPoints.push(...thisGrayPoints);
         lineData.push(thisLineDataWithoutGrayPoints);
+        //console.info(thisLineDataWithoutGrayPoints);
     }
     return {
         lineData,

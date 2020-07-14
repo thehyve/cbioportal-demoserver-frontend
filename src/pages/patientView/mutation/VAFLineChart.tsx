@@ -36,6 +36,9 @@ import VAFTimeline from '../timeline/Timeline';
 import { MakeMobxView } from '../../../shared/components/MobxView';
 import { PatientViewPageStore } from '../clinicalInformation/PatientViewPageStore';
 import { ClinicalEvent, ClinicalEventData } from 'cbioportal-ts-api-client';
+import { StringListIndexedMap } from '../../../shared/lib/ListIndexedMap';
+import { makeUniqueColorGetter } from '../../../shared/components/plots/PlotUtils';
+import { group } from 'yargs';
 
 export interface IVAFLineChartProps {
     samples: Sample[];
@@ -47,6 +50,7 @@ export interface IVAFLineChartProps {
     logScale: boolean;
     zeroToOneAxis: boolean;
     vafTimeline: boolean;
+    groupById: string;
     store: PatientViewPageStore;
 }
 
@@ -105,10 +109,8 @@ class SamplePoint extends React.Component<any, any> {
     render() {
         let { sampleIdOrder, sampleManager, index, ...rest } = this.props;
         const sampleId = sampleIdOrder[index];
-        console.info(rest.x + ' ' + rest.y);
-        console.info(index);
         return (
-            <g transform={`rotate(50, ${rest.x}, ${rest.y})`}>
+            <g /*transform={`rotate(50, ${rest.x}, ${rest.y})`}*/>
                 <SampleLabelSVG
                     label={index + 1}
                     color={
@@ -122,7 +124,7 @@ class SamplePoint extends React.Component<any, any> {
                     textDy={-1}
                 />
                 <TruncatedTextWithTooltipSVG
-                    text={sampleId}
+                    //text={sampleId}
                     {...rest}
                     verticalAnchor="start"
                     textAnchor="start"
@@ -343,7 +345,13 @@ export default class VAFLineChart extends React.Component<
     }
 
     @computed get svgHeight() {
-        return this.chartHeight + 35; // give room for labels
+        let chartHeightIncrease = 0;
+        if (this.props.vafTimeline === true) {
+            const yPos = Math.abs(Math.min(...this.sampleTimelineYPosition));
+            if (yPos > 0.5) chartHeightIncrease = yPos * 50;
+        }
+
+        return this.chartHeight + chartHeightIncrease + 35; // give room for labels
     }
 
     @computed get sampleIdOrder() {
@@ -360,35 +368,165 @@ export default class VAFLineChart extends React.Component<
         return stringListToIndexSet(this.sampleIdOrder);
     }
 
-    @computed get sampleData() {
-        let data: Array<object> = [];
+    @computed get sampleTimelineXPosition() {
         const events = this.props.store.clinicalEvents.result;
-        let samplePerDate = new Map();
+        let xpositions: number[] = [];
 
         events.forEach((event, i) => {
             event.attributes.forEach((attribute, i) => {
                 if (attribute.key === 'SAMPLE_ID') {
-                    // calculate x and y for the sample
-                    const xDate = event.startNumberOfDaysSinceDiagnosis / 365;
-                    let yDate = -0.27;
-                    if (samplePerDate[xDate] > 0) {
-                        yDate = -0.27 - 0.12 * samplePerDate[xDate];
-                        samplePerDate[xDate] = samplePerDate[xDate] + 1;
-                    } else samplePerDate[xDate] = 1;
-                    const dataObj = {
-                        x: xDate + 1,
-                        y: yDate,
-                    };
-
-                    // x and y data must be in order (by sample index)
+                    // calculate x on the timeline axis for each sample
+                    const xposition =
+                        event.startNumberOfDaysSinceDiagnosis / 365 + 1;
                     const sampleIndex = this.sampleIdOrder.findIndex(
                         element => element === attribute.value
                     );
-                    data[sampleIndex] = dataObj;
+                    xpositions[sampleIndex] = xposition;
                 }
             });
         });
+        return xpositions;
+    }
+
+    @computed get sampleTimelineYPosition() {
+        let sampleUniqueX = new Map();
+        let ypositions: number[] = [];
+        let startYPosition = -0.23;
+
+        if (
+            !(
+                this.props.groupById === undefined ||
+                this.props.groupById === 'none'
+            )
+        ) {
+            let clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
+                this.props.sampleManager.samples,
+                this.props.groupById
+            );
+            clinicalAttributeSamplesMap.forEach(
+                (sampleList: string[], clinicalValue) => {
+                    sampleList.forEach((sampleId, i) => {
+                        const sampleIndex = this.sampleIdOrder.findIndex(
+                            element => element === sampleId
+                        );
+                        let yposition = startYPosition;
+                        let xposition = this.sampleTimelineXPosition[
+                            sampleIndex
+                        ];
+                        if (sampleUniqueX.get(xposition) > 0) {
+                            yposition =
+                                startYPosition -
+                                0.08 * sampleUniqueX.get(xposition);
+                            sampleUniqueX.set(
+                                xposition,
+                                sampleUniqueX.get(xposition) + 1
+                            );
+                        } else sampleUniqueX.set(xposition, 1);
+                        ypositions[sampleIndex] = yposition;
+                    });
+                    //console.info(Math.max(...sampleUniqueX.values())+1);
+                    startYPosition =
+                        startYPosition -
+                        0.08 * (Math.max(...sampleUniqueX.values()) + 1);
+                    //console.info(startYPosition);
+                }
+            );
+        } else {
+            this.sampleTimelineXPosition.forEach((xPosition, sampleIndex) => {
+                let yposition = startYPosition;
+                if (sampleUniqueX.get(xPosition) > 0) {
+                    yposition =
+                        startYPosition - 0.08 * sampleUniqueX.get(xPosition);
+                    sampleUniqueX.set(
+                        xPosition,
+                        sampleUniqueX.get(xPosition) + 1
+                    );
+                } else sampleUniqueX.set(xPosition, 1);
+
+                ypositions[sampleIndex] = yposition;
+            });
+        }
+        return ypositions;
+    }
+
+    @computed get sampleTimelineData() {
+        let data: Array<object> = [];
+
+        this.sampleIdOrder.forEach((sampleId, sampleIndex) => {
+            const dataObj = {
+                x: this.sampleTimelineXPosition[sampleIndex],
+                y: this.sampleTimelineYPosition[sampleIndex],
+            };
+            data[sampleIndex] = dataObj;
+        });
+
         return data;
+    }
+
+    @computed get sampleTimelineGroupByData() {
+        let data: string = '';
+        let dataMap = new Map();
+
+        if (
+            !(
+                this.props.groupById === undefined ||
+                this.props.groupById === 'none'
+            )
+        ) {
+            let clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
+                this.props.sampleManager.samples,
+                this.props.groupById
+            );
+            clinicalAttributeSamplesMap.forEach(
+                (sampleList: string[], clinicalValue) => {
+                    const sampleIndex = this.sampleIdOrder.findIndex(
+                        element => element === sampleList[0]
+                    );
+                    let yposition = this.sampleTimelineYPosition[sampleIndex];
+                    //console.info(clinicalValue);
+                    //console.info(yposition);
+                    dataMap.set(clinicalValue, yposition);
+                    //data = "<VictoryLabel text=\""+clinicalValue+"\" datum={{ x:0.70, y:"+yposition+"}} textAnchor=\"middle\"/>";
+                }
+            );
+        }
+        //console.info(dataMap);
+        return dataMap;
+    }
+
+    @computed get sampleGroupByValue() {
+        let groupByValue: { [s: string]: string } = {};
+        if (
+            this.props.groupById === undefined ||
+            this.props.groupById === 'none'
+        )
+            return {};
+        this.props.sampleManager.samples.forEach((sample, i) => {
+            groupByValue[
+                sample.id
+            ] = SampleManager.getClinicalAttributeInSample(
+                sample,
+                this.props.groupById
+            ).value;
+        });
+
+        return groupByValue;
+    }
+
+    @computed get sampleGroupByColor() {
+        let groupByColors: { [s: string]: string } = {};
+        const uniqueColorGetter = makeUniqueColorGetter();
+        const clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
+            this.props.sampleManager.samples,
+            this.props.groupById
+        );
+        clinicalAttributeSamplesMap.forEach(
+            (sampleList: string[], clinicalValue) => {
+                groupByColors[clinicalValue] = uniqueColorGetter();
+            }
+        );
+        console.info(groupByColors);
+        return groupByColors;
     }
 
     @computed get renderData() {
@@ -397,7 +535,11 @@ export default class VAFLineChart extends React.Component<
             this.mutations,
             this.sampleIdIndex,
             this.props.mutationProfileId,
-            this.props.coverageInformation
+            this.props.coverageInformation,
+            this.props.vafTimeline,
+            this.sampleTimelineXPosition,
+            this.props.groupById,
+            this.sampleGroupByValue
         );
     }
 
@@ -635,8 +777,7 @@ export default class VAFLineChart extends React.Component<
         }
     }
 
-    @computed
-    private get timelineTickValues() {
+    @computed private get timelineTickValues() {
         // get clinical events array
         const events = this.props.store.clinicalEvents.result;
         // get the start date of each event
@@ -721,18 +862,19 @@ export default class VAFLineChart extends React.Component<
                                             }
                                         />
                                     ) : (
-                                        <VictoryLabel />
+                                        <VictoryLabel dy={-24} />
                                     )
                                 }
                                 crossAxis={false}
                                 offsetY={50}
                                 orientation="bottom"
+                                padding={{ left: 40 }}
                             />
                             {this.props.vafTimeline === false ? (
                                 <VictoryScatter data={[]} />
                             ) : (
                                 <VictoryScatter
-                                    data={this.sampleData}
+                                    data={this.sampleTimelineData}
                                     dataComponent={
                                         <SamplePoint
                                             sampleIdOrder={this.sampleIdOrder}
@@ -743,14 +885,43 @@ export default class VAFLineChart extends React.Component<
                                     }
                                 />
                             )}
+                            {[...this.sampleTimelineGroupByData.keys()].map(
+                                clinicalValue => (
+                                    <VictoryLabel
+                                        text={clinicalValue}
+                                        datum={{
+                                            x: 0.5,
+                                            y: this.sampleTimelineGroupByData.get(
+                                                clinicalValue
+                                            ),
+                                        }}
+                                        style={[
+                                            {
+                                                fill: this.sampleGroupByColor[
+                                                    clinicalValue
+                                                ],
+                                                fontSize: 12,
+                                            },
+                                        ]}
+                                        textAnchor="middle"
+                                    />
+                                )
+                            )}
                             {this.renderData.lineData.map(dataForSingleLine => {
+                                console.info(dataForSingleLine);
+
                                 if (dataForSingleLine.length > 1) {
+                                    const color = this.sampleGroupByColor[
+                                        this.sampleGroupByValue[
+                                            dataForSingleLine[0].sampleId
+                                        ]
+                                    ];
                                     // cant show line with only 1 point - causes error in svg to pdf conversion
                                     return [
                                         <VictoryLine
                                             style={{
                                                 data: {
-                                                    stroke: LINE_COLOR,
+                                                    stroke: color,
                                                     strokeOpacity: 0.5,
                                                     pointerEvents: 'none',
                                                 },
