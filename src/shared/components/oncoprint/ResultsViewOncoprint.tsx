@@ -195,8 +195,9 @@ export default class ResultsViewOncoprint extends React.Component<
         );
         return result;
     }
-
+    
     @observable distinguishGermlineMutations: boolean = true;
+    @observable distinguishLohMutations: boolean = true;
     @observable distinguishMutationType: boolean = true;
     @observable showUnalteredColumns: boolean = true;
     @observable showWhitespaceBetweenColumns: boolean = true;
@@ -434,6 +435,9 @@ export default class ResultsViewOncoprint extends React.Component<
             get distinguishGermlineMutations() {
                 return self.distinguishGermlineMutations;
             },
+            get distinguishLohMutations() {
+                return self.distinguishLohMutations;
+            },
             get annotateDriversOncoKb() {
                 return self.props.store.driverAnnotationSettings.oncoKb;
             },
@@ -464,6 +468,9 @@ export default class ResultsViewOncoprint extends React.Component<
             },
             get hideGermlineMutations() {
                 return self.props.store.excludeGermlineMutations;
+            },
+            get hideLohMutations() {
+                return self.props.store.excludeLohMutations;
             },
             get annotateCBioPortalInputValue() {
                 return (
@@ -690,6 +697,9 @@ export default class ResultsViewOncoprint extends React.Component<
             onSelectDistinguishGermlineMutations: (s: boolean) => {
                 this.distinguishGermlineMutations = s;
             },
+            onSelectDistinguishLohMutations: (s: boolean) => {
+                this.distinguishLohMutations = s;
+            },
             onSelectAnnotateOncoKb: action((s: boolean) => {
                 this.props.store.driverAnnotationSettings.oncoKb = s;
             }),
@@ -734,6 +744,9 @@ export default class ResultsViewOncoprint extends React.Component<
             },
             onSelectHideGermlineMutations: (s: boolean) => {
                 this.props.store.setExcludeGermlineMutations(s);
+            },
+            onSelectHideLohMutations: (s: boolean) => {
+                this.props.store.setExcludeLohMutations(s);
             },
             onSelectSortByMutationType: (s: boolean) => {
                 this.urlWrapper.updateURL({
@@ -1822,6 +1835,9 @@ export default class ResultsViewOncoprint extends React.Component<
                                 distinguishDrivers={this.distinguishDrivers}
                                 distinguishGermlineMutations={
                                     this.distinguishGermlineMutations
+                                }
+                                distinguishLohMutations={
+                                    this.distinguishLohMutations
                                 }
                                 sortConfig={this.oncoprintLibrarySortConfig}
                                 showClinicalTrackLegends={

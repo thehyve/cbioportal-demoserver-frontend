@@ -117,6 +117,7 @@ export type GeneticTrackDatum = {
     disp_prot?: string;
     disp_fusion?: boolean;
     disp_germ?: boolean;
+    disp_loh?: boolean;
 };
 
 export type GeneticTrackSpec = {
@@ -208,6 +209,7 @@ export interface IOncoprintProps {
     distinguishMutationType?: boolean;
     distinguishDrivers?: boolean;
     distinguishGermlineMutations?: boolean;
+    distinguishLohMutations?: boolean;
 
     showTrackLabels?: boolean;
     showSublabels?: boolean;

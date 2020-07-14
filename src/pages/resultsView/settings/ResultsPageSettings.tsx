@@ -24,6 +24,7 @@ export interface IResultsPageSettingsProps {
 enum EVENT_KEY {
     hidePutativePassengers = '0',
     showGermlineMutations = '1',
+    showLohMutations = '1.1',
 
     dataTypeSample = '2',
     dataTypePatient = '3',
@@ -63,6 +64,11 @@ export default class ResultsPageSettings extends React.Component<
             case EVENT_KEY.showGermlineMutations:
                 this.props.store.setExcludeGermlineMutations(
                     !this.props.store.excludeGermlineMutations
+                );
+                break;
+            case EVENT_KEY.showLohMutations:
+                this.props.store.setExcludeLohMutations(
+                    !this.props.store.excludeLohMutations
                 );
                 break;
             case EVENT_KEY.dataTypeSample:
@@ -159,6 +165,20 @@ export default class ResultsPageSettings extends React.Component<
                                 onClick={this.onInputClick}
                             />{' '}
                             Exclude germline mutations
+                        </label>
+                    </div>
+                    <div className="checkbox">
+                        <label>
+                            <input
+                                data-test="HideLoh"
+                                type="checkbox"
+                                value={EVENT_KEY.showLohMutations}
+                                checked={
+                                    this.props.store.excludeLohMutations
+                                }
+                                onClick={this.onInputClick}
+                            />{' '}
+                            Exclude Loss of Heterozygosity events
                         </label>
                     </div>
                 </div>

@@ -71,6 +71,7 @@ export default class OncoprinterStore {
     @observable.ref _clinicalDataInput: string | undefined = undefined;
     @observable public showUnalteredColumns: boolean = true;
     @observable hideGermlineMutations = false;
+    @observable hideLohMutations = false;
     @observable customDriverWarningHidden: boolean;
 
     constructor() {

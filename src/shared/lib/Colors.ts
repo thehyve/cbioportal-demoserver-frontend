@@ -24,6 +24,7 @@ export const MUT_COLOR_OTHER = '#cf58bc'; //'#cfb537';
 export const MRNA_COLOR_HIGH = '#ff9999';
 export const MRNA_COLOR_LOW = '#6699cc';
 export const MUT_COLOR_GERMLINE = '#FFFFFF';
+export const MUT_COLOR_LOH = '#000000';
 
 export const PROT_COLOR_HIGH = '#ff3df8';
 export const PROT_COLOR_LOW = '#00E1FF';

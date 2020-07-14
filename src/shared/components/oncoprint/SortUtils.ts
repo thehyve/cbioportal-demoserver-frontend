@@ -104,7 +104,8 @@ export function getGeneticTrackSortComparator(
         };
     })();
     const regulation_order = makeComparatorMetric(['high', 'low', undefined]);
-    const germline_order = makeComparatorMetric([true, false, undefined]); // germline mutation is prioritized
+    const loh_order = makeComparatorMetric([true, false, undefined]); // loh mutation is prioritized
+    const germline_order = makeComparatorMetric([true, false, undefined]); // then germline mutation is prioritized
 
     function mandatoryHelper(d: GeneticTrackDatum): number[] {
         const vector = [];
@@ -122,6 +123,8 @@ export function getGeneticTrackSortComparator(
         // Next, mutation
         // Mutation type
         vector.push(mut_order(d.disp_mut));
+        // LOH status
+        vector.push(loh_order[d.disp_loh + '']);
         // Germline status
         vector.push(germline_order[d.disp_germ + '']);
 

@@ -12,31 +12,17 @@ export interface IAlterationFilterWarningProps {
         // if set, then we show in "mutations tab mode" - different text, different source of exclude state, and toggleable exclude state
         excludeVUS: boolean;
         excludeGermline: boolean;
+        excludeLoh: boolean;
         toggleExcludeVUS: () => void;
         toggleExcludeGermline: () => void;
+        toggleExcludeLoh: () => void;
         hugoGeneSymbol: string;
     };
 }
 
-function getVusDescription(
-    types: { mutation: boolean; cna: boolean },
-    plural: boolean
-) {
-    const descriptions = [];
-    if (types.mutation) {
-        descriptions.push(`mutation${plural ? 's' : ''}`);
-    }
-    if (types.cna) {
-        descriptions.push(`copy number alteration${plural ? 's' : ''}`);
-    }
-    return `${descriptions.join(' and ')} of unknown significance`;
-}
-
 @observer
-export default class AlterationFilterWarning extends React.Component<
-    IAlterationFilterWarningProps,
-    {}
-> {
+export default class AlterationFilterWarning extends React.Component<IAlterationFilterWarningProps,
+    {}> {
     @computed get excludeVUS() {
         if (this.props.mutationsTabModeSettings) {
             return this.props.mutationsTabModeSettings.excludeVUS;
@@ -50,6 +36,14 @@ export default class AlterationFilterWarning extends React.Component<
             return this.props.mutationsTabModeSettings.excludeGermline;
         } else {
             return this.props.store.excludeGermlineMutations;
+        }
+    }
+
+    @computed get excludeLoh() {
+        if (this.props.mutationsTabModeSettings) {
+            return this.props.mutationsTabModeSettings.excludeLoh;
+        } else {
+            return this.props.store.excludeLohMutations;
         }
     }
 
@@ -67,6 +61,13 @@ export default class AlterationFilterWarning extends React.Component<
         );
     }
 
+    @computed get lohToggleable() {
+        return (
+            this.props.mutationsTabModeSettings &&
+            this.props.store.excludeLohMutations
+        );
+    }
+
     readonly vusWarning = MakeMobxView({
         await: () => {
             if (this.props.mutationsTabModeSettings) {
@@ -79,7 +80,7 @@ export default class AlterationFilterWarning extends React.Component<
             }
         },
         render: () => {
-            let vusCount = 0;
+            let count = 0;
             const vusTypes = {
                 mutation: false,
                 cna: false,
@@ -87,9 +88,11 @@ export default class AlterationFilterWarning extends React.Component<
             if (this.props.mutationsTabModeSettings) {
                 const report = this.props.store.mutationsReportByGene.result![
                     this.props.mutationsTabModeSettings.hugoGeneSymbol
-                ];
-                vusCount = report.vus.length + report.vusAndGermline.length;
-                if (vusCount > 0) {
+                    ];
+                count = report.vus.length +
+                    report.vusAndGermline.length +
+                    report.vusAndLoh.length;
+                if (count > 0) {
                     vusTypes.mutation = true;
                 }
             } else {
@@ -97,10 +100,11 @@ export default class AlterationFilterWarning extends React.Component<
                     .oqlFilteredMutationsReport.result!;
                 const mutationVusCount =
                     mutationReport.vus.length +
-                    mutationReport.vusAndGermline.length;
+                    mutationReport.vusAndGermline.length +
+                    mutationReport.vusAndLoh.length;
                 const cnaVusCount = this.props.store
                     .oqlFilteredMolecularDataReport.result!.vus.length;
-                vusCount = mutationVusCount + cnaVusCount;
+                count = mutationVusCount + cnaVusCount;
                 if (mutationVusCount > 0) {
                     vusTypes.mutation = true;
                 }
@@ -109,82 +113,29 @@ export default class AlterationFilterWarning extends React.Component<
                 }
             }
 
-            if (vusCount > 0) {
-                const is = vusCount === 1 ? 'is' : 'are';
-                const does = vusCount === 1 ? 'does' : 'do';
-                const anAlteration =
-                    vusCount === 1 ? 'an alteration' : 'alterations';
-                if (this.props.isUnaffected && this.excludeVUS) {
-                    return (
-                        <div className="alert alert-unaffected">
-                            <i
-                                className="fa fa-md fa-info-circle"
-                                style={{
-                                    verticalAlign: 'middle !important',
-                                    marginRight: 6,
-                                    marginBottom: 1,
-                                }}
-                            />
-                            {`${vusCount} ${getVusDescription(
-                                vusTypes,
-                                vusCount !== 1
-                            )} ${is} included in analysis.`}
-                        </div>
-                    );
-                } else if (this.excludeVUS || this.vusToggleable) {
-                    return (
-                        <div className="alert alert-info">
-                            <img
-                                src={require('../../../rootImages/funnel.svg')}
-                                style={{
-                                    marginRight: 6,
-                                    width: 15,
-                                    marginTop: -2,
-                                }}
-                            />
-                            {this.excludeVUS
-                                ? `${vusCount} ${getVusDescription(
-                                      vusTypes,
-                                      vusCount !== 1
-                                  )} ${
-                                      this.props.mutationsTabModeSettings
-                                          ? `${is} hidden below.`
-                                          : `${does} not count as ${anAlteration} for this analysis.`
-                                  }`
-                                : `${vusCount} ${getVusDescription(
-                                      vusTypes,
-                                      vusCount !== 1
-                                  )} ${is} ${
-                                      this.props.mutationsTabModeSettings
-                                          ? 'shown below.'
-                                          : 'included in analysis.'
-                                  }`}
-                            {this.vusToggleable && (
-                                <button
-                                    onClick={
-                                        this.props.mutationsTabModeSettings!
-                                            .toggleExcludeVUS
-                                    }
-                                    className="btn btn-default btn-xs"
-                                    style={{ marginLeft: 5 }}
-                                >
-                                    {this.excludeVUS
-                                        ? this.props.mutationsTabModeSettings
-                                            ? 'Show'
-                                            : 'Include'
-                                        : this.props.mutationsTabModeSettings
-                                        ? 'Hide'
-                                        : 'Exclude'}
-                                </button>
-                            )}
-                        </div>
-                    );
-                }
-            } else {
-                return null;
-            }
-        },
+            const toggle = this.props.mutationsTabModeSettings ? this.props.mutationsTabModeSettings.toggleExcludeVUS : undefined;
+            return this.renderWarningMessage(
+                this.getVusDescription(vusTypes, count > 1),
+                count,
+                this.excludeVUS,
+                toggle
+            )
+        }
     });
+    
+    private getVusDescription(
+        types: { mutation: boolean; cna: boolean },
+        plural: boolean
+    ):string {
+        const descriptions = [];
+        if (types.mutation) {
+            descriptions.push(`mutation${plural ? 's' : ''}`);
+        }
+        if (types.cna) {
+            descriptions.push(`copy number alteration${plural ? 's' : ''}`);
+        }
+        return `${descriptions.join(' and ')} of unknown significance`;
+    };
 
     readonly germlineWarning = MakeMobxView({
         await: () => {
@@ -199,87 +150,118 @@ export default class AlterationFilterWarning extends React.Component<
             if (this.props.mutationsTabModeSettings) {
                 report = this.props.store.mutationsReportByGene.result![
                     this.props.mutationsTabModeSettings.hugoGeneSymbol
-                ];
+                    ];
             } else {
                 report = this.props.store.oqlFilteredMutationsReport.result!;
             }
-
-            const germlineCount =
-                report.germline.length + report.vusAndGermline.length;
-
-            if (germlineCount > 0) {
-                const is = germlineCount === 1 ? 'is' : 'are';
-                const does = germlineCount === 1 ? 'does' : 'do';
-                const anAlteration =
-                    germlineCount === 1 ? 'an alteration' : 'alterations';
-                if (this.props.isUnaffected && this.excludeGermline) {
-                    return (
-                        <div className="alert alert-unaffected">
-                            <i
-                                className="fa fa-md fa-info-circle"
-                                style={{
-                                    verticalAlign: 'middle !important',
-                                    marginRight: 6,
-                                    marginBottom: 1,
-                                }}
-                            />
-                            {`${germlineCount} germline mutations ${is} included in analysis.`}
-                        </div>
-                    );
-                } else if (this.excludeGermline || this.germlineToggleable) {
-                    return (
-                        <div className="alert alert-info">
-                            <img
-                                src={require('../../../rootImages/funnel.svg')}
-                                style={{
-                                    marginRight: 6,
-                                    width: 15,
-                                    marginTop: -2,
-                                }}
-                            />
-                            {this.excludeGermline
-                                ? `${germlineCount} germline mutations ${
-                                      this.props.mutationsTabModeSettings
-                                          ? `${is} hidden below.`
-                                          : `${does} not count as ${anAlteration} for this analysis.`
-                                  }`
-                                : `${germlineCount} germline mutations ${is} ${
-                                      this.props.mutationsTabModeSettings
-                                          ? 'shown below.'
-                                          : 'included in analysis.'
-                                  }`}
-                            {this.germlineToggleable && (
-                                <button
-                                    onClick={
-                                        this.props.mutationsTabModeSettings!
-                                            .toggleExcludeGermline
-                                    }
-                                    className="btn btn-default btn-xs"
-                                    style={{ marginLeft: 5 }}
-                                >
-                                    {this.excludeGermline
-                                        ? this.props.mutationsTabModeSettings
-                                            ? 'Show'
-                                            : 'Include'
-                                        : this.props.mutationsTabModeSettings
-                                        ? 'Hide'
-                                        : 'Exclude'}
-                                </button>
-                            )}
-                        </div>
-                    );
-                }
+            const count = report.germline.length + report.vusAndGermline.length;
+            const toggle = this.props.mutationsTabModeSettings? this.props.mutationsTabModeSettings.toggleExcludeGermline : undefined;
+            return this.renderWarningMessage(
+                'germline mutations',
+                count,
+                this.excludeGermline,
+                toggle,
+            )
+        }
+    });
+    
+    readonly lohWarning = MakeMobxView({
+        await: () => {
+            if (this.props.mutationsTabModeSettings) {
+                return [this.props.store.mutationsReportByGene];
             } else {
-                return null;
+                return [this.props.store.oqlFilteredMutationsReport];
             }
         },
+        render: () => {
+            let report;
+            if (this.props.mutationsTabModeSettings) {
+                report = this.props.store.mutationsReportByGene.result![
+                    this.props.mutationsTabModeSettings.hugoGeneSymbol
+                    ];
+            } else {
+                report = this.props.store.oqlFilteredMutationsReport.result!;
+            }
+            const count = report.loh.length + report.vusAndLoh.length;
+            const toggle = this.props.mutationsTabModeSettings? this.props.mutationsTabModeSettings.toggleExcludeLoh : undefined;
+            return this.renderWarningMessage(
+                'loss of heterozygosity events',
+                count,
+                this.excludeLoh,
+                toggle)
+        }
     });
 
+    private renderWarningMessage(type: string, count: number, exclude: boolean, onClickHandler: (() => void) | undefined) {
+        if (count > 0) {
+            const is = count === 1 ? 'is' : 'are';
+            const does = count === 1 ? 'does' : 'do';
+            const anAlteration = count === 1 ? 'an alteration' : 'alterations';
+            if (this.props.isUnaffected && exclude) {
+                return (
+                    <div className="alert alert-unaffected">
+                        <i
+                            className="fa fa-md fa-info-circle"
+                            style={{
+                                verticalAlign: 'middle !important',
+                                marginRight: 6,
+                                marginBottom: 1,
+                            }}
+                        />
+                        {`${count} ${type} ${is} included in analysis.`}
+                    </div>
+                );
+            } else if (exclude || onClickHandler) {
+                return (
+                    <div className="alert alert-info">
+                        <img
+                            src={require('../../../rootImages/funnel.svg')}
+                            style={{
+                                marginRight: 6,
+                                width: 15,
+                                marginTop: -2,
+                            }}
+                        />
+                        {exclude
+                            ? `${count} ${type} ${
+                                this.props.mutationsTabModeSettings
+                                    ? `${is} hidden below.`
+                                    : `${does} not count as ${anAlteration} for this analysis.`
+                            }`
+                            : `${count} ${type} ${is} ${
+                                this.props.mutationsTabModeSettings
+                                    ? 'shown below.'
+                                    : 'included in analysis.'
+                            }`}
+                        {onClickHandler && (
+                            <button
+                                onClick={onClickHandler}
+                                className="btn btn-default btn-xs"
+                                style={{marginLeft: 5}}
+                            >
+                                {exclude
+                                    ? this.props.mutationsTabModeSettings
+                                        ? 'Show'
+                                        : 'Include'
+                                    : this.props.mutationsTabModeSettings
+                                        ? 'Hide'
+                                        : 'Exclude'}
+                            </button>
+                        )}
+                    </div>
+                );
+            }
+        } else {
+            return null;
+        }
+    };
+ 
     render() {
         return (
             <>
                 {this.vusWarning.component}
                 {this.germlineWarning.component}
+                {this.lohWarning.component}
             </>
         );
     }

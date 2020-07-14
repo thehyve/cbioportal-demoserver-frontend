@@ -68,6 +68,7 @@ export interface IOncoprintControlsHandlers {
     onSelectDistinguishMutationType: (distinguish: boolean) => void;
     onSelectDistinguishDrivers: (distinguish: boolean) => void;
     onSelectDistinguishGermlineMutations: (distinguish: boolean) => void;
+    onSelectDistinguishLohMutations: (distinguish: boolean) => void;
 
     onSelectAnnotateOncoKb: (annotate: boolean) => void;
     onSelectAnnotateHotspots?: (annotate: boolean) => void;
@@ -76,6 +77,7 @@ export interface IOncoprintControlsHandlers {
     onSelectHidePutativePassengers: (hide: boolean) => void;
     onChangeAnnotateCBioPortalInputValue: (value: string) => void;
     onSelectHideGermlineMutations: (hide: boolean) => void;
+    onSelectHideLohMutations: (hide: boolean) => void;
     onChangeAnnotateCOSMICInputValue?: (value: string) => void;
     onSelectCustomDriverAnnotationBinary?: (s: boolean) => void;
     onSelectCustomDriverAnnotationTier?: (value: string, s: boolean) => void;
@@ -110,6 +112,7 @@ export interface IOncoprintControlsState {
     distinguishMutationType: boolean;
     distinguishDrivers: boolean;
     distinguishGermlineMutations: boolean;
+    distinguishLohMutations: boolean;
     sortByMutationType: boolean;
     sortByDrivers: boolean;
     sortByCaseListDisabled: boolean;
@@ -124,6 +127,7 @@ export interface IOncoprintControlsState {
     hidePutativePassengers: boolean;
     annotateCBioPortalInputValue: string;
     hideGermlineMutations: boolean;
+    hideLohMutations: boolean;
     annotateCOSMICInputValue?: string;
 
     sortMode?: SortMode;
@@ -190,6 +194,7 @@ const EVENT_KEY = {
     showOqlInLabels: '4.2',
     distinguishMutationType: '5',
     distinguishGermlineMutations: '5.1',
+    distinguishLohMutations: '5.2',
     sortByMutationType: '6',
     sortAlphabetical: '7',
     sortCaseListOrder: '8',
@@ -205,6 +210,7 @@ const EVENT_KEY = {
     annotateCOSMICInput: '21',
     hidePutativePassengers: '22',
     hideGermlineMutations: '22.1',
+    hideLohMutations: '22.2',
     customDriverBinaryAnnotation: '23',
     customDriverTierAnnotation: '24',
     downloadPDF: '25',
@@ -487,6 +493,11 @@ export default class OncoprintControls extends React.Component<
                     !this.props.state.distinguishGermlineMutations
                 );
                 break;
+            case EVENT_KEY.distinguishLohMutations:
+                this.props.handlers.onSelectDistinguishLohMutations(
+                    !this.props.state.distinguishLohMutations
+                );
+                break;
             case EVENT_KEY.annotateOncoKb:
                 this.props.handlers.onSelectAnnotateOncoKb &&
                     this.props.handlers.onSelectAnnotateOncoKb(
@@ -520,6 +531,11 @@ export default class OncoprintControls extends React.Component<
             case EVENT_KEY.hideGermlineMutations:
                 this.props.handlers.onSelectHideGermlineMutations(
                     !this.props.state.hideGermlineMutations
+                );
+                break;
+            case EVENT_KEY.hideLohMutations:
+                this.props.handlers.onSelectHideLohMutations(
+                    !this.props.state.hideLohMutations
                 );
                 break;
             case EVENT_KEY.customDriverBinaryAnnotation:
@@ -1189,6 +1205,24 @@ export default class OncoprintControls extends React.Component<
                                 Hide germline mutations
                             </label>
                         </div>
+                        <div className="checkbox">
+                            <label>
+                                <input
+                                    data-test="HideLoh"
+                                    type="checkbox"
+                                    value={EVENT_KEY.hideLohMutations}
+                                    checked={
+                                        this.props.state.hideLohMutations
+                                    }
+                                    onClick={this.onInputClick}
+                                    disabled={
+                                        !this.props.state
+                                            .distinguishLohMutations
+                                    }
+                                />{' '}
+                                Hide Loss of Heterozygosity events
+                            </label>
+                        </div>
                     </div>
                 </>
             );
@@ -1267,6 +1301,23 @@ export default class OncoprintControls extends React.Component<
                                     onClick={this.onInputClick}
                                 />{' '}
                                 Somatic vs Germline
+                            </label>
+                        </div>
+                        <div className="checkbox">
+                            <label>
+                                <input
+                                    data-test="ColorByLoh"
+                                    type="checkbox"
+                                    value={
+                                        EVENT_KEY.distinguishLohMutations
+                                    }
+                                    checked={
+                                        this.props.state
+                                            .distinguishLohMutations
+                                    }
+                                    onClick={this.onInputClick}
+                                />{' '}
+                                Somatic vs LOH
                             </label>
                         </div>
                     </div>

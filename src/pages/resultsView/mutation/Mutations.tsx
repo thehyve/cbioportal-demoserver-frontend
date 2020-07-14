@@ -58,6 +58,12 @@ export default class Mutations extends React.Component<
             .props.store.mutationsTabFilteringSettings.excludeGermline;
     }
 
+    @autobind
+    private onToggleLoh() {
+        this.props.store.mutationsTabFilteringSettings.excludeLoh = !this
+            .props.store.mutationsTabFilteringSettings.excludeLoh;
+    }
+
     public render() {
         // use routing if available, if not fall back to the observable variable
         const activeTabId = this.props.routing
@@ -128,9 +134,14 @@ export default class Mutations extends React.Component<
                                     excludeGermline: this.props.store
                                         .mutationsTabFilteringSettings
                                         .excludeGermline,
+                                    excludeLoh: this.props.store
+                                        .mutationsTabFilteringSettings
+                                        .excludeLoh,
                                     toggleExcludeVUS: this.onToggleVUS,
                                     toggleExcludeGermline: this
                                         .onToggleGermline,
+                                    toggleExcludeLoh: this
+                                        .onToggleLoh,
                                     hugoGeneSymbol: gene,
                                 }}
                             />

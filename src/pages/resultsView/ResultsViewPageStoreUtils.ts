@@ -45,7 +45,7 @@ import {SpecialAttribute} from '../../shared/cache/ClinicalDataCache';
 import {isSampleProfiled} from 'shared/lib/isSampleProfiled';
 import {AlteredStatus} from './mutualExclusivity/MutualExclusivityUtil';
 import {Group} from '../../shared/api/ComparisonGroupClient';
-import {isGermlineMutation} from "shared/lib/MutationUtils";
+import {isGermlineMutation, isLohMutation} from "shared/lib/MutationUtils";
 
 type CustomDriverAnnotationReport = {
     hasBinary: boolean;
@@ -162,7 +162,9 @@ export type FilteredAndAnnotatedMutationsReport<
     data: T[];
     vus: T[];
     germline: T[];
+    loh: T[];
     vusAndGermline: T[];
+    vusAndLoh: T[];
 };
 
 export function filterAndAnnotateMutations(
@@ -181,7 +183,9 @@ export function filterAndAnnotateMutations(
 ): FilteredAndAnnotatedMutationsReport<AnnotatedMutation> {
     const vus: AnnotatedMutation[] = [];
     const germline: AnnotatedMutation[] = [];
-    const vusAndGermline: AnnotatedMutation[] = [];
+    const loh: AnnotatedMutation[] = [];
+    const vusAndGermline: AnnotatedMutation[] = []; // germline and loh are mutually exclusive
+    const vusAndLoh: AnnotatedMutation[] = [];
     const filteredAnnotatedMutations = [];
     for (const mutation of mutations) {
         const annotatedMutation = annotateMutationPutativeDriver(
@@ -191,11 +195,16 @@ export function filterAndAnnotateMutations(
         annotatedMutation.hugoGeneSymbol =
             entrezGeneIdToGene[mutation.entrezGeneId].hugoGeneSymbol;
         const isGermline = isGermlineMutation(mutation);
+        const isLoh = isLohMutation(mutation);
         const isVus = !annotatedMutation.putativeDriver;
         if (isGermline && isVus) {
             vusAndGermline.push(annotatedMutation);
+        } else if (isLoh && isVus) {
+            vusAndLoh.push(annotatedMutation);
         } else if (isGermline) {
             germline.push(annotatedMutation);
+        } else if (isLoh) {
+            loh.push(annotatedMutation);
         } else if (isVus) {
             vus.push(annotatedMutation);
         } else {
@@ -206,7 +215,9 @@ export function filterAndAnnotateMutations(
         data: filteredAnnotatedMutations,
         vus,
         germline,
+        loh,
         vusAndGermline,
+        vusAndLoh,
     };
 }
 
@@ -215,7 +226,8 @@ export function compileMutations<
 >(
     report: FilteredAndAnnotatedMutationsReport<T>,
     excludeVus: boolean,
-    excludeGermline: boolean
+    excludeGermline: boolean,
+    excludeLoh: boolean
 ) {
     let mutations = report.data;
     if (!excludeVus) {
@@ -224,8 +236,14 @@ export function compileMutations<
     if (!excludeGermline) {
         mutations = mutations.concat(report.germline);
     }
+    if (!excludeLoh) {
+        mutations = mutations.concat(report.loh);
+    }
     if (!excludeVus && !excludeGermline) {
         mutations = mutations.concat(report.vusAndGermline);
+    }
+    if (!excludeVus && !excludeLoh) {
+        mutations = mutations.concat(report.vusAndLoh);
     }
     return mutations;
 }

@@ -594,6 +594,7 @@ export function makeGeneticTrackTooltip(
             | 'na'
             | 'not_profiled_in'
             | 'disp_germ'
+            | 'disp_loh'
         >[]
     ) {
         const ret = $('<div>').addClass(TOOLTIP_DIV_CLASS);

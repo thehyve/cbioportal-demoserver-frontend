@@ -641,12 +641,25 @@ export class ResultsViewPageStore {
     public get excludeGermlineMutations() {
         return this.urlWrapper.query.exclude_germline_mutations === 'true';
     }
+    
+    @computed
+    public get excludeLohMutations() {
+        return this.urlWrapper.query.exclude_loh_mutations === 'true';
+    }
 
     @autobind
     @action
     public setExcludeGermlineMutations(e: boolean) {
         this.urlWrapper.updateURL({
             exclude_germline_mutations: e.toString(),
+        });
+    }
+    
+    @autobind
+    @action
+    public setExcludeLohMutations(e: boolean) {
+        this.urlWrapper.updateURL({
+            exclude_loh_mutations: e.toString(),
         });
     }
 
@@ -710,6 +723,7 @@ export class ResultsViewPageStore {
         const self = this;
         let _excludeVus = observable.box<boolean | undefined>(undefined);
         let _excludeGermline = observable.box<boolean | undefined>(undefined);
+        let _excludeLoh = observable.box<boolean | undefined>(undefined);
         return observable({
             useOql: true,
             get excludeVus() {
@@ -726,12 +740,22 @@ export class ResultsViewPageStore {
                     return _excludeGermline.get()!;
                 }
             },
+            get excludeLoh() {
+                if (_excludeLoh.get() === undefined) {
+                    return self.excludeLohMutations;
+                } else {
+                    return _excludeLoh.get()!;
+                }
+            },
             set excludeVus(s: boolean) {
                 _excludeVus.set(s);
             },
             set excludeGermline(s: boolean) {
                 _excludeGermline.set(s);
             },
+            set excludeLoh(s: boolean) {
+                _excludeLoh.set(s);
+            }
         });
     }
 
@@ -2842,7 +2866,9 @@ export class ResultsViewPageStore {
                     data: [],
                     vus: [],
                     germline: [],
+                    loh: [],
                     vusAndGermline: [],
+                    vusAndLoh: [],
                 };
             }
             for (const mutation of mutationGroups.data) {
@@ -2895,7 +2921,8 @@ export class ResultsViewPageStore {
                         return compileMutations(
                             mutationGroups,
                             this.mutationsTabFilteringSettings.excludeVus,
-                            this.mutationsTabFilteringSettings.excludeGermline
+                            this.mutationsTabFilteringSettings.excludeGermline,
+                            this.mutationsTabFilteringSettings.excludeLoh
                         );
                     }
                 )
@@ -3911,7 +3938,8 @@ export class ResultsViewPageStore {
                 compileMutations(
                     this._filteredAndAnnotatedMutationsReport.result!,
                     this.driverAnnotationSettings.excludeVUS,
-                    this.excludeGermlineMutations
+                    this.excludeGermlineMutations,
+                    this.excludeLohMutations
                 )
             ),
     });

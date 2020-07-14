@@ -50,6 +50,8 @@ import AccessorsForOqlFilter, {
 } from '../../shared/lib/oql/AccessorsForOqlFilter';
 import { AlteredStatus } from './mutualExclusivity/MutualExclusivityUtil';
 
+// TODO PIM: add unit tests for loh vusAndLoh
+
 describe('ResultsViewPageStoreUtils', () => {
     describe('computeCustomDriverAnnotationReport', () => {
         let driverFilterMutation: Mutation;
@@ -710,8 +712,10 @@ describe('ResultsViewPageStoreUtils', () => {
                 {
                     data: [],
                     germline: [],
+                    loh: [],
                     vus: [],
                     vusAndGermline: [],
+                    vusAndLoh: [],
                 }
             );
         });
@@ -742,9 +746,11 @@ describe('ResultsViewPageStoreUtils', () => {
                             putativeDriver: true,
                         } as AnnotatedMutation,
                     ],
-                    germline: [],
                     vus: [],
+                    germline: [],
+                    loh: [],
                     vusAndGermline: [],
+                    vusAndLoh: [],
                 }
             );
         });
@@ -812,7 +818,9 @@ describe('ResultsViewPageStoreUtils', () => {
                     ] as AnnotatedMutation[],
                     vus: [],
                     germline: [],
+                    loh: [],
                     vusAndGermline: [],
+                    vusAndLoh: [],
                 }
             );
         });
@@ -848,7 +856,9 @@ describe('ResultsViewPageStoreUtils', () => {
                             putativeDriver: false,
                         },
                     ] as AnnotatedMutation[],
+                    loh: [],
                     vusAndGermline: [],
+                    vusAndLoh: [],
                 }
             );
         });
@@ -926,7 +936,9 @@ describe('ResultsViewPageStoreUtils', () => {
                         },
                     ] as AnnotatedMutation[],
                     germline: [],
+                    loh: [],
                     vusAndGermline: [],
+                    vusAndLoh: [],
                 }
             );
         });
@@ -970,6 +982,8 @@ describe('ResultsViewPageStoreUtils', () => {
                     ] as AnnotatedMutation[],
                     vus: [],
                     germline: [],
+                    loh: [],
+                    vusAndLoh: [],
                 }
             );
         });
@@ -1027,8 +1041,10 @@ describe('ResultsViewPageStoreUtils', () => {
                             putativeDriver: true,
                         },
                     ] as AnnotatedMutation[],
-                    germline: [],
                     vus: [],
+                    germline: [],
+                    loh: [],
+                    vusAndLoh: [],
                     vusAndGermline: [
                         {
                             mutationType: 'missense',

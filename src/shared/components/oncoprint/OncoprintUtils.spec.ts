@@ -142,6 +142,7 @@ describe('OncoprintUtils', () => {
             selectedMolecularProfiles: [],
             expansionIndexMap: observable.map<number[]>(),
             hideGermlineMutations: false,
+            hideLohMutations: false,
             oncoprint: {} as any,
         });
         const makeMinimal3Patient3GeneCaseData = () => ({

@@ -20,6 +20,7 @@ import {
     genetic_rule_set_same_color_for_all_no_recurrence,
     genetic_rule_set_same_color_for_all_recurrence,
     germline_rule_params,
+    loh_rule_params,
 } from './geneticrules';
 import {
     AlterationTypeConstants,
@@ -407,7 +408,8 @@ export function getGenesetHeatmapTrackRuleSetParams() {
 export function getGeneticTrackRuleSetParams(
     distinguishMutationType?: boolean,
     distinguishDrivers?: boolean,
-    distinguishGermlineMutations?: boolean
+    distinguishGermlineMutations?: boolean,
+    distinguishLohMutations?: boolean
 ): IGeneticAlterationRuleSetParams {
     let rule_set;
     if (!distinguishMutationType && !distinguishDrivers) {
@@ -422,6 +424,9 @@ export function getGeneticTrackRuleSetParams(
     rule_set = _.cloneDeep(rule_set);
     if (distinguishGermlineMutations) {
         Object.assign(rule_set.rule_params.conditional, germline_rule_params);
+    }
+    if (distinguishLohMutations) {
+        Object.assign(rule_set.rule_params.conditional, loh_rule_params);
     }
     return rule_set;
 }

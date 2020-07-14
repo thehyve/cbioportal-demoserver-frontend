@@ -32,7 +32,7 @@ import {
     CoverageInformation,
     ExtendedClinicalAttribute,
 } from '../../../pages/resultsView/ResultsViewPageStoreUtils';
-import { MUTATION_STATUS_GERMLINE } from 'shared/constants';
+import {MUTATION_STATUS_GERMLINE, MUTATION_STATUS_LOH} from 'shared/constants';
 import { SpecialAttribute } from '../../cache/ClinicalDataCache';
 import { stringListToIndexSet } from 'cbioportal-frontend-commons';
 
@@ -152,8 +152,13 @@ export function fillGeneticTrackDatum(
     const dispProtCounts: { [protEvent: string]: number } = {};
     const dispMutCounts: { [mutType: string]: number } = {};
     const dispGermline: { [mutType: string]: boolean } = {};
+    const dispLoh: { [mutType: string]: boolean } = {};
     const caseInsensitiveGermlineMatch = new RegExp(
         MUTATION_STATUS_GERMLINE,
+        'i'
+    );
+    const caseInsensitiveLohMatch = new RegExp(
+        MUTATION_STATUS_LOH,
         'i'
     );
 
@@ -195,9 +200,16 @@ export function fillGeneticTrackDatum(
                     if (event.putativeDriver) {
                         oncoprintMutationType += '_rec';
                     }
+                    // TODO Pim: here display properties for an oncoprint tile are set
+                    // Germline and LOH are mutually exclusive and LOH has priority
+                    // over Germline
+                    dispLoh[oncoprintMutationType] =
+                        dispLoh[oncoprintMutationType] ||
+                        caseInsensitiveLohMatch.test(event.mutationStatus);
                     dispGermline[oncoprintMutationType] =
-                        dispGermline[oncoprintMutationType] ||
-                        caseInsensitiveGermlineMatch.test(event.mutationStatus);
+                        ! dispLoh[oncoprintMutationType] &&
+                        (dispGermline[oncoprintMutationType] ||
+                        caseInsensitiveGermlineMatch.test(event.mutationStatus));
                     dispMutCounts[oncoprintMutationType] =
                         dispMutCounts[oncoprintMutationType] || 0;
                     dispMutCounts[oncoprintMutationType] += 1;
@@ -212,6 +224,9 @@ export function fillGeneticTrackDatum(
     newDatum.disp_mrna = selectDisplayValue(dispMrnaCounts, mrnaRenderPriority);
     newDatum.disp_prot = selectDisplayValue(dispProtCounts, protRenderPriority);
     newDatum.disp_mut = selectDisplayValue(dispMutCounts, mutRenderPriority);
+    newDatum.disp_loh = newDatum.disp_mut
+        ? dispLoh[newDatum.disp_mut]
+        : undefined;
     newDatum.disp_germ = newDatum.disp_mut
         ? dispGermline[newDatum.disp_mut]
         : undefined;

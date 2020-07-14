@@ -102,6 +102,7 @@ export type CancerStudyQueryUrlParams = {
     patient_enrichments?: string;
     show_samples?: string;
     exclude_germline_mutations?: string;
+    exclude_loh_mutations?: string;
 };
 
 export type GeneReplacement = { alias: string; genes: Gene[] };

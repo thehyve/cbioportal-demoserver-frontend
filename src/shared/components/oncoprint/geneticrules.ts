@@ -16,7 +16,7 @@ import {
     MUT_COLOR_FUSION,
     MUT_COLOR_GERMLINE,
     MUT_COLOR_INFRAME,
-    MUT_COLOR_INFRAME_PASSENGER,
+    MUT_COLOR_INFRAME_PASSENGER, MUT_COLOR_LOH,
     MUT_COLOR_MISSENSE,
     MUT_COLOR_MISSENSE_PASSENGER,
     MUT_COLOR_OTHER,
@@ -32,6 +32,7 @@ import _ from 'lodash';
 const MUTATION_LEGEND_ORDER = 0;
 const FUSION_LEGEND_ORDER = 1;
 const GERMLINE_LEGEND_ORDER = 2;
+const LOH_LEGEND_ORDER = 3;
 const AMP_LEGEND_ORDER = 10;
 const GAIN_LEGEND_ORDER = 11;
 const HOMDEL_LEGEND_ORDER = 12;
@@ -338,6 +339,28 @@ export const germline_rule_params = {
             ],
             legend_label: 'Germline Mutation',
             legend_order: GERMLINE_LEGEND_ORDER,
+        },
+    },
+};
+
+export const loh_rule_params = {
+    // loss of heterozygosity
+    disp_loh: {
+        // yellow stripe in the middle
+        true: {
+            shapes: [
+                {
+                    type: 'rectangle',
+                    fill: MUT_COLOR_LOH,
+                    x: 0,
+                    y: 46,
+                    width: 100,
+                    height: 8,
+                    z: 7,
+                },
+            ],
+            legend_label: 'Loss of Heterozygosity',
+            legend_order: LOH_LEGEND_ORDER,
         },
     },
 };

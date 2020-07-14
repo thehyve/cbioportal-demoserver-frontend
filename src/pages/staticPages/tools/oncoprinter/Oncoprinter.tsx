@@ -36,7 +36,9 @@ export default class Oncoprinter extends React.Component<
     {}
 > {
     @observable distinguishMutationType: boolean = true;
+    @observable distinguishGermlineAndLohMutations = true;
     @observable distinguishGermlineMutations = true;
+    @observable distinguishLohMutations = true;
     @observable sortByMutationType: boolean = true;
     @observable sortByDrivers: boolean = true;
 
@@ -87,8 +89,14 @@ export default class Oncoprinter extends React.Component<
             get distinguishMutationType() {
                 return self.distinguishMutationType;
             },
+            get distinguishGermlineAndLohMutations() {
+                return self.distinguishGermlineAndLohMutations;
+            },
             get distinguishGermlineMutations() {
                 return self.distinguishGermlineMutations;
+            },
+            get distinguishLohMutations() {
+                return self.distinguishLohMutations;
             },
             get distinguishDrivers() {
                 return self.distinguishDrivers;
@@ -111,6 +119,9 @@ export default class Oncoprinter extends React.Component<
             },
             get hideGermlineMutations() {
                 return self.props.store.hideGermlineMutations;
+            },
+            get hideLohMutations() {
+                return self.props.store.hideLohMutations;
             },
             get annotateCBioPortalInputValue() {
                 return (
@@ -184,8 +195,15 @@ export default class Oncoprinter extends React.Component<
             onSelectDistinguishMutationType: (s: boolean) => {
                 this.distinguishMutationType = s;
             },
+            onSelectDistinguishGermlineAndLohMutations: (s: boolean) => {
+                this.distinguishGermlineMutations = s;
+                this.distinguishLohMutations = s;
+            },
             onSelectDistinguishGermlineMutations: (s: boolean) => {
                 this.distinguishGermlineMutations = s;
+            },
+            onSelectDistinguishLohMutations: (s: boolean) => {
+                this.distinguishLohMutations = s;
             },
             onSelectDistinguishDrivers: action((s: boolean) => {
                 if (!s) {
@@ -230,6 +248,9 @@ export default class Oncoprinter extends React.Component<
             },
             onSelectHideGermlineMutations: (s: boolean) => {
                 this.props.store.hideGermlineMutations = s;
+            },
+            onSelectHideLohMutations: (s: boolean) => {
+                this.props.store.hideLohMutations = s;
             },
             onSelectSortByMutationType: (s: boolean) => {
                 this.sortByMutationType = s;

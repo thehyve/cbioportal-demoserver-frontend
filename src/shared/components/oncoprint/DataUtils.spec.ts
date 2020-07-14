@@ -678,6 +678,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 }
             );
         });
@@ -701,6 +702,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'missense_rec',
                     disp_germ: false,
+					disp_loh: false
                 },
                 'missense driver with no germline'
             );
@@ -724,6 +726,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'inframe',
                     disp_germ: false,
+					disp_loh: false
                 },
                 'inframe non-driver'
             );
@@ -747,6 +750,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'trunc',
                     disp_germ: false,
+					disp_loh: false
                 },
                 'truncating non-driver'
             );
@@ -771,6 +775,7 @@ describe('DataUtils', () => {
                     disp_mut: undefined,
                     disp_fusion: true,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 },
                 'fusion non-driver'
             );
@@ -795,6 +800,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 },
                 'amplification'
             );
@@ -817,6 +823,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 },
                 'gain'
             );
@@ -840,6 +847,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 },
                 'hetloss'
             );
@@ -863,6 +871,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 },
                 'homdel'
             );
@@ -885,6 +894,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+                    disp_loh: undefined
                 },
                 'diploid'
             );
@@ -911,6 +921,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'missense_rec',
                     disp_germ: true,
+                    disp_loh: false
                 },
                 'missense driver with germline'
             );
@@ -934,6 +945,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'missense_rec',
                     disp_germ: false,
+					disp_loh: false
                 },
                 'missense driver without germline'
             );
@@ -967,6 +979,7 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'missense_rec',
                     disp_germ: true,
+                    disp_loh: false
                 },
                 'missense driver with germline is stronger than missense passenger'
             );
@@ -998,8 +1011,223 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'trunc_rec',
                     disp_germ: false,
+					disp_loh: false
                 },
                 'trunc driver is stronger than missense passenger w germline'
+            );
+        });
+
+        it('fills a datum w one loh data correctly', () => {
+            let data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: true,
+                    mutationStatus: 'LOH',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'missense_rec',
+                    disp_germ: false,
+                    disp_loh: true
+                },
+                'missense driver with loh'
+            );
+
+            data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: true,
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'missense_rec',
+                    disp_germ: false,
+                    disp_loh: false,
+                },
+                'missense driver without loh'
+            );
+        });
+
+        it('fills a datum w one loh and one non-loh data correctly', () => {
+            let data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: true,
+                    mutationStatus: 'LOH',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+                {
+                    mutationType: 'missense',
+                    putativeDriver: false,
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'missense_rec',
+                    disp_germ: false,
+                    disp_loh: true
+                },
+                'missense driver with loh is stronger than missense passenger'
+            );
+
+            data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: false,
+                    mutationStatus: 'LOH',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+                {
+                    mutationType: 'start_codon_del',
+                    putativeDriver: true,
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'trunc_rec',
+                    disp_germ: false,
+                    disp_loh: false
+                },
+                'trunc driver is stronger than missense passenger w loh'
+            );
+        });
+
+        // TODO Pim: expand on the different priorities (discuss with MSK)
+        it('fills a datum w one loh and one germline data correctly', () => {
+            let data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: true,
+                    mutationStatus: 'LOH',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+                {
+                    mutationType: 'missense',
+                    putativeDriver: true,
+                    mutationStatus: 'Germline',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'missense_rec',
+                    disp_germ: false,
+                    disp_loh: true
+                },
+                'driver with loh is stronger than driver with germline'
+            );
+            data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: false,
+                    mutationStatus: 'LOH',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+                {
+                    mutationType: 'missense',
+                    putativeDriver: true,
+                    mutationStatus: 'Germline',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'missense_rec',
+                    disp_germ: true,
+                    disp_loh: false
+                },
+                'driver with germline is stronger than passenger with loh'
+            );
+            data = [
+                {
+                    mutationType: 'missense',
+                    putativeDriver: false,
+                    mutationStatus: 'LOH',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+                {
+                    mutationType: 'missense',
+                    putativeDriver: false,
+                    mutationStatus: 'Germline',
+                    molecularProfileAlterationType:
+                    AlterationTypeConstants.MUTATION_EXTENDED,
+                } as AnnotatedExtendedAlteration,
+            ];
+            assert.deepEqual(
+                fillGeneticTrackDatum(makeMinimalUnfilledDatum(), 'gene', data),
+                {
+                    ...makeMinimalUnfilledDatum(),
+                    trackLabel: 'gene',
+                    data: data,
+                    disp_cna: undefined,
+                    disp_mrna: undefined,
+                    disp_prot: undefined,
+                    disp_mut: 'missense',
+                    disp_germ: false,
+                    disp_loh: true
+                },
+                'passenger with loh is stronger than passenger with germline'
             );
         });
 
@@ -1022,6 +1250,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'high'
             );
@@ -1044,6 +1274,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'low'
             );
@@ -1067,6 +1299,8 @@ describe('DataUtils', () => {
                     disp_prot: 'high',
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'high'
             );
@@ -1089,6 +1323,8 @@ describe('DataUtils', () => {
                     disp_prot: 'low',
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'low'
             );
@@ -1119,6 +1355,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'trunc_rec',
                     disp_germ: false,
+					disp_loh: false
+
                 },
                 'truncating driver beats missense driver'
             );
@@ -1148,6 +1386,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'missense_rec',
                     disp_germ: false,
+					disp_loh: false
+
                 },
                 'missense driver beats truncating non-driver'
             );
@@ -1177,6 +1417,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: 'trunc',
                     disp_germ: false,
+					disp_loh: false
+
                 },
                 'truncating non-driver beats missense non-driver'
             );
@@ -1205,6 +1447,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'amplification beats gain'
             );
@@ -1232,6 +1476,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'homdel beats diploid'
             );
@@ -1264,6 +1510,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'two homdels beats one amp'
             );
@@ -1296,6 +1544,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'two amps beats one homdel'
             );
@@ -1329,6 +1579,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'two downs beats one high'
             );
@@ -1361,6 +1613,8 @@ describe('DataUtils', () => {
                     disp_prot: undefined,
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'two ups beats one low'
             );
@@ -1394,6 +1648,8 @@ describe('DataUtils', () => {
                     disp_prot: 'low',
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'two downs beats one high'
             );
@@ -1426,6 +1682,8 @@ describe('DataUtils', () => {
                     disp_prot: 'high',
                     disp_mut: undefined,
                     disp_germ: undefined,
+
+                    disp_loh: undefined
                 },
                 'two ups beats one low'
             );
@@ -1501,6 +1759,7 @@ describe('DataUtils', () => {
                     disp_prot: 'low',
                     disp_mut: 'trunc_rec',
                     disp_germ: false,
+                	disp_loh: false
                 }
             );
         });
