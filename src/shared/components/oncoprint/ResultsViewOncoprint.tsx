@@ -198,6 +198,7 @@ export default class ResultsViewOncoprint extends React.Component<
     
     @observable distinguishGermlineMutations: boolean = true;
     @observable distinguishLohMutations: boolean = true;
+    @observable distinguishZygosity: boolean = true;
     @observable distinguishMutationType: boolean = true;
     @observable showUnalteredColumns: boolean = true;
     @observable showWhitespaceBetweenColumns: boolean = true;
@@ -437,6 +438,9 @@ export default class ResultsViewOncoprint extends React.Component<
             },
             get distinguishLohMutations() {
                 return self.distinguishLohMutations;
+            },
+            get distinguishZygosity() {
+                return self.distinguishZygosity;
             },
             get annotateDriversOncoKb() {
                 return self.props.store.driverAnnotationSettings.oncoKb;
@@ -699,6 +703,9 @@ export default class ResultsViewOncoprint extends React.Component<
             },
             onSelectDistinguishLohMutations: (s: boolean) => {
                 this.distinguishLohMutations = s;
+            },
+            onSelectDistinguishZygosity: (s: boolean) => {
+                this.distinguishZygosity = s;
             },
             onSelectAnnotateOncoKb: action((s: boolean) => {
                 this.props.store.driverAnnotationSettings.oncoKb = s;
@@ -1838,6 +1845,9 @@ export default class ResultsViewOncoprint extends React.Component<
                                 }
                                 distinguishLohMutations={
                                     this.distinguishLohMutations
+                                }
+                                distinguishZygosity={
+                                    this.distinguishZygosity
                                 }
                                 sortConfig={this.oncoprintLibrarySortConfig}
                                 showClinicalTrackLegends={

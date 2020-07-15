@@ -69,6 +69,7 @@ export interface IOncoprintControlsHandlers {
     onSelectDistinguishDrivers: (distinguish: boolean) => void;
     onSelectDistinguishGermlineMutations: (distinguish: boolean) => void;
     onSelectDistinguishLohMutations: (distinguish: boolean) => void;
+    onSelectDistinguishZygosity: (distinguish: boolean) => void;
 
     onSelectAnnotateOncoKb: (annotate: boolean) => void;
     onSelectAnnotateHotspots?: (annotate: boolean) => void;
@@ -113,6 +114,7 @@ export interface IOncoprintControlsState {
     distinguishDrivers: boolean;
     distinguishGermlineMutations: boolean;
     distinguishLohMutations: boolean;
+    distinguishZygosity: boolean;
     sortByMutationType: boolean;
     sortByDrivers: boolean;
     sortByCaseListDisabled: boolean;
@@ -195,6 +197,7 @@ const EVENT_KEY = {
     distinguishMutationType: '5',
     distinguishGermlineMutations: '5.1',
     distinguishLohMutations: '5.2',
+    distinguishZygosity: '5.3',
     sortByMutationType: '6',
     sortAlphabetical: '7',
     sortCaseListOrder: '8',
@@ -496,6 +499,11 @@ export default class OncoprintControls extends React.Component<
             case EVENT_KEY.distinguishLohMutations:
                 this.props.handlers.onSelectDistinguishLohMutations(
                     !this.props.state.distinguishLohMutations
+                );
+                break;
+            case EVENT_KEY.distinguishZygosity:
+                this.props.handlers.onSelectDistinguishZygosity(
+                    !this.props.state.distinguishZygosity
                 );
                 break;
             case EVENT_KEY.annotateOncoKb:
@@ -1318,6 +1326,23 @@ export default class OncoprintControls extends React.Component<
                                     onClick={this.onInputClick}
                                 />{' '}
                                 Somatic vs LOH
+                            </label>
+                        </div>
+                        <div className="checkbox">
+                            <label>
+                                <input
+                                    data-test="ColorByZygosity"
+                                    type="checkbox"
+                                    value={
+                                        EVENT_KEY.distinguishZygosity
+                                    }
+                                    checked={
+                                        this.props.state
+                                            .distinguishZygosity
+                                    }
+                                    onClick={this.onInputClick}
+                                />{' '}
+                                Zygosity
                             </label>
                         </div>
                     </div>

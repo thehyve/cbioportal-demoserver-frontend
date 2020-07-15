@@ -290,6 +290,11 @@ export interface AnnotatedMutation extends Mutation {
     simplifiedMutationType: SimplifiedMutationType;
 }
 
+export enum Zygosity {
+    homozygous = 0,
+    heterozygous = 1
+}
+
 export interface AnnotatedNumericGeneMolecularData
     extends NumericGeneMolecularData {
     hugoGeneSymbol: string;

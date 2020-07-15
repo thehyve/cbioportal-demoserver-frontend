@@ -378,6 +378,8 @@ export type Mutation = {
 
         'aminoAcidChange': string
 
+        'annotation': {}
+
         'center': string
 
         'chr': string

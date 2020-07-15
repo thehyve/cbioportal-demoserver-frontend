@@ -20,10 +20,11 @@ export const MUT_COLOR_TRUNC_PASSENGER = '#708090';
 export const MUT_COLOR_FUSION = '#8B00C9';
 export const MUT_COLOR_PROMOTER = '#00B7CE';
 export const MUT_COLOR_OTHER = '#cf58bc'; //'#cfb537';
+export const MUT_COLOR_ZYGOSITY = '#ffffff';
 
 export const MRNA_COLOR_HIGH = '#ff9999';
 export const MRNA_COLOR_LOW = '#6699cc';
-export const MUT_COLOR_GERMLINE = '#FFFFFF';
+export const MUT_COLOR_GERMLINE = '#ffffff';
 export const MUT_COLOR_LOH = '#000000';
 
 export const PROT_COLOR_HIGH = '#ff3df8';
@@ -33,6 +34,7 @@ export const CNA_COLOR_AMP = '#ff0000';
 export const CNA_COLOR_GAIN = '#ffb6c1';
 export const CNA_COLOR_HETLOSS = '#8fd8d8';
 export const CNA_COLOR_HOMDEL = '#0000ff';
+
 
 export const DEFAULT_NA_COLOR = LIGHT_GREY;
 export const DEFAULT_UNKNOWN_COLOR = DARK_GREY;

@@ -39,6 +39,7 @@ export default class Oncoprinter extends React.Component<
     @observable distinguishGermlineAndLohMutations = true;
     @observable distinguishGermlineMutations = true;
     @observable distinguishLohMutations = true;
+    @observable distinguishZygosity = true;
     @observable sortByMutationType: boolean = true;
     @observable sortByDrivers: boolean = true;
 
@@ -97,6 +98,9 @@ export default class Oncoprinter extends React.Component<
             },
             get distinguishLohMutations() {
                 return self.distinguishLohMutations;
+            },
+            get distinguishZygosity() {
+                return self.distinguishZygosity;
             },
             get distinguishDrivers() {
                 return self.distinguishDrivers;
@@ -204,6 +208,9 @@ export default class Oncoprinter extends React.Component<
             },
             onSelectDistinguishLohMutations: (s: boolean) => {
                 this.distinguishLohMutations = s;
+            },
+            onSelectDistinguishZygosity: (s: boolean) => {
+                this.distinguishZygosity = s;
             },
             onSelectDistinguishDrivers: action((s: boolean) => {
                 if (!s) {

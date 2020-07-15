@@ -21,6 +21,8 @@ import {
     genetic_rule_set_same_color_for_all_recurrence,
     germline_rule_params,
     loh_rule_params,
+    zygosity_rule_params,
+    
 } from './geneticrules';
 import {
     AlterationTypeConstants,
@@ -409,7 +411,8 @@ export function getGeneticTrackRuleSetParams(
     distinguishMutationType?: boolean,
     distinguishDrivers?: boolean,
     distinguishGermlineMutations?: boolean,
-    distinguishLohMutations?: boolean
+    distinguishLohMutations?: boolean,
+    distinguishZygosity?: boolean
 ): IGeneticAlterationRuleSetParams {
     let rule_set;
     if (!distinguishMutationType && !distinguishDrivers) {
@@ -427,6 +430,9 @@ export function getGeneticTrackRuleSetParams(
     }
     if (distinguishLohMutations) {
         Object.assign(rule_set.rule_params.conditional, loh_rule_params);
+    }
+    if (distinguishZygosity) {
+        Object.assign(rule_set.rule_params.conditional, zygosity_rule_params);
     }
     return rule_set;
 }

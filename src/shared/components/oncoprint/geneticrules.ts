@@ -22,7 +22,7 @@ import {
     MUT_COLOR_OTHER,
     MUT_COLOR_PROMOTER,
     MUT_COLOR_TRUNC,
-    MUT_COLOR_TRUNC_PASSENGER,
+    MUT_COLOR_TRUNC_PASSENGER, MUT_COLOR_ZYGOSITY,
     PROT_COLOR_HIGH,
     PROT_COLOR_LOW,
 } from 'shared/lib/Colors';
@@ -41,6 +41,8 @@ const MRNA_HIGH_LEGEND_ORDER = 20;
 const MRNA_LOW_LEGEND_ORDER = 21;
 const PROT_HIGH_LEGEND_ORDER = 31;
 const PROT_LOW_LEGEND_ORDER = 32;
+const HOMOZYGOUS_LEGEND_ORDER = 33;
+const HETEROZYGOUS_LEGEND_ORDER = 34;
 
 enum ShapeId {
     defaultGrayRectangle = 'defaultGrayRectangle',
@@ -68,6 +70,8 @@ enum ShapeId {
     truncatingMutationVUSRectangle = 'truncatingMutationVUSRectangle',
     inframeMutationDriverRectangle = 'inframeMutationDriverRectangle',
     inframeMutationVUSRectangle = 'inframeMutationVUSRectangle',
+    zygosityHighRectangle="zygosityHighRectangle",
+    zygosityLowRectangle="zygosityLowRectangle"
 }
 
 const shapeBank = {
@@ -242,6 +246,24 @@ const shapeBank = {
         height: 33.33,
         z: 6,
     },
+    [ShapeId.zygosityHighRectangle]:{
+        'type': 'ellipse',
+        'fill': MUT_COLOR_ZYGOSITY,
+        'x': 50,
+        'y': 25,
+        'width': 75,
+        'height': 25,
+        'z': 6,
+    },  
+    [ShapeId.zygosityLowRectangle]:{
+        'type': 'ellipse',
+        'fill': MUT_COLOR_ZYGOSITY,
+        'x': 50,
+        'y': 75,
+        'width': 75,
+        'height': 25,
+        'z': 6,
+    }
 };
 
 const non_mutation_rule_params: GeneticAlterationRuleParams = {
@@ -364,6 +386,22 @@ export const loh_rule_params = {
         },
     },
 };
+
+export const zygosity_rule_params = {
+    'disp_zygosity': {
+        'homozygous': {
+            shapes: [shapeBank[ShapeId.zygosityHighRectangle], shapeBank[ShapeId.zygosityLowRectangle]],
+            legend_label: 'Homozygous',
+            legend_order: HOMOZYGOUS_LEGEND_ORDER
+        },
+        'heterozygous': {
+            shapes: [shapeBank[ShapeId.zygosityLowRectangle]],
+            legend_label: 'Heterozygous',
+            legend_order: HETEROZYGOUS_LEGEND_ORDER
+        }
+    }
+};
+
 
 const base_genetic_rule_set_params: Partial<IGeneticAlterationRuleSetParams> = {
     type: RuleSetType.GENE,

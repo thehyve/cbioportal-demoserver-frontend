@@ -2,7 +2,7 @@ import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation,
     CaseAggregatedData,
-    ExtendedAlteration,
+    ExtendedAlteration, Zygosity,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import {
     ClinicalAttribute,
@@ -153,6 +153,7 @@ export function fillGeneticTrackDatum(
     const dispMutCounts: { [mutType: string]: number } = {};
     const dispGermline: { [mutType: string]: boolean } = {};
     const dispLoh: { [mutType: string]: boolean } = {};
+    const dispZygosity: { [mutType: string]: Zygosity | undefined } = {};
     const caseInsensitiveGermlineMatch = new RegExp(
         MUTATION_STATUS_GERMLINE,
         'i'
@@ -197,22 +198,28 @@ export function fillGeneticTrackDatum(
                 if (oncoprintMutationType === 'fusion') {
                     dispFusion = true;
                 } else {
+                    
                     if (event.putativeDriver) {
                         oncoprintMutationType += '_rec';
                     }
-                    // TODO Pim: here display properties for an oncoprint tile are set
-                    // Germline and LOH are mutually exclusive and LOH has priority
-                    // over Germline
+                    
+                    // Germline and LOH are mutually exclusive
                     dispLoh[oncoprintMutationType] =
                         dispLoh[oncoprintMutationType] ||
                         caseInsensitiveLohMatch.test(event.mutationStatus);
                     dispGermline[oncoprintMutationType] =
-                        ! dispLoh[oncoprintMutationType] &&
                         (dispGermline[oncoprintMutationType] ||
                         caseInsensitiveGermlineMatch.test(event.mutationStatus));
+                    
                     dispMutCounts[oncoprintMutationType] =
                         dispMutCounts[oncoprintMutationType] || 0;
+                    
                     dispMutCounts[oncoprintMutationType] += 1;
+                    
+                    const hasZygosityStatus = !!((event.namespaceColumns as any) && (event.namespaceColumns as any).zygosity);
+                    dispZygosity[oncoprintMutationType] =
+                        dispZygosity[oncoprintMutationType] ||
+                        hasZygosityStatus ? (event.namespaceColumns as any).zygosity.status.toLowerCase() : undefined
                 }
                 break;
         }
@@ -229,6 +236,10 @@ export function fillGeneticTrackDatum(
         : undefined;
     newDatum.disp_germ = newDatum.disp_mut
         ? dispGermline[newDatum.disp_mut]
+        : undefined;
+    // TODO Pim: discuss whether this is the correct approach
+    newDatum.disp_zygosity = newDatum.disp_mut
+        ? dispZygosity[newDatum.disp_mut]
         : undefined;
 
     return newDatum as GeneticTrackDatum; // return for convenience, even though changes made in place

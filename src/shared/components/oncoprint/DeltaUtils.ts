@@ -551,7 +551,9 @@ function hasGeneticTrackRuleSetChanged(
         nextProps.distinguishGermlineMutations !==
             prevProps.distinguishGermlineMutations ||
         nextProps.distinguishLohMutations !==
-            prevProps.distinguishLohMutations
+            prevProps.distinguishLohMutations ||
+        nextProps.distinguishZygosity !==
+        prevProps.distinguishZygosity
     );
 }
 
@@ -1024,7 +1026,8 @@ function transitionGeneticTrack(
                 nextProps.distinguishMutationType,
                 nextProps.distinguishDrivers,
                 nextProps.distinguishGermlineMutations,
-                nextProps.distinguishLohMutations
+                nextProps.distinguishLohMutations,
+                nextProps.distinguishZygosity
             ),
             label: nextSpec.label,
             sublabel: nextSpec.sublabel,
@@ -1128,7 +1131,8 @@ function transitionGeneticTrack(
                         nextProps.distinguishMutationType,
                         nextProps.distinguishDrivers,
                         nextProps.distinguishGermlineMutations,
-                        nextProps.distinguishLohMutations
+                        nextProps.distinguishLohMutations,
+                        nextProps.distinguishZygosity
                     )
                 );
             }

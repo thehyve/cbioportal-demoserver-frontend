@@ -15,7 +15,7 @@ import _ from 'lodash';
 import {
     AnnotatedMutation,
     AnnotatedNumericGeneMolecularData,
-    ExtendedAlteration,
+    ExtendedAlteration, Zygosity,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import './styles.scss';
 import { ShapeParams } from 'oncoprintjs/dist/js/oncoprintshape';
@@ -94,6 +94,7 @@ export type GeneticTrackDatum_Data = Pick<
     | 'entrezGeneId'
     | 'putativeDriver'
     | 'mutationStatus'
+    | 'namespaceColumns'
 >;
 
 export type GeneticTrackDatum_ProfiledIn = {
@@ -118,6 +119,7 @@ export type GeneticTrackDatum = {
     disp_fusion?: boolean;
     disp_germ?: boolean;
     disp_loh?: boolean;
+    disp_zygosity?: Zygosity | undefined;
 };
 
 export type GeneticTrackSpec = {
@@ -210,6 +212,7 @@ export interface IOncoprintProps {
     distinguishDrivers?: boolean;
     distinguishGermlineMutations?: boolean;
     distinguishLohMutations?: boolean;
+    distinguishZygosity?: boolean;
 
     showTrackLabels?: boolean;
     showSublabels?: boolean;
