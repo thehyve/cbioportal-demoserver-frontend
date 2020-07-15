@@ -449,21 +449,64 @@ export default class VAFLineChart extends React.Component<
         return ypositions;
     }
 
-    @computed get sampleTimelineData() {
+    @computed get sampleXYData() {
         let data: Array<object> = [];
 
         this.sampleIdOrder.forEach((sampleId, sampleIndex) => {
-            const dataObj = {
-                x: this.sampleTimelineXPosition[sampleIndex],
-                y: this.sampleTimelineYPosition[sampleIndex],
-            };
+            let dataObj = {};
+            if (this.props.vafTimeline === true) {
+                dataObj = {
+                    x: this.sampleTimelineXPosition[sampleIndex],
+                    y: this.sampleTimelineYPosition[sampleIndex],
+                };
+            } else if (
+                this.props.store.groupById != undefined ||
+                this.props.store.groupById != 'None'
+            ) {
+                dataObj = {
+                    x: sampleIndex,
+                    y: this.sampleGroupByYPosition[sampleIndex],
+                };
+            }
             data[sampleIndex] = dataObj;
         });
+
+        //this.props.samples.map((s, i) => i);
 
         return data;
     }
 
-    @computed get sampleTimelineGroupByData() {
+    @computed get sampleGroupByYPosition() {
+        let ypositions: number[] = [];
+        let startYPosition = -0.23;
+
+        if (
+            !(
+                this.props.store.groupById === undefined ||
+                this.props.store.groupById === 'None'
+            )
+        ) {
+            let clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
+                this.props.sampleManager.samples,
+                this.props.store.groupById
+            );
+            clinicalAttributeSamplesMap.forEach(
+                (sampleList: string[], clinicalValue) => {
+                    sampleList.forEach((sampleId, i) => {
+                        const sampleIndex = this.sampleIdOrder.findIndex(
+                            element => element === sampleId
+                        );
+                        let yposition = startYPosition;
+                        ypositions[sampleIndex] = yposition;
+                    });
+                    startYPosition = startYPosition - 0.16;
+                }
+            );
+        }
+        return ypositions;
+    }
+
+    @computed get sampleGroupByLabelData() {
         let data: string = '';
         let dataMap = new Map();
 
@@ -482,15 +525,14 @@ export default class VAFLineChart extends React.Component<
                     const sampleIndex = this.sampleIdOrder.findIndex(
                         element => element === sampleList[0]
                     );
-                    let yposition = this.sampleTimelineYPosition[sampleIndex];
-                    //console.info(clinicalValue);
-                    //console.info(yposition);
+                    let yposition =
+                        this.props.vafTimeline === true
+                            ? this.sampleTimelineYPosition[sampleIndex]
+                            : this.sampleGroupByYPosition[sampleIndex];
                     dataMap.set(clinicalValue, yposition);
-                    //data = "<VictoryLabel text=\""+clinicalValue+"\" datum={{ x:0.70, y:"+yposition+"}} textAnchor=\"middle\"/>";
                 }
             );
         }
-        //console.info(dataMap);
         return dataMap;
     }
 
@@ -855,7 +897,10 @@ export default class VAFLineChart extends React.Component<
                                           )
                                 }
                                 tickLabelComponent={
-                                    this.props.vafTimeline === false ? (
+                                    this.props.vafTimeline === false &&
+                                    (this.props.store.groupById === undefined ||
+                                        this.props.store.groupById ===
+                                            'None') ? (
                                         <Tick
                                             sampleIdOrder={this.sampleIdOrder}
                                             sampleManager={
@@ -871,11 +916,13 @@ export default class VAFLineChart extends React.Component<
                                 orientation="bottom"
                                 padding={{ left: 40 }}
                             />
-                            {this.props.vafTimeline === false ? (
+                            {this.props.vafTimeline === false &&
+                            (this.props.store.groupById === undefined ||
+                                this.props.store.groupById === 'None') ? (
                                 <VictoryScatter data={[]} />
                             ) : (
                                 <VictoryScatter
-                                    data={this.sampleTimelineData}
+                                    data={this.sampleXYData}
                                     dataComponent={
                                         <SamplePoint
                                             sampleIdOrder={this.sampleIdOrder}
@@ -886,13 +933,16 @@ export default class VAFLineChart extends React.Component<
                                     }
                                 />
                             )}
-                            {[...this.sampleTimelineGroupByData.keys()].map(
+                            {[...this.sampleGroupByLabelData.keys()].map(
                                 clinicalValue => (
                                     <VictoryLabel
                                         text={clinicalValue}
                                         datum={{
-                                            x: 0.5,
-                                            y: this.sampleTimelineGroupByData.get(
+                                            x:
+                                                this.props.vafTimeline === true
+                                                    ? 1
+                                                    : 0,
+                                            y: this.sampleGroupByLabelData.get(
                                                 clinicalValue
                                             ),
                                         }}
@@ -904,7 +954,8 @@ export default class VAFLineChart extends React.Component<
                                                 fontSize: 12,
                                             },
                                         ]}
-                                        textAnchor="middle"
+                                        textAnchor="right"
+                                        dx={-70}
                                     />
                                 )
                             )}
