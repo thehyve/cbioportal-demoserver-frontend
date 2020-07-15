@@ -80,7 +80,7 @@ export default class PatientViewMutationsTab extends React.Component<
         this.showTimeline = !this.showTimeline;
     }
 
-    get groupById() {
+    /*get groupById() {
         return this.props.urlWrapper.query.genomicEvolutionSettings.groupById;
     }
 
@@ -95,6 +95,31 @@ export default class PatientViewMutationsTab extends React.Component<
     @action
     private onGroupBySelect(option: PlotsTabOption) {
         this.groupById = option.value;
+    }*/
+
+    @computed get selectedGroupByOption() {
+        let option = this.groupByOptions.find(
+            opt => opt.value == this.props.store.groupById
+        );
+        return option
+            ? { label: option.label, value: this.props.store.groupById }
+            : '';
+    }
+
+    @computed get groupByOptions() {
+        const clinicalAttributes = this.props.sampleManager.getClinicalAttributeDisplayNames(
+            this.props.sampleManager.samples
+        );
+        return [
+            {
+                label: 'None',
+                value: 'None',
+            },
+            ...clinicalAttributes.map(item => ({
+                label: `${item.value}`,
+                value: `${item.id}`,
+            })),
+        ];
     }
 
     private dataStore = new PatientViewMutationsDataStore(
@@ -258,20 +283,13 @@ export default class PatientViewMutationsTab extends React.Component<
                         </span>
                         <div style={{ minWidth: 355, width: 355, zIndex: 20 }}>
                             <ReactSelect
-                                options={this.props.sampleManager.getClinicalAttributeDisplayNames(
-                                    this.props.sampleManager.samples
-                                )}
-                                onChange={(option: PlotsTabOption | null) => {
-                                    if (option) {
-                                        //this.onGroupBySelect(option);
-                                        this.groupById = option.value;
-                                    }
+                                value={this.selectedGroupByOption}
+                                options={this.groupByOptions}
+                                onChange={(option: any) => {
+                                    this.props.store.groupById = option
+                                        ? option.value
+                                        : '';
                                 }}
-                                value={this.groupById}
-                                /*value={{
-                                value : this.groupById,
-                                label : this.props.sampleManager.getClinicalAttributeLabel(this.props.sampleManager.samples, this.groupById)
-                            }}*/
                                 clearable={false}
                                 searchable={true}
                             />

@@ -395,13 +395,13 @@ export default class VAFLineChart extends React.Component<
 
         if (
             !(
-                this.props.groupById === undefined ||
-                this.props.groupById === 'none'
+                this.props.store.groupById === undefined ||
+                this.props.store.groupById === 'None'
             )
         ) {
             let clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
                 this.props.sampleManager.samples,
-                this.props.groupById
+                this.props.store.groupById
             );
             clinicalAttributeSamplesMap.forEach(
                 (sampleList: string[], clinicalValue) => {
@@ -469,13 +469,13 @@ export default class VAFLineChart extends React.Component<
 
         if (
             !(
-                this.props.groupById === undefined ||
-                this.props.groupById === 'none'
+                this.props.store.groupById === undefined ||
+                this.props.store.groupById === 'None'
             )
         ) {
             let clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
                 this.props.sampleManager.samples,
-                this.props.groupById
+                this.props.store.groupById
             );
             clinicalAttributeSamplesMap.forEach(
                 (sampleList: string[], clinicalValue) => {
@@ -496,9 +496,10 @@ export default class VAFLineChart extends React.Component<
 
     @computed get sampleGroupByValue() {
         let groupByValue: { [s: string]: string } = {};
+        console.info('GROUP BY:' + this.props.store.groupById);
         if (
-            this.props.groupById === undefined ||
-            this.props.groupById === 'none'
+            this.props.store.groupById === undefined ||
+            this.props.store.groupById === 'None'
         )
             return {};
         this.props.sampleManager.samples.forEach((sample, i) => {
@@ -506,7 +507,7 @@ export default class VAFLineChart extends React.Component<
                 sample.id
             ] = SampleManager.getClinicalAttributeInSample(
                 sample,
-                this.props.groupById
+                this.props.store.groupById
             ).value;
         });
 
@@ -518,14 +519,14 @@ export default class VAFLineChart extends React.Component<
         const uniqueColorGetter = makeUniqueColorGetter();
         const clinicalAttributeSamplesMap = this.props.sampleManager.getClinicalAttributeSampleList(
             this.props.sampleManager.samples,
-            this.props.groupById
+            this.props.store.groupById
         );
         clinicalAttributeSamplesMap.forEach(
             (sampleList: string[], clinicalValue) => {
                 groupByColors[clinicalValue] = uniqueColorGetter();
             }
         );
-        console.info(groupByColors);
+        //console.info(groupByColors);
         return groupByColors;
     }
 
@@ -538,7 +539,7 @@ export default class VAFLineChart extends React.Component<
             this.props.coverageInformation,
             this.props.vafTimeline,
             this.sampleTimelineXPosition,
-            this.props.groupById,
+            this.props.store.groupById,
             this.sampleGroupByValue
         );
     }
@@ -908,7 +909,7 @@ export default class VAFLineChart extends React.Component<
                                 )
                             )}
                             {this.renderData.lineData.map(dataForSingleLine => {
-                                console.info(dataForSingleLine);
+                                //console.info(dataForSingleLine);
 
                                 if (dataForSingleLine.length > 1) {
                                     const color = this.sampleGroupByColor[

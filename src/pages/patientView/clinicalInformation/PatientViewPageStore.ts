@@ -266,12 +266,24 @@ export class PatientViewPageStore {
     public setResourceTabOpen(resourceId: string, open: boolean) {
         this.openResourceTabMap.set(resourceId, open);
     }
-
+    /*
     @action public setGroupById(groupById: string) {
         this.urlWrapper.updateURL(currentParams => {
             currentParams.genomicEvolutionSettings.groupById = groupById;
             return currentParams;
         });
+    }
+*/
+    @observable _groupById = 'None';
+    get groupById() {
+        return this._groupById;
+    }
+
+    set groupById(value: string) {
+        // clear error when gene query is modified
+        //this.geneQueryErrorDisplayStatus = Focus.Unfocused;
+        console.info('set to ' + value);
+        this._groupById = value;
     }
 
     @observable

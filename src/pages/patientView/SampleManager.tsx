@@ -233,6 +233,7 @@ class SampleManager {
     getClinicalAttributeDisplayNames(samples: Array<ClinicalDataBySampleId>) {
         let clinicalAttributes: Array<object> = [];
         let clinicalAttributesIds: string[] = [];
+        let clinicalAttributes_: { id: string; value: string }[] = [];
         const clinicalAttribute = {
             value: 'none',
             label: 'none',
@@ -241,11 +242,18 @@ class SampleManager {
 
         samples.forEach((sample, sampleIndex) => {
             sample.clinicalData.forEach((clinicalData, clinicalDataIndex) => {
+                //clinicalAttributes_[clinicalData.clinicalAttributeId] = clinicalData.clinicalAttribute.displayName;
                 if (
-                    clinicalAttributesIds.find(
-                        id => id === clinicalData.clinicalAttributeId
+                    clinicalAttributes_.find(
+                        item => item.id === clinicalData.clinicalAttributeId
                     ) === undefined
-                ) {
+                )
+                    clinicalAttributes_.push({
+                        id: clinicalData.clinicalAttributeId,
+                        value: clinicalData.clinicalAttribute.displayName,
+                    });
+                //if (clinicalAttributes_[clinicalData.clinicalAttributeId] === undefined) {
+                /*    
                     clinicalAttributesIds.push(
                         clinicalData.clinicalAttributeId
                     );
@@ -254,11 +262,11 @@ class SampleManager {
                         label: clinicalData.clinicalAttribute.displayName,
                     };
                     clinicalAttributes.push(clinicalAttribute);
-                }
+                }*/
             });
         });
-        console.info(clinicalAttributes);
-        return clinicalAttributes;
+        //console.info("ATTRIBUTES:"+clinicalAttributes_);
+        return clinicalAttributes_;
     }
 
     getClinicalAttributeLabel(
