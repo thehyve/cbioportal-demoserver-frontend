@@ -173,6 +173,7 @@ describe('DownloadUtils', () => {
             molecularProfileAlterationType: 'MUTATION_EXTENDED',
             alterationType: 'MUTATION_EXTENDED',
             alterationSubType: 'missense',
+            namespaceColumns: {}
         },
         {
             putativeDriver: true,
@@ -219,6 +220,7 @@ describe('DownloadUtils', () => {
             molecularProfileAlterationType: 'MUTATION_EXTENDED',
             alterationType: 'FUSION',
             alterationSubType: 'fusion',
+            namespaceColumns: {}
         },
         {
             putativeDriver: false,
@@ -269,6 +271,7 @@ describe('DownloadUtils', () => {
             molecularProfileAlterationType: 'MUTATION_EXTENDED',
             alterationType: 'MUTATION_EXTENDED',
             alterationSubType: 'missense',
+            namespaceColumns: {}
         },
     ] as (ExtendedAlteration & AnnotatedMutation)[];
 

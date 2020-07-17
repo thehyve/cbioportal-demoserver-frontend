@@ -378,8 +378,6 @@ export type Mutation = {
 
         'aminoAcidChange': string
 
-        'annotation': {}
-
         'center': string
 
         'chr': string
@@ -415,6 +413,8 @@ export type Mutation = {
         'mutationStatus': string
 
         'mutationType': string
+
+        'namespaceColumns': {}
 
         'ncbiBuild': string
 

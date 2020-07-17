@@ -5992,12 +5992,6 @@
         "aminoAcidChange": {
           "type": "string"
         },
-        "annotation": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          }
-        },
         "center": {
           "type": "string"
         },
@@ -6053,6 +6047,12 @@
         },
         "mutationType": {
           "type": "string"
+        },
+        "namespaceColumns": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
         },
         "ncbiBuild": {
           "type": "string"
