@@ -37,7 +37,8 @@ function sign(x: number): 0 | -1 | 1 {
 
 export function getGeneticTrackSortComparator(
     sortByMutationType?: boolean,
-    sortByDrivers?: boolean
+    sortByDrivers?: boolean,
+    sortByZygosity?: boolean
 ): {
     preferred: TrackSortVector<GeneticTrackDatum>;
     mandatory: TrackSortVector<GeneticTrackDatum>;
@@ -103,6 +104,18 @@ export function getGeneticTrackSortComparator(
             return _order[m];
         };
     })();
+    const zygosity_order = (function() {
+        let _order: { [s: string]: number };
+        if (!sortByZygosity) {
+            return function(m: any) {
+                return ({ true: 1, false: 2 } as { [bool: string]: number })[!!m + ''];
+            };
+        } 
+        _order = makeComparatorMetric(['homozygous', 'heterozygous', 'na', 'unknown', undefined]);
+        return function(m: any) {
+            return _order[!!m + ''];
+        };
+    })();
     const regulation_order = makeComparatorMetric(['high', 'low', undefined]);
     const loh_order = makeComparatorMetric([true, false, undefined]); // loh mutation is prioritized
     const germline_order = makeComparatorMetric([true, false, undefined]); // then germline mutation is prioritized
@@ -127,6 +140,8 @@ export function getGeneticTrackSortComparator(
         vector.push(loh_order[d.disp_loh + '']);
         // Germline status
         vector.push(germline_order[d.disp_germ + '']);
+        // Zygosity
+        vector.push(zygosity_order(d.disp_zygosity));
 
         // Next, mrna expression
         vector.push(regulation_order[d.disp_mrna + '']);

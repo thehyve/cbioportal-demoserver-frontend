@@ -674,6 +674,7 @@ describe('Oncoprint DeltaUtils', () => {
                 { sortConfig: { sortByMutationType: true } },
                 oncoprint
             );
+            // TODO Pim: add sort test for zygosity
             transitionSortConfig(
                 { sortConfig: { sortByDrivers: true } },
                 {
