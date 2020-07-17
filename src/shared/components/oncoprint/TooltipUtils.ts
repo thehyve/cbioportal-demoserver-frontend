@@ -18,7 +18,7 @@ import {
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import _ from 'lodash';
 import { alterationTypeToProfiledForText } from './ResultsViewOncoprintUtils';
-import { isGermlineMutation } from '../../lib/MutationUtils';
+import {isGermlineMutation, isLohMutation} from '../../lib/MutationUtils';
 import ListIndexedMap, {
     ListIndexedMapOfCounts,
 } from '../../lib/ListIndexedMap';
@@ -460,7 +460,9 @@ export function makeGeneticTrackTooltip(
                 d.driver_filter_annotation,
                 d.driver_tiers_filter,
                 d.driver_tiers_filter_annotation,
-                d.germline
+                d.germline,
+                d.loh,
+                d.zygosity
             );
         }
         return countsMap
@@ -477,6 +479,8 @@ export function makeGeneticTrackTooltip(
                         driver_tiers_filter,
                         driver_tiers_filter_annotation,
                         germline,
+                        loh,
+                        zygosity
                     ],
                     value: count,
                 }) => {
@@ -507,9 +511,14 @@ export function makeGeneticTrackTooltip(
                         );
                     }
 
-                    // AT THE END, append germline symbol if necessary
+                    // AT THE END, append germline, LOH or zygosity symbol if necessary
                     if (germline) {
-                        ret.append(generateGermlineLabel());
+                        ret.append(generateLabel('Germline', '#ff0000'));
+                    } else if (loh) {
+                        ret.append(generateLabel('LOH', '#ff0000'));
+                    }
+                    if (zygosity) {
+                        ret.append(generateLabel(zygosity as string, 'black'));
                     }
                     // finally, add the number of samples with this, if multipleSamplesUnderMouse
                     if (multipleSamplesUnderMouse) {
@@ -571,9 +580,9 @@ export function makeGeneticTrackTooltip(
             });
     }
 
-    function generateGermlineLabel() {
-        const ret = $('<small style="color: #ff0000">');
-        ret.append('&nbsp;Germline');
+    function generateLabel(type: string, color: string) {
+        const ret = $('<small style="color: ' + color + '">');
+        ret.append('&nbsp;' + type);
         return ret;
     }
 
@@ -595,6 +604,7 @@ export function makeGeneticTrackTooltip(
             | 'not_profiled_in'
             | 'disp_germ'
             | 'disp_loh'
+            | 'disp_zygosity'
         >[]
     ) {
         const ret = $('<div>').addClass(TOOLTIP_DIV_CLASS);
@@ -630,6 +640,12 @@ export function makeGeneticTrackTooltip(
                         }
                         if (isGermlineMutation(datum)) {
                             tooltip_datum.germline = true;
+                        } else if (isLohMutation(datum)) {
+                            tooltip_datum.loh = true;
+                        }
+                        if ((datum.namespaceColumns as any) && (datum.namespaceColumns as any).zygosity) {
+                            tooltip_datum.zygosity =
+                                (datum.namespaceColumns as any).zygosity.status;
                         }
                         const oncokb_oncogenic = datum.oncoKbOncogenic;
                         if (oncokb_oncogenic) {
@@ -698,6 +714,7 @@ export function makeGeneticTrackTooltip(
         }
         if (mutations.length > 0) {
             ret.append('Mutation: ');
+            // TODO Pim: add red LOH tag when Mutation_Status is LOH
             mutations = listOfMutationOrFusionDataToHTML(
                 mutations,
                 dataUnderMouse.length > 1

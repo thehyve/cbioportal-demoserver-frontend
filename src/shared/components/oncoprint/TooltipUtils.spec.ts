@@ -910,6 +910,7 @@ describe('Oncoprint TooltipUtils', () => {
                 );
             });
         });
+        // TODO Pim: write tests for LOH and zygosity
         describe('profiled and not profiled', () => {
             it("should say 'Not profiled' if 'profiled_in' is empty and 'not_profiled_in' is not", () => {
                 const datum = {
