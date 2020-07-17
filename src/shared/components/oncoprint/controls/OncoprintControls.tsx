@@ -85,6 +85,7 @@ export interface IOncoprintControlsHandlers {
 
     onSelectSortByMutationType: (sort: boolean) => void;
     onSelectSortByDrivers: (sort: boolean) => void;
+    onSelectSortByZygosity: (sort: boolean) => void;
     onClickSortByData?: () => void;
     onClickSortAlphabetical?: () => void;
     onClickSortCaseListOrder?: () => void;
@@ -117,6 +118,7 @@ export interface IOncoprintControlsState {
     distinguishZygosity: boolean;
     sortByMutationType: boolean;
     sortByDrivers: boolean;
+    sortByZygosity: boolean;
     sortByCaseListDisabled: boolean;
     annotateDriversOncoKb: boolean;
     annotateDriversOncoKbError: boolean;
@@ -203,6 +205,7 @@ const EVENT_KEY = {
     sortCaseListOrder: '8',
     sortByData: '9',
     sortByDrivers: '10',
+    sortByZygosity: '11',
     addGenesToHeatmap: '13',
     distinguishDrivers: '15',
     annotateOncoKb: '16',
@@ -477,6 +480,12 @@ export default class OncoprintControls extends React.Component<
                 this.props.handlers.onSelectSortByDrivers &&
                     this.props.handlers.onSelectSortByDrivers(
                         !this.props.state.sortByDrivers
+                    );
+                break;
+            case EVENT_KEY.sortByZygosity:
+                this.props.handlers.onSelectSortByZygosity &&
+                    this.props.handlers.onSelectSortByZygosity(
+                        !this.props.state.sortByZygosity
                     );
                 break;
             case EVENT_KEY.distinguishDrivers:
@@ -1031,6 +1040,18 @@ export default class OncoprintControls extends React.Component<
                             Driver/Passenger
                         </label>
                     </div>
+                    <div className="checkbox">
+                        <label>
+                            <input
+                                type="checkbox"
+                                value={EVENT_KEY.sortByZygosity}
+                                checked={this.props.state.sortByZygosity}
+                                onClick={this.onInputClick}
+                                disabled={!this.props.state.distinguishZygosity}
+                            />{' '}
+                            Zygosity
+                        </label>
+                    </div>
                 </div>
             </CustomDropdown>
         );
@@ -1092,6 +1113,22 @@ export default class OncoprintControls extends React.Component<
                                     }
                                 />{' '}
                                 Driver/Passenger
+                            </label>
+                        </div>
+                        <div className="checkbox">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    value={EVENT_KEY.sortByZygosity}
+                                    checked={this.props.state.sortByZygosity}
+                                    onClick={this.onInputClick}
+                                    disabled={
+                                        this.props.state.sortMode!.type !==
+                                            'data' ||
+                                        !this.props.state.distinguishZygosity
+                                    }
+                                />{' '}
+                                Zygosity
                             </label>
                         </div>
                     </div>

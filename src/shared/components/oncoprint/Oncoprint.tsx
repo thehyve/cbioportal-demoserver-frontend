@@ -1,24 +1,25 @@
 import * as React from 'react';
 import OncoprintJS, {
-    TrackId,
-    CustomTrackOption,
-    TrackGroupHeader,
-    TrackSortDirection,
-    InitParams,
     ColumnLabel,
+    CustomTrackOption,
+    InitParams,
+    TrackGroupHeader,
+    TrackId,
+    TrackSortDirection,
 } from 'oncoprintjs';
-import { GenePanelData, MolecularProfile } from 'cbioportal-ts-api-client';
-import { observer } from 'mobx-react';
-import { computed } from 'mobx';
-import { transition } from './DeltaUtils';
+import {MolecularProfile} from 'cbioportal-ts-api-client';
+import {observer} from 'mobx-react';
+import {computed} from 'mobx';
+import {transition} from './DeltaUtils';
 import _ from 'lodash';
 import {
     AnnotatedMutation,
     AnnotatedNumericGeneMolecularData,
-    ExtendedAlteration, Zygosity,
+    ExtendedAlteration,
+    Zygosity,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import './styles.scss';
-import { ShapeParams } from 'oncoprintjs/dist/js/oncoprintshape';
+import {ShapeParams} from 'oncoprintjs/dist/js/oncoprintshape';
 
 export type ClinicalTrackDatum = {
     attr_id: string;
@@ -224,6 +225,7 @@ export interface IOncoprintProps {
 
         sortByMutationType?: boolean;
         sortByDrivers?: boolean;
+        sortByZygosity?: boolean;
     };
     showClinicalTrackLegends?: boolean;
     showWhitespaceBetweenColumns?: boolean;
@@ -286,6 +288,14 @@ export default class Oncoprint extends React.Component<IOncoprintProps, {}> {
             this.props.distinguishDrivers &&
             this.props.sortConfig &&
             this.props.sortConfig.sortByDrivers
+        );
+    }
+
+    @computed get nextSortByZygosity() {
+        return (
+            this.props.distinguishZygosity &&
+            this.props.sortConfig &&
+            this.props.sortConfig.sortByZygosity
         );
     }
 

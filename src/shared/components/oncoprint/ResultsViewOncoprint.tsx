@@ -176,6 +176,13 @@ export default class ResultsViewOncoprint extends React.Component<
         );
     }
 
+    @computed get sortByZygosity() {
+        return (
+            !this.urlWrapper.query.oncoprint_sort_by_zygosity || // on by default
+            this.urlWrapper.query.oncoprint_sort_by_zygosity === 'true'
+        );
+    }
+
     @computed get selectedGenericAssayEntitiesGroupByGenericAssayTypeFromUrl() {
         const result = _.reduce(
             this.props.store.selectedGenericAssayEntities,
@@ -494,6 +501,9 @@ export default class ResultsViewOncoprint extends React.Component<
             get sortByDrivers() {
                 return self.sortByDrivers;
             },
+            get sortByZygosity() {
+                return self.sortByZygosity;
+            },
             get heatmapProfilesPromise() {
                 return self.props.store.heatmapMolecularProfiles;
             },
@@ -775,6 +785,11 @@ export default class ResultsViewOncoprint extends React.Component<
             onSelectSortByDrivers: (sort: boolean) => {
                 this.urlWrapper.updateURL({
                     oncoprint_sort_by_drivers: sort.toString(),
+                });
+            },
+            onSelectSortByZygosity: (sort: boolean) => {
+                this.urlWrapper.updateURL({
+                    oncoprint_sort_by_zygosity: sort.toString(),
                 });
             },
             onClickSortByData: () => {
@@ -1434,6 +1449,7 @@ export default class ResultsViewOncoprint extends React.Component<
         return {
             sortByMutationType: this.sortByMutationType,
             sortByDrivers: this.sortByDrivers,
+            sortByZygosity: this.sortByZygosity,
             order: this.sortOrder,
             clusterHeatmapTrackGroupIndex: this.clusteredHeatmapTrackGroupIndex,
         };

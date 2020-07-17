@@ -292,7 +292,9 @@ export interface AnnotatedMutation extends Mutation {
 
 export enum Zygosity {
     homozygous = 0,
-    heterozygous = 1
+    heterozygous = 1,
+    na = 2,
+    unknown = 3
 }
 
 export interface AnnotatedNumericGeneMolecularData

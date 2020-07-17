@@ -328,7 +328,8 @@ function shouldNotKeepSorted_GeneticTracksHelper(
     // (3) Track sort comparator changed
     return (
         sortByMutationType(nextProps) !== sortByMutationType(prevProps) ||
-        sortByDrivers(nextProps) !== sortByDrivers(prevProps)
+        sortByDrivers(nextProps) !== sortByDrivers(prevProps) ||
+        sortByZygosity(nextProps) !== sortByZygosity(prevProps)
     );
 }
 
@@ -925,6 +926,14 @@ function sortByDrivers(nextProps: Partial<IOncoprintProps>) {
     );
 }
 
+function sortByZygosity(nextProps: Partial<IOncoprintProps>) {
+    return (
+        nextProps.distinguishZygosity &&
+        nextProps.sortConfig &&
+        nextProps.sortConfig.sortByZygosity
+    );
+}
+
 function updateExpansionTracks<
     TrackSpecType extends { key: string },
     RuleSetRepMap
@@ -1035,7 +1044,8 @@ function transitionGeneticTrack(
             target_group: GENETIC_TRACK_GROUP_INDEX,
             sortCmpFn: getGeneticTrackSortComparator(
                 sortByMutationType(nextProps),
-                sortByDrivers(nextProps)
+                sortByDrivers(nextProps),
+                sortByZygosity(nextProps)
             ),
             description: nextSpec.oql,
             data_id_key: 'uid',
@@ -1075,15 +1085,18 @@ function transitionGeneticTrack(
         const trackId = trackSpecKeyToTrackId[nextSpec.key];
         const nextSortByMutationType = sortByMutationType(nextProps);
         const nextSortByDrivers = sortByDrivers(nextProps);
+        const nextSortByZygosity = sortByZygosity(nextProps);
         if (
             nextSortByMutationType !== sortByMutationType(prevProps) ||
-            nextSortByDrivers !== sortByDrivers(prevProps)
+            nextSortByDrivers !== sortByDrivers(prevProps) ||
+            nextSortByZygosity !== sortByZygosity(prevProps)
         ) {
             oncoprint.setTrackSortComparator(
                 trackId,
                 getGeneticTrackSortComparator(
                     nextSortByMutationType,
-                    nextSortByDrivers
+                    nextSortByDrivers,
+                    nextSortByZygosity
                 )
             );
         }

@@ -42,6 +42,7 @@ export default class Oncoprinter extends React.Component<
     @observable distinguishZygosity = true;
     @observable sortByMutationType: boolean = true;
     @observable sortByDrivers: boolean = true;
+    @observable sortByZygosity: boolean = true;
 
     @observable showWhitespaceBetweenColumns: boolean = true;
     @observable showClinicalTrackLegends: boolean = true;
@@ -135,6 +136,9 @@ export default class Oncoprinter extends React.Component<
             },
             get sortByDrivers() {
                 return self.sortByDrivers;
+            },
+            get sortByZygosity() {
+                return self.sortByZygosity;
             },
             get horzZoom() {
                 if (isNaN(self.horzZoom)) {
@@ -265,6 +269,9 @@ export default class Oncoprinter extends React.Component<
             onSelectSortByDrivers: (sort: boolean) => {
                 this.sortByDrivers = sort;
             },
+            onSelectSortByZygosity: (sort: boolean) => {
+                this.sortByZygosity = sort;
+            },
             onClickDownload: (type: string) => {
                 switch (type) {
                     case 'pdf':
@@ -372,6 +379,7 @@ export default class Oncoprinter extends React.Component<
         return {
             sortByMutationType: this.sortByMutationType,
             sortByDrivers: this.sortByDrivers,
+            sortByZygosity: this.sortByZygosity,
             order: this.props.store.inputSampleIdOrder,
         };
     }

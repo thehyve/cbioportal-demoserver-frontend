@@ -60,6 +60,7 @@ export type OncoprinterGeneticTrackDatum = Pick<
     | 'disp_fusion'
     | 'disp_germ'
     | 'disp_loh'
+    | 'disp_zygosity'
 > & {
     sample: string;
     patient: string;
