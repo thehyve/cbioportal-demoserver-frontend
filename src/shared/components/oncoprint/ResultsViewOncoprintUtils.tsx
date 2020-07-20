@@ -282,7 +282,7 @@ export function genericAssayEntitiesToSelectOptionsGroupByGenericAssayType(gener
 export function makeTrackGroupHeaders(
     molecularProfileIdToMolecularProfile: { [p: string]: MolecularProfile },
     molecularProfileIdToHeatmapTracks: { [p: string]: HeatmapTrackGroupRecord },
-    genesetHeatmapTrackGroup: number | undefined,
+    genesetHeatmapTrackGroupIndex: number | undefined,
     getClusteredTrackGroupIndex: () => number | undefined,
     onClickClusterCallback: (index: TrackGroupIndex) => void,
     onClickDontClusterCallback: () => void,
@@ -307,11 +307,11 @@ export function makeTrackGroupHeaders(
         {} as { [trackGroupIndex: number]: TrackGroupHeader }
     );
 
-    if (genesetHeatmapTrackGroup !== undefined) {
-        headers[genesetHeatmapTrackGroup] = makeTrackGroupHeader(
+    if (genesetHeatmapTrackGroupIndex !== undefined) {
+        headers[genesetHeatmapTrackGroupIndex] = makeTrackGroupHeader(
             'geneset',
             'GSVA Scores',
-            genesetHeatmapTrackGroup!,
+            genesetHeatmapTrackGroupIndex!,
             getClusteredTrackGroupIndex,
             onClickClusterCallback,
             onClickDontClusterCallback,

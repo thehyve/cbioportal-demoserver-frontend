@@ -1357,20 +1357,24 @@ export default class ResultsViewOncoprint extends React.Component<
             : this.patientGenericAssayHeatmapTracks;
     }
 
-    @computed get genesetHeatmapTrackGroup(): number {
-        return (
-            1 +
-            Math.max(
-                GENETIC_TRACK_GROUP_INDEX,
-                // observe the heatmap tracks to render in the very next group
-                ...this.heatmapTracks.result.map(
-                    hmTrack => hmTrack.trackGroupIndex
-                ),
-                ...this.genericAssayHeatmapTracks.result.map(
-                    hmTrack => hmTrack.trackGroupIndex
+    @computed get genesetHeatmapTrackGroupIndex(): TrackGroupIndex | undefined {
+        if (this.genesetHeatmapTracks.result.length > 0) {
+            return (
+                1 +
+                Math.max(
+                    GENETIC_TRACK_GROUP_INDEX,
+                    // observe the heatmap tracks to render in the very next group
+                    ...this.heatmapTracks.result.map(
+                        hmTrack => hmTrack.trackGroupIndex
+                    ),
+                    ...this.genericAssayHeatmapTracks.result.map(
+                        hmTrack => hmTrack.trackGroupIndex
+                    )
                 )
-            )
-        );
+            );
+        } else {
+            return undefined;
+        }
     }
 
     readonly sampleGenesetHeatmapTracks = makeGenesetHeatmapTracksMobxPromise(
@@ -1402,7 +1406,7 @@ export default class ResultsViewOncoprint extends React.Component<
                     .molecularProfileId;
 
             if (clusteredHeatmapProfile === genesetHeatmapProfile) {
-                return this.genesetHeatmapTrackGroup;
+                return this.genesetHeatmapTrackGroupIndex;
             } else {
                 const heatmapGroup = this.molecularProfileIdToHeatmapTracks[
                     clusteredHeatmapProfile
@@ -1430,7 +1434,7 @@ export default class ResultsViewOncoprint extends React.Component<
         }
 
         let molecularProfileId: string | undefined;
-        if (index === this.genesetHeatmapTrackGroup) {
+        if (index === this.genesetHeatmapTrackGroupIndex) {
             molecularProfileId =
                 this.props.store.genesetMolecularProfile.result &&
                 this.props.store.genesetMolecularProfile.result.value &&
@@ -1483,7 +1487,7 @@ export default class ResultsViewOncoprint extends React.Component<
                     this.props.store.molecularProfileIdToMolecularProfile
                         .result!,
                     this.molecularProfileIdToHeatmapTracks,
-                    this.genesetHeatmapTrackGroup,
+                    this.genesetHeatmapTrackGroupIndex,
                     () => this.clusteredHeatmapTrackGroupIndex,
                     this.clusterHeatmapByIndex,
                     () => this.sortByData(),
