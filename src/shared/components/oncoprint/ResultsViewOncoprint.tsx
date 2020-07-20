@@ -1484,7 +1484,7 @@ export default class ResultsViewOncoprint extends React.Component<
                         .result!,
                     this.molecularProfileIdToHeatmapTracks,
                     this.genesetHeatmapTrackGroup,
-                    this.clusteredHeatmapTrackGroupIndex,
+                    () => this.clusteredHeatmapTrackGroupIndex,
                     this.clusterHeatmapByIndex,
                     () => this.sortByData(),
                     this.removeHeatmapByIndex

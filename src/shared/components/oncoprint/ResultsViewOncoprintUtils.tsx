@@ -283,7 +283,7 @@ export function makeTrackGroupHeaders(
     molecularProfileIdToMolecularProfile: { [p: string]: MolecularProfile },
     molecularProfileIdToHeatmapTracks: { [p: string]: HeatmapTrackGroupRecord },
     genesetHeatmapTrackGroup: number | undefined,
-    clusteredTrackGroupIndex: number | undefined,
+    getClusteredTrackGroupIndex: () => number | undefined,
     onClickClusterCallback: (index: TrackGroupIndex) => void,
     onClickDontClusterCallback: () => void,
     onClickDeleteCallback: (index: TrackGroupIndex) => void
@@ -297,7 +297,7 @@ export function makeTrackGroupHeaders(
                     nextEntry.molecularProfileId
                 ].name,
                 nextEntry.trackGroupIndex,
-                clusteredTrackGroupIndex,
+                getClusteredTrackGroupIndex,
                 onClickClusterCallback,
                 onClickDontClusterCallback,
                 onClickDeleteCallback
@@ -312,7 +312,7 @@ export function makeTrackGroupHeaders(
             'geneset',
             'GSVA Scores',
             genesetHeatmapTrackGroup!,
-            clusteredTrackGroupIndex,
+            getClusteredTrackGroupIndex,
             onClickClusterCallback,
             onClickDontClusterCallback,
             onClickDeleteCallback
@@ -325,8 +325,8 @@ export function makeTrackGroupHeaders(
 function makeTrackGroupHeader(
     type: 'heatmap' | 'geneset',
     text: string,
-    trackgroupIndex: number,
-    clusteredTrackGroupIndex: number | undefined,
+    trackGroupIndex: number,
+    getClusteredTrackGroupIndex: () => number | undefined,
     onClickClusterCallback: (index: TrackGroupIndex) => void,
     onClickDontClusterCallback: () => void,
     onClickDeleteCallback: (index: TrackGroupIndex) => void
@@ -338,7 +338,7 @@ function makeTrackGroupHeader(
                 label: 'Cluster',
                 onClick: onClickClusterCallback,
                 weight: () => {
-                    if (clusteredTrackGroupIndex === trackgroupIndex) {
+                    if (getClusteredTrackGroupIndex() === trackGroupIndex) {
                         return 'bold';
                     } else {
                         return 'normal';
@@ -348,12 +348,12 @@ function makeTrackGroupHeader(
             {
                 label: "Don't cluster",
                 onClick: () => {
-                    if (clusteredTrackGroupIndex === trackgroupIndex) {
+                    if (getClusteredTrackGroupIndex() === trackGroupIndex) {
                         onClickDontClusterCallback();
                     }
                 },
                 weight: () => {
-                    if (clusteredTrackGroupIndex === trackgroupIndex) {
+                    if (getClusteredTrackGroupIndex() === trackGroupIndex) {
                         return 'normal';
                     } else {
                         return 'bold';
