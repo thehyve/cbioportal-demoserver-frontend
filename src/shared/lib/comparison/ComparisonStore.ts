@@ -2,10 +2,7 @@ import {
     ClinicalDataEnrichmentWithQ,
     ComparisonGroup,
     CopyNumberEnrichment,
-    defaultGroupOrder,
-    finalizeStudiesAttr,
     getNumSamples,
-    getOrdinals,
     getOverlapComputations,
     getSampleIdentifiers,
     getStudyIds,
@@ -16,7 +13,7 @@ import {
     getGroupsDownloadData,
 } from '../../../pages/groupComparison/GroupComparisonUtils';
 import { GroupComparisonTab } from '../../../pages/groupComparison/GroupComparisonTabs';
-import { remoteData, stringListToIndexSet } from 'cbioportal-frontend-commons';
+import { remoteData } from 'cbioportal-frontend-commons';
 import {
     CancerStudy,
     ClinicalAttribute,
@@ -26,7 +23,6 @@ import {
     MolecularProfileFilter,
     ReferenceGenomeGene,
     Sample,
-    SampleFilter,
 } from 'cbioportal-ts-api-client';
 import { action, autorun, computed, IReactionDisposer, observable } from 'mobx';
 import client from '../../api/cbioportalClientInstance';
@@ -39,19 +35,18 @@ import {
     pickProteinEnrichmentProfiles,
     pickMethylationEnrichmentProfiles,
 } from '../../../pages/resultsView/enrichments/EnrichmentsUtil';
-import { makeEnrichmentDataPromise } from '../../../pages/resultsView/ResultsViewPageStoreUtils';
+import {
+    makeEnrichmentDataPromise,
+    makeEnrichmentDataPromiseWithoutProfile,
+} from '../../../pages/resultsView/ResultsViewPageStoreUtils';
 import internalClient from '../../api/cbioportalInternalClientInstance';
 import autobind from 'autobind-decorator';
 import { PatientSurvival } from 'shared/model/PatientSurvival';
-import request from 'superagent';
 import {
     getPatientSurvivals,
     getClinicalDataOfPatientSurvivalStatus,
 } from 'pages/resultsView/SurvivalStoreHelper';
-import {
-    getPatientIdentifiers,
-    pickClinicalDataColors,
-} from 'pages/studyView/StudyViewUtils';
+import { getPatientIdentifiers } from 'pages/studyView/StudyViewUtils';
 import {
     AlterationEnrichment,
     Group,
@@ -62,8 +57,6 @@ import { calculateQValues } from 'shared/lib/calculation/BenjaminiHochbergFDRCal
 import ComplexKeyMap from '../complexKeyDataStructures/ComplexKeyMap';
 import ComplexKeyGroupsMap from '../complexKeyDataStructures/ComplexKeyGroupsMap';
 import { AppStore } from '../../../AppStore';
-import { GACustomFieldsEnum, trackEvent } from 'shared/lib/tracking';
-import ifNotDefined from '../ifNotDefined';
 import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescriptionTable';
 import {
     fetchAllReferenceGenomeGenes,
@@ -71,11 +64,13 @@ import {
     getSurvivalClinicalAttributesPrefix,
 } from 'shared/lib/StoreUtils';
 import MobxPromise from 'mobxpromise';
-import ResultsViewURLWrapper from '../../../pages/resultsView/ResultsViewURLWrapper';
 import { ResultsViewPageStore } from '../../../pages/resultsView/ResultsViewPageStore';
 import { getSurvivalStatusBoolean } from 'pages/resultsView/survival/SurvivalUtil';
 import onMobxPromise from '../onMobxPromise';
-
+import {
+    CopyNumberEnrichmentEventType,
+    MutationEnrichmentEventType,
+} from 'pages/resultsView/comparison/ComparisonTabUtils';
 export enum OverlapStrategy {
     INCLUDE = 'Include',
     EXCLUDE = 'Exclude',
@@ -85,6 +80,63 @@ export default class ComparisonStore {
     private tabHasBeenShown = observable.map<boolean>();
     private tabHasBeenShownReactionDisposer: IReactionDisposer;
     @observable public newSessionPending = false;
+    @observable.ref
+    selectedCopyNumberEnrichmentEventTypes: CopyNumberEnrichmentEventType[] = [
+        'HOMDEL',
+        'AMP',
+    ];
+    @observable.ref
+    selectedMutationEnrichmentEventTypes: MutationEnrichmentEventType[] = [
+        'missense_mutation',
+        'missense',
+        'missense_variant',
+        'frame_shift_ins',
+        'frame_shift_del',
+        'frameshift',
+        'frameshift_deletion',
+        'frameshift_insertion',
+        'de_novo_start_outofframe',
+        'frameshift_variant',
+        'nonsense_mutation',
+        'nonsense',
+        'stopgain_snv',
+        'stop_gained',
+        'splice_site',
+        'splice',
+        'splicing',
+        'splice_site_snp',
+        'splice_site_del',
+        'splice_site_indel',
+        'splice_region_variant',
+        'splice_region',
+        'translation_start_site',
+        'initiator_codon_variant',
+        'start_codon_snp',
+        'start_codon_del',
+        'nonstop_mutation',
+        'stop_lost',
+        'inframe_del',
+        'inframe_deletion',
+        'in_frame_del',
+        'in_frame_deletion',
+        'inframe_ins',
+        'inframe_insertion',
+        'in_frame_ins',
+        'in_frame_insertion',
+        'indel',
+        'nonframeshift_deletion',
+        'nonframeshift',
+        'nonframeshift_insertion',
+        'targeted_region',
+        'inframe',
+        'truncating',
+        'feature_truncation',
+        'fusion',
+        'silent',
+        'synonymous_variant',
+        'any',
+        'other',
+    ];
 
     constructor(
         protected appStore: AppStore,
@@ -96,16 +148,6 @@ export default class ComparisonStore {
                     GroupComparisonTab.SURVIVAL,
                     !!this.tabHasBeenShown.get(GroupComparisonTab.SURVIVAL) ||
                         this.showSurvivalTab
-                );
-                this.tabHasBeenShown.set(
-                    GroupComparisonTab.MUTATIONS,
-                    !!this.tabHasBeenShown.get(GroupComparisonTab.MUTATIONS) ||
-                        this.showMutationsTab
-                );
-                this.tabHasBeenShown.set(
-                    GroupComparisonTab.CNA,
-                    !!this.tabHasBeenShown.get(GroupComparisonTab.CNA) ||
-                        this.showCopyNumberTab
                 );
                 this.tabHasBeenShown.set(
                     GroupComparisonTab.MRNA,
@@ -125,6 +167,10 @@ export default class ComparisonStore {
                 );
             });
         }); // do this after timeout so that all subclasses have time to construct
+
+        // this.selectedCopyNumberEnrichmentEventTypes = observable();
+
+        // this.selectedMutationEnrichmentEventTypes = observable();
     }
 
     public destroy() {
@@ -472,7 +518,7 @@ export default class ComparisonStore {
         [studyId: string]: MolecularProfile;
     } = {};
 
-    readonly selectedStudyMutationEnrichmentProfileMap = remoteData({
+    readonly selectedStudyMutationEnrichmentProfileMapLegacy = remoteData({
         await: () => [this.mutationEnrichmentProfiles],
         invoke: () => {
             // set default enrichmentProfileMap if not selected yet
@@ -494,7 +540,7 @@ export default class ComparisonStore {
         },
     });
 
-    readonly selectedStudyCopyNumberEnrichmentProfileMap = remoteData({
+    readonly selectedStudyCopyNumberEnrichmentProfileMapLegacy = remoteData({
         await: () => [this.copyNumberEnrichmentProfiles],
         invoke: () => {
             // set default enrichmentProfileMap if not selected yet
@@ -512,6 +558,117 @@ export default class ComparisonStore {
                 );
             } else {
                 return Promise.resolve(this._copyNumberEnrichmentProfileMap);
+            }
+        },
+    });
+
+    readonly selectedStudyMutationEnrichmentProfileMap = remoteData({
+        await: () => [this.mutationEnrichmentProfiles],
+        invoke: () => {
+            const mutationTypes: MutationEnrichmentEventType[] = [
+                'missense_mutation',
+                'missense',
+                'missense_variant',
+                'frame_shift_ins',
+                'frame_shift_del',
+                'frameshift',
+                'frameshift_deletion',
+                'frameshift_insertion',
+                'de_novo_start_outofframe',
+                'frameshift_variant',
+                'nonsense_mutation',
+                'nonsense',
+                'stopgain_snv',
+                'stop_gained',
+                'splice_site',
+                'splice',
+                'splicing',
+                'splice_site_snp',
+                'splice_site_del',
+                'splice_site_indel',
+                'splice_region_variant',
+                'splice_region',
+                'translation_start_site',
+                'initiator_codon_variant',
+                'start_codon_snp',
+                'start_codon_del',
+                'nonstop_mutation',
+                'stop_lost',
+                'inframe_del',
+                'inframe_deletion',
+                'in_frame_del',
+                'in_frame_deletion',
+                'inframe_ins',
+                'inframe_insertion',
+                'in_frame_ins',
+                'in_frame_insertion',
+                'indel',
+                'nonframeshift_deletion',
+                'nonframeshift',
+                'nonframeshift_insertion',
+                'targeted_region',
+                'inframe',
+                'truncating',
+                'feature_truncation',
+                'fusion',
+                'silent',
+                'synonymous_variant',
+                'any',
+                'other',
+            ];
+            //Only return Mutation profile if any mutation type is selected, otherwise return {}
+            if (this.selectedMutationEnrichmentEventTypes.length > 0) {
+                // set default enrichmentProfileMap if not selected yet
+                if (_.isEmpty(this._mutationEnrichmentProfileMap)) {
+                    const molecularProfilesbyStudyId = _.groupBy(
+                        this.mutationEnrichmentProfiles.result!,
+                        profile => profile.studyId
+                    );
+                    // Select only one molecular profile for each study
+                    return Promise.resolve(
+                        _.mapValues(
+                            molecularProfilesbyStudyId,
+                            molecularProfiles => molecularProfiles[0]
+                        )
+                    );
+                } else {
+                    return Promise.resolve(this._mutationEnrichmentProfileMap);
+                }
+            } else {
+                return Promise.resolve({});
+            }
+        },
+    });
+
+    readonly selectedStudyCopyNumberEnrichmentProfileMap = remoteData({
+        await: () => [this.copyNumberEnrichmentProfiles],
+        invoke: () => {
+            const copyNumberTypes: CopyNumberEnrichmentEventType[] = [
+                'HOMDEL',
+                'AMP',
+            ];
+            //Only return Copy Number profile if any copy number type is selected, otherwise return {}
+            if (this.selectedCopyNumberEnrichmentEventTypes.length > 0) {
+                // set default enrichmentProfileMap if not selected yet
+                if (_.isEmpty(this._copyNumberEnrichmentProfileMap)) {
+                    const molecularProfilesbyStudyId = _.groupBy(
+                        this.copyNumberEnrichmentProfiles.result!,
+                        profile => profile.studyId
+                    );
+                    // Select only one molecular profile for each study
+                    return Promise.resolve(
+                        _.mapValues(
+                            molecularProfilesbyStudyId,
+                            molecularProfiles => molecularProfiles[0]
+                        )
+                    );
+                } else {
+                    return Promise.resolve(
+                        this._copyNumberEnrichmentProfileMap
+                    );
+                }
+            } else {
+                return Promise.resolve({});
             }
         },
     });
@@ -620,7 +777,7 @@ export default class ComparisonStore {
     readonly mutationEnrichmentAnalysisGroups = remoteData({
         await: () => [
             this.enrichmentAnalysisGroups,
-            this.selectedStudyMutationEnrichmentProfileMap,
+            this.selectedStudyMutationEnrichmentProfileMapLegacy,
         ],
         invoke: () => {
             return Promise.resolve(
@@ -629,7 +786,8 @@ export default class ComparisonStore {
                         // filter samples having mutation profile
                         const filteredSamples = group.samples.filter(
                             sample =>
-                                this.selectedStudyMutationEnrichmentProfileMap
+                                this
+                                    .selectedStudyMutationEnrichmentProfileMapLegacy
                                     .result![sample.studyId] !== undefined
                         );
                         if (filteredSamples.length > 0) {
@@ -657,7 +815,7 @@ export default class ComparisonStore {
     readonly mutationEnrichmentDataRequestGroups = remoteData({
         await: () => [
             this.mutationEnrichmentAnalysisGroups,
-            this.selectedStudyMutationEnrichmentProfileMap,
+            this.selectedStudyMutationEnrichmentProfileMapLegacy,
         ],
         invoke: () => {
             return Promise.resolve(
@@ -668,7 +826,7 @@ export default class ComparisonStore {
                                 ? sample.patientId
                                 : sample.sampleId,
                             molecularProfileId: this
-                                .selectedStudyMutationEnrichmentProfileMap
+                                .selectedStudyMutationEnrichmentProfileMapLegacy
                                 .result![sample.studyId].molecularProfileId,
                         })
                     );
@@ -686,14 +844,14 @@ export default class ComparisonStore {
         await: () => [this.mutationEnrichmentDataRequestGroups],
         referenceGenesPromise: this.hugoGeneSymbolToReferenceGene,
         getSelectedProfileMap: () =>
-            this.selectedStudyMutationEnrichmentProfileMap.result!,
+            this.selectedStudyMutationEnrichmentProfileMapLegacy.result!,
         fetchData: () => {
             if (
                 this.mutationEnrichmentDataRequestGroups.result &&
                 this.mutationEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchMutationEnrichmentsUsingPOST({
-                    enrichmentType: this.usePatientLevelEnrichments
+                    enrichmentScope: this.usePatientLevelEnrichments
                         ? 'PATIENT'
                         : 'SAMPLE',
                     groups: this.mutationEnrichmentDataRequestGroups.result!,
@@ -706,7 +864,7 @@ export default class ComparisonStore {
 
     readonly copyNumberEnrichmentAnalysisGroups = remoteData({
         await: () => [
-            this.selectedStudyCopyNumberEnrichmentProfileMap,
+            this.selectedStudyCopyNumberEnrichmentProfileMapLegacy,
             this.enrichmentAnalysisGroups,
         ],
         invoke: () => {
@@ -716,7 +874,8 @@ export default class ComparisonStore {
                         // filter samples having mutation profile
                         const filteredSamples = group.samples.filter(
                             sample =>
-                                this.selectedStudyCopyNumberEnrichmentProfileMap
+                                this
+                                    .selectedStudyCopyNumberEnrichmentProfileMapLegacy
                                     .result![sample.studyId] !== undefined
                         );
                         if (filteredSamples.length > 0) {
@@ -744,7 +903,7 @@ export default class ComparisonStore {
     readonly copyNumberEnrichmentDataRequestGroups = remoteData({
         await: () => [
             this.copyNumberEnrichmentAnalysisGroups,
-            this.selectedStudyCopyNumberEnrichmentProfileMap,
+            this.selectedStudyCopyNumberEnrichmentProfileMapLegacy,
         ],
         invoke: () => {
             return Promise.resolve(
@@ -755,7 +914,7 @@ export default class ComparisonStore {
                                 ? sample.patientId
                                 : sample.sampleId,
                             molecularProfileId: this
-                                .selectedStudyCopyNumberEnrichmentProfileMap
+                                .selectedStudyCopyNumberEnrichmentProfileMapLegacy
                                 .result![sample.studyId].molecularProfileId,
                         })
                     );
@@ -811,10 +970,10 @@ export default class ComparisonStore {
         await: () => [
             this.copyNumberHomdelEnrichmentData,
             this.copyNumberAmpEnrichmentData,
-            this.selectedStudyCopyNumberEnrichmentProfileMap,
+            this.selectedStudyCopyNumberEnrichmentProfileMapLegacy,
         ],
         getSelectedProfileMap: () =>
-            this.selectedStudyCopyNumberEnrichmentProfileMap.result!,
+            this.selectedStudyCopyNumberEnrichmentProfileMapLegacy.result!,
         referenceGenesPromise: this.hugoGeneSymbolToReferenceGene,
         fetchData: () => {
             const ampData = this.copyNumberAmpEnrichmentData.result!.map(d => {
@@ -831,13 +990,171 @@ export default class ComparisonStore {
         },
     });
 
+    readonly alterationsEnrichmentAnalysisGroups = remoteData({
+        await: () => [
+            this.enrichmentAnalysisGroups,
+            this.selectedStudyMutationEnrichmentProfileMap,
+            this.selectedStudyCopyNumberEnrichmentProfileMap,
+        ],
+        invoke: () => {
+            return Promise.resolve(
+                this.enrichmentAnalysisGroups.result!.reduce(
+                    (acc: EnrichmentAnalysisComparisonGroup[], group) => {
+                        let filteredSamples: Sample[] = [];
+                        // filter samples having mutation profile
+                        if (
+                            !_.isEmpty(
+                                this.selectedStudyMutationEnrichmentProfileMap
+                                    .result
+                            )
+                        ) {
+                            filteredSamples = filteredSamples.concat(
+                                group.samples.filter(
+                                    sample =>
+                                        this
+                                            .selectedStudyMutationEnrichmentProfileMap
+                                            .result![sample.studyId] !==
+                                        undefined
+                                )
+                            );
+                        }
+                        // filter samples having copy number profile and append it to filteredSamples
+                        if (
+                            !_.isEmpty(
+                                this.selectedStudyCopyNumberEnrichmentProfileMap
+                                    .result
+                            )
+                        ) {
+                            filteredSamples = filteredSamples.concat(
+                                group.samples.filter(
+                                    sample =>
+                                        this
+                                            .selectedStudyCopyNumberEnrichmentProfileMap
+                                            .result![sample.studyId] !==
+                                        undefined
+                                )
+                            );
+                        }
+                        if (filteredSamples.length > 0) {
+                            acc.push({
+                                ...group,
+                                count: filteredSamples.length,
+                                samples: filteredSamples,
+                                description: `Number (percentage) of ${
+                                    this.usePatientLevelEnrichments
+                                        ? 'patients'
+                                        : 'samples'
+                                } in ${
+                                    group.name
+                                } that have a mutation in the listed gene.`,
+                            });
+                        }
+                        return acc;
+                    },
+                    []
+                )
+            );
+        },
+    });
+
+    readonly alterationsEnrichmentDataRequestGroups = remoteData({
+        await: () => [
+            this.mutationEnrichmentAnalysisGroups,
+            this.selectedStudyMutationEnrichmentProfileMap,
+            this.selectedStudyCopyNumberEnrichmentProfileMap,
+        ],
+        invoke: () => {
+            return Promise.resolve(
+                this.mutationEnrichmentAnalysisGroups.result!.map(group => {
+                    let molecularProfileCaseIdentifiers: {
+                        caseId: string;
+                        molecularProfileId: string;
+                    }[] = [];
+                    if (
+                        !_.isEmpty(
+                            this.selectedStudyMutationEnrichmentProfileMap
+                                .result
+                        )
+                    ) {
+                        molecularProfileCaseIdentifiers = molecularProfileCaseIdentifiers.concat(
+                            group.samples.map(sample => ({
+                                caseId: this.usePatientLevelEnrichments
+                                    ? sample.patientId
+                                    : sample.sampleId,
+                                molecularProfileId: this
+                                    .selectedStudyMutationEnrichmentProfileMap
+                                    .result![sample.studyId].molecularProfileId,
+                            }))
+                        );
+                    }
+                    if (
+                        !_.isEmpty(
+                            this.selectedStudyCopyNumberEnrichmentProfileMap
+                                .result
+                        )
+                    ) {
+                        molecularProfileCaseIdentifiers = molecularProfileCaseIdentifiers.concat(
+                            group.samples.map(sample => ({
+                                caseId: this.usePatientLevelEnrichments
+                                    ? sample.patientId
+                                    : sample.sampleId,
+                                molecularProfileId: this
+                                    .selectedStudyCopyNumberEnrichmentProfileMap
+                                    .result![sample.studyId].molecularProfileId,
+                            }))
+                        );
+                    }
+                    return {
+                        name: group.name,
+                        molecularProfileCaseIdentifiers,
+                    };
+                })
+            );
+        },
+    });
+
+    public readonly alterationsEnrichmentData = makeEnrichmentDataPromiseWithoutProfile(
+        {
+            await: () => [this.alterationsEnrichmentDataRequestGroups],
+            storeForExcludingQueryGenes: this.resultsViewStore,
+            referenceGenesPromise: this.hugoGeneSymbolToReferenceGene,
+            fetchData: () => {
+                if (
+                    this.alterationsEnrichmentDataRequestGroups.result &&
+                    this.alterationsEnrichmentDataRequestGroups.result.length >
+                        1 &&
+                    (this.selectedMutationEnrichmentEventTypes.length > 0 ||
+                        this.selectedCopyNumberEnrichmentEventTypes.length > 0)
+                ) {
+                    return internalClient.fetchAlterationEnrichmentsUsingPOST({
+                        enrichmentScope: this.usePatientLevelEnrichments
+                            ? 'PATIENT'
+                            : 'SAMPLE',
+                        groupsAndAlterationTypes: {
+                            molecularProfileCasesGroupFilter: this
+                                .alterationsEnrichmentDataRequestGroups.result!,
+                            alterationEventTypes: {
+                                copyNumberAlterationEventTypes: this
+                                    .selectedCopyNumberEnrichmentEventTypes,
+                                mutationEventTypes: this
+                                    .selectedMutationEnrichmentEventTypes,
+                            },
+                        },
+                    });
+                } else {
+                    return Promise.resolve([]);
+                }
+            },
+        }
+    );
+
     private getCopyNumberEnrichmentData(
         groups: MolecularProfileCasesGroupFilter[],
         copyNumberEventType: 'HOMDEL' | 'AMP'
     ): Promise<AlterationEnrichment[]> {
         return internalClient.fetchCopyNumberEnrichmentsUsingPOST({
             copyNumberEventType: copyNumberEventType,
-            enrichmentType: this.usePatientLevelEnrichments
+            enrichmentScope: this.usePatientLevelEnrichments
                 ? 'PATIENT'
                 : 'SAMPLE',
             groups,
@@ -920,7 +1237,7 @@ export default class ComparisonStore {
                 this.mrnaEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchGenomicEnrichmentsUsingPOST({
-                    enrichmentType: 'SAMPLE',
+                    enrichmentScope: 'SAMPLE',
                     groups: this.mrnaEnrichmentDataRequestGroups.result!,
                 });
             } else {
@@ -1005,7 +1322,7 @@ export default class ComparisonStore {
                 this.proteinEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchGenomicEnrichmentsUsingPOST({
-                    enrichmentType: 'SAMPLE',
+                    enrichmentScope: 'SAMPLE',
                     groups: this.proteinEnrichmentDataRequestGroups.result!,
                 });
             } else {
@@ -1089,7 +1406,7 @@ export default class ComparisonStore {
                 this.methylationEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchGenomicEnrichmentsUsingPOST({
-                    enrichmentType: 'SAMPLE',
+                    enrichmentScope: 'SAMPLE',
                     groups: this.methylationEnrichmentDataRequestGroups.result!,
                 });
             } else {
@@ -1123,58 +1440,10 @@ export default class ComparisonStore {
         );
     }
 
-    @computed get mutationsTabShowable() {
-        return (
-            this.mutationEnrichmentProfiles.isComplete &&
-            this.mutationEnrichmentProfiles.result!.length > 0
-        );
-    }
-
-    @computed get showMutationsTab() {
-        return (
-            this.mutationsTabShowable ||
-            (this.activeGroups.isComplete &&
-                this.activeGroups.result!.length === 0 &&
-                this.tabHasBeenShown.get(GroupComparisonTab.MUTATIONS))
-        );
-    }
-
-    @computed get mutationsTabUnavailable() {
-        return (
-            (this.activeGroups.isComplete &&
-                this.activeGroups.result.length < 2) || //less than two active groups
-            !this.mutationsTabShowable
-        );
-    }
-
     @computed get clinicalTabUnavailable() {
         // grey out if active groups is less than 2
         return (
             this.activeGroups.isComplete && this.activeGroups.result.length < 2
-        );
-    }
-
-    @computed get copyNumberTabShowable() {
-        return (
-            this.copyNumberEnrichmentProfiles.isComplete &&
-            this.copyNumberEnrichmentProfiles.result!.length > 0
-        );
-    }
-
-    @computed get showCopyNumberTab() {
-        return (
-            this.copyNumberTabShowable ||
-            (this.activeGroups.isComplete &&
-                this.activeGroups.result!.length === 0 &&
-                this.tabHasBeenShown.get(GroupComparisonTab.CNA))
-        );
-    }
-
-    @computed get copyNumberUnavailable() {
-        return (
-            (this.activeGroups.isComplete &&
-                this.activeGroups.result.length < 2) || //less than two active groups
-            !this.copyNumberTabShowable
         );
     }
 
@@ -1253,6 +1522,34 @@ export default class ComparisonStore {
             (this.activeStudyIds.isComplete &&
                 this.activeStudyIds.result.length > 1) || //more than one active study
             !this.methylationTabShowable
+        );
+    }
+
+    @computed get alterationsTabShowable() {
+        return (
+            this.mutationEnrichmentProfiles.isComplete &&
+            this.copyNumberEnrichmentProfiles.isComplete &&
+            (this.mutationEnrichmentProfiles.result!.length > 0 ||
+                this.copyNumberEnrichmentProfiles.result!.length > 0)
+        );
+    }
+
+    @computed get showAlterationsTab() {
+        return (
+            this.alterationsTabShowable ||
+            (this.activeGroups.isComplete &&
+                this.activeGroups.result!.length === 0 &&
+                this.tabHasBeenShown.get(GroupComparisonTab.ALTERATIONS))
+        );
+    }
+
+    @computed get alterationsTabUnavailable() {
+        return (
+            (this.activeGroups.isComplete &&
+                this.activeGroups.result.length < 2) || //less than two active groups
+            (this.activeStudyIds.isComplete &&
+                this.activeStudyIds.result.length > 1) || //more than one active study
+            !this.alterationsTabShowable
         );
     }
 

@@ -5,13 +5,7 @@ import {
 } from 'cbioportal-ts-api-client';
 import { AlterationEnrichmentRow } from 'shared/model/AlterationEnrichmentRow';
 import { ExpressionEnrichmentRow } from 'shared/model/ExpressionEnrichmentRow';
-import { tsvFormat } from 'd3-dsv';
-import { BoxPlotModel, calculateBoxPlotModel } from 'shared/lib/boxPlotUtils';
-import {
-    MolecularProfile,
-    NumericGeneMolecularData,
-} from 'cbioportal-ts-api-client';
-import seedrandom from 'seedrandom';
+import { MolecularProfile } from 'cbioportal-ts-api-client';
 import { roundLogRatio, formatLogOddsRatio } from 'shared/lib/FormatUtils';
 import * as _ from 'lodash';
 import { AlterationTypeConstants } from '../ResultsViewPageStore';
@@ -57,6 +51,7 @@ export enum GeneOptionLabel {
 export enum AlterationContainerType {
     MUTATION = 'MUTATION',
     COPY_NUMBER = 'COPY_NUMBER',
+    ALTERATIONS = 'ALTERATIONS',
 }
 
 export enum EnrichmentType {
