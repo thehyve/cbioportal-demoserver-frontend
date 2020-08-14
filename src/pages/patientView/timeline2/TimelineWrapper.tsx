@@ -476,6 +476,7 @@ const TimelineWrapper: React.FunctionComponent<ITimeline2Props> = observer(
                     <Timeline
                         store={store}
                         width={width}
+                        hideLabels={true}
                         customTracks={[
                             {
                                 renderHeader: () => 'VAF',
