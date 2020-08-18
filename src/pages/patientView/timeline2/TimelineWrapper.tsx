@@ -140,7 +140,7 @@ const TimelineWrapper: React.FunctionComponent<ITimeline2Props> = observer(
             TimelineTrackSpecification[] | null
         >(null);
 
-        const [store, setStore] = useState<TimelineStore | null>(null);
+        const [stores, setStores] = useState<TimelineStore[] | null>(null);
 
         useEffect(() => {
             var isGenieBpcStudy = window.location.href.includes('genie_bpc');
@@ -463,48 +463,93 @@ const TimelineWrapper: React.FunctionComponent<ITimeline2Props> = observer(
                 baseConfig.trackEventRenderers
             );
 
-            const store = new TimelineStore(trackSpecifications);
+            const store1 = new TimelineStore(trackSpecifications);
+            const store2 = new TimelineStore(trackSpecifications);
 
-            setStore(store);
+            setStores([store1, store2]);
 
-            (window as any).store = store;
+            (window as any).store = [store1, store2];
         }, []);
 
-        if (store) {
+        if (stores) {
+            const [store1, store2] = stores;
             return (
-                <div>
-                    <Timeline
-                        store={store}
-                        width={width}
-                        hideLabels={true}
-                        customTracks={[
-                            {
-                                renderHeader: () => 'VAF',
-                                renderTrack: (store: TimelineStore) => (
-                                    <VAFChartWrapper
-                                        dataStore={dataStore}
-                                        store={store}
-                                        sampleMetaData={caseMetaData}
-                                        samples={samples}
-                                        mutationProfileId={mutationProfileId}
-                                        coverageInformation={
-                                            coverageInformation
-                                        }
-                                        sampleManager={sampleManager}
-                                    />
-                                ),
-                                height: (store: TimelineStore) => {
-                                    return store.vafChartHeight;
+                <>
+                    <div>
+                        <Timeline
+                            store={store1}
+                            width={width}
+                            hideLabels={false}
+                            customTracks={[
+                                {
+                                    renderHeader: () => 'VAF',
+                                    renderTrack: (store: TimelineStore) => (
+                                        <VAFChartWrapper
+                                            dataStore={dataStore}
+                                            store={store1}
+                                            sampleMetaData={caseMetaData}
+                                            samples={samples}
+                                            mutationProfileId={
+                                                mutationProfileId
+                                            }
+                                            coverageInformation={
+                                                coverageInformation
+                                            }
+                                            sampleManager={sampleManager}
+                                        />
+                                    ),
+                                    height: (store: TimelineStore) => {
+                                        return store.vafChartHeight;
+                                    },
+                                    labelForExport: 'VAF',
                                 },
-                                labelForExport: 'VAF',
-                            },
-                        ]}
-                    />
-                    <VAFChartControls
-                        store={store}
-                        sampleManager={sampleManager}
-                    />
-                </div>
+                            ]}
+                        />
+                    </div>
+                    <div>
+                        <hr
+                            className={'standardMarginTop standardMarginBottom'}
+                        />
+                        <h4>Genomic Evolution</h4>
+                        <VAFChartControls
+                            store={store2}
+                            sampleManager={sampleManager}
+                        />
+                        <div className={'borderedChart standardMarginTop'}>
+                            <Timeline
+                                store={store2}
+                                width={width}
+                                hideLabels={true}
+                                disableTrackHover={true}
+                                visibleTrackTypes={[]}
+                                customTracks={[
+                                    {
+                                        renderHeader: () => 'VAF',
+                                        renderTrack: (store: TimelineStore) => (
+                                            <VAFChartWrapper
+                                                dataStore={dataStore}
+                                                store={store}
+                                                sampleMetaData={caseMetaData}
+                                                samples={samples}
+                                                mutationProfileId={
+                                                    mutationProfileId
+                                                }
+                                                coverageInformation={
+                                                    coverageInformation
+                                                }
+                                                sampleManager={sampleManager}
+                                            />
+                                        ),
+                                        height: (store: TimelineStore) => {
+                                            return store.vafChartHeight;
+                                        },
+                                        labelForExport: 'VAF',
+                                    },
+                                ]}
+                            />
+                        </div>
+                    </div>
+                </>
             );
         } else {
             return <div />;

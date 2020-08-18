@@ -9,7 +9,7 @@ import { TimelineStore } from './TimelineStore';
 
 interface ITrackHeaderProps {
     track: TimelineTrackSpecification;
-    handleTrackHover: (e: React.MouseEvent<any>) => void;
+    handleTrackHover?: (e: React.MouseEvent<any>) => void;
     height: number;
     paddingLeft?: number;
 }
@@ -57,9 +57,16 @@ function expandTrack(
 
 export function expandTracks(
     tracks: TimelineTrackSpecification[],
-    leftPadding: number | undefined = 5
+    leftPadding: number | undefined = 5,
+    visibleTrackTypes?: string[]
 ) {
-    return _.flatMap(tracks, t => expandTrack(t, leftPadding));
+    const flattened = _.flatMap(tracks, t => expandTrack(t, leftPadding));
+
+    if (visibleTrackTypes) {
+        return flattened.filter(t => visibleTrackTypes.includes(t.track.type));
+    } else {
+        return flattened;
+    }
 }
 
 export const EXPORT_TRACK_HEADER_STYLE =

@@ -631,3 +631,19 @@ h6.blackHeader {
 .nowrap {
     white-space: nowrap;
 }
+
+.standardMarginTop {
+    margin-top: $standardMargin;
+}
+
+.standardMarginBottom {
+    margin-bottom: $standardMargin;
+}
+
+.standardMarginLeft {
+    margin-left: $standardMargin;
+}
+
+.standardMarginRight {
+    margin-right: $standardMargin;
+}

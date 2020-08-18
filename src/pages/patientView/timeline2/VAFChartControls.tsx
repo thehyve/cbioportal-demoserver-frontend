@@ -45,8 +45,6 @@ const VAFChartControls: React.FunctionComponent<
     return (
         <div
             style={{
-                marginTop: 5,
-                marginLeft: 130,
                 display: 'flex',
                 alignItems: 'center',
             }}

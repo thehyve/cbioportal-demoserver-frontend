@@ -966,21 +966,21 @@ export default class PatientViewPage extends React.Component<
                                                     />
                                                 </div>
 
-                                                <div style={{ marginTop: 20 }}>
-                                                    <Timeline
-                                                        store={
-                                                            this
-                                                                .patientViewPageStore
-                                                        }
-                                                        width={
-                                                            WindowStore.size
-                                                                .width - 60
-                                                        }
-                                                        sampleManager={
-                                                            sampleManager
-                                                        }
-                                                    />
-                                                </div>
+                                                {/*<div style={{ marginTop: 20 }}>*/}
+                                                {/*    <Timeline*/}
+                                                {/*        store={*/}
+                                                {/*            this*/}
+                                                {/*                .patientViewPageStore*/}
+                                                {/*        }*/}
+                                                {/*        width={*/}
+                                                {/*            WindowStore.size*/}
+                                                {/*                .width - 60*/}
+                                                {/*        }*/}
+                                                {/*        sampleManager={*/}
+                                                {/*            sampleManager*/}
+                                                {/*        }*/}
+                                                {/*    />*/}
+                                                {/*</div>*/}
 
                                                 <hr />
                                             </div>

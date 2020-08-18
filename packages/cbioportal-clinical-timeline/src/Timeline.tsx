@@ -34,6 +34,8 @@ interface ITimelineProps {
     customTracks?: CustomTrackSpecification[];
     width: number;
     hideLabels?: boolean;
+    visibleTrackTypes?: string[];
+    disableTrackHover?: boolean;
 }
 
 const getFocusedPoints = _.debounce(function(
@@ -238,8 +240,14 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
     customTracks,
     width,
     hideLabels = false,
+    visibleTrackTypes,
+    disableTrackHover,
 }: ITimelineProps) {
-    const expandedTracks = expandTracks(store.data);
+    const expandedTracks = expandTracks(
+        store.data,
+        undefined,
+        visibleTrackTypes
+    );
     const height =
         TICK_AXIS_HEIGHT +
         _.sumBy(expandedTracks, t => t.height) +
@@ -259,7 +267,7 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
 
     const memoizedHoverCallback = useCallback(
         (e: React.MouseEvent) => {
-            hoverCallback(e, refs.hoverStyleTag);
+            if (!disableTrackHover) hoverCallback(e, refs.hoverStyleTag);
         },
         [refs.hoverStyleTag]
     );
@@ -377,6 +385,7 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
                                         width={renderWidth}
                                         customTracks={customTracks}
                                         handleTrackHover={memoizedHoverCallback}
+                                        visibleTrackTypes={visibleTrackTypes}
                                     />
                                     <TickAxis
                                         store={store}

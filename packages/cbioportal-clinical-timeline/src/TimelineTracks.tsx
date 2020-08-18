@@ -22,12 +22,19 @@ export interface ITimelineTracks {
     width: number;
     handleTrackHover: (e: React.MouseEvent<SVGGElement>) => void;
     customTracks?: CustomTrackSpecification[];
+    visibleTrackTypes?: string[];
 }
 
 export const TimelineTracks: React.FunctionComponent<
     ITimelineTracks
-> = observer(function({ store, width, handleTrackHover, customTracks }) {
-    const tracks = expandTracks(store.data);
+> = observer(function({
+    store,
+    width,
+    handleTrackHover,
+    customTracks,
+    visibleTrackTypes,
+}) {
+    const tracks = expandTracks(store.data, undefined, visibleTrackTypes);
 
     let nextY = 0;
 
