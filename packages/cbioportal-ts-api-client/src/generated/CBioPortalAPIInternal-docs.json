@@ -524,19 +524,21 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/DataAccessToken"
+                "$ref": "#/definitions/GenomicEnrichment"
               }
             }
           }
         },
         "deprecated": false
-      },
+      }
+    },
+    "/filtered-samples/fetch": {
       "post": {
         "tags": [
-          "Data Access Tokens"
+          "Study View"
         ],
-        "summary": "createDataAccessToken",
-        "operationId": "createDataAccessTokenUsingPOST",
+        "summary": "Fetch sample IDs by study view filter",
+        "operationId": "fetchFilteredSamplesUsingPOST",
         "consumes": [
           "application/json"
         ],
@@ -585,200 +587,6 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/DataAccessToken"
-            }
-          }
-        },
-        "deprecated": false
-      },
-      "delete": {
-        "tags": [
-          "Data Access Tokens"
-        ],
-        "summary": "revokeAllDataAccessTokens",
-        "operationId": "revokeAllDataAccessTokensUsingDELETE",
-        "produces": [
-          "*/*"
-        ],
-        "parameters": [
-          {
-            "name": "authenticated",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "authorities[0].authority",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials",
-            "in": "query",
-            "required": false,
-            "type": "object"
-          },
-          {
-            "name": "details",
-            "in": "query",
-            "required": false,
-            "type": "object"
-          },
-          {
-            "name": "principal",
-            "in": "query",
-            "required": false,
-            "type": "object"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "deprecated": false
-      }
-    },
-    "/data-access-tokens/{token}": {
-      "get": {
-        "tags": [
-          "Data Access Tokens"
-        ],
-        "summary": "getDataAccessToken",
-        "operationId": "getDataAccessTokenUsingGET",
-        "produces": [
-          "*/*"
-        ],
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "description": "token",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/DataAccessToken"
-            }
-          }
-        },
-        "deprecated": false
-      },
-      "delete": {
-        "tags": [
-          "Data Access Tokens"
-        ],
-        "summary": "revokeDataAccessToken",
-        "operationId": "revokeDataAccessTokenUsingDELETE",
-        "produces": [
-          "*/*"
-        ],
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "description": "token",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "deprecated": false
-      }
-    },
-    "/expression-enrichments/fetch": {
-      "post": {
-        "tags": [
-          "Enrichments"
-        ],
-        "summary": "Fetch genomic enrichments in a molecular profile",
-        "operationId": "fetchGenomicEnrichmentsUsingPOST",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "enrichmentType",
-            "in": "query",
-            "description": "Type of the enrichment e.g. SAMPLE or PATIENT",
-            "required": false,
-            "type": "string",
-            "default": "SAMPLE",
-            "allowEmptyValue": false,
-            "enum": [
-              "SAMPLE",
-              "PATIENT"
-            ]
-          },
-          {
-            "in": "body",
-            "name": "groups",
-            "description": "List of groups containing sample and molecular profile identifiers",
-            "required": true,
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/MolecularProfileCasesGroupFilter"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/GenomicEnrichment"
-              }
-            }
-          }
-        },
-        "deprecated": false
-      }
-    },
-    "/filtered-samples/fetch": {
-      "post": {
-        "tags": [
-          "Study View"
-        ],
-        "summary": "Fetch sample IDs by study view filter",
-        "operationId": "fetchFilteredSamplesUsingPOST",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "negateFilters",
-            "in": "query",
-            "description": "Whether to negate the study view filters",
-            "required": false,
-            "type": "boolean",
-            "default": false,
-            "allowEmptyValue": false,
-            "x-example": false
-          },
-          {
-            "in": "body",
-            "name": "studyViewFilter",
-            "description": "Study view filter",
-            "required": true,
             "schema": {
               "$ref": "#/definitions/StudyViewFilter"
             }
