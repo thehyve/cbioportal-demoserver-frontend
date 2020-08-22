@@ -97,8 +97,8 @@ describe('custom driver annotations feature', function() {
             });
         });
     }
-
-    describe('oncoprint tab - discrete CNA', () => {
+    
+    describe('oncoprint tab - discete CNA', () => {
         beforeEach(() => {
             goToUrlAndSetLocalStorage(oncoprintTabUrlCna);
             waitForOncoprint();
@@ -109,9 +109,9 @@ describe('custom driver annotations feature', function() {
             var topCheckBox = $('input[data-test=annotateCustomBinary]');
             assert(topCheckBox.isSelected());
 
-            var tiersCheckboxes = $('span[data-test=annotateCustomTiers]').$$(
-                'input'
-            );
+            var tiersCheckboxes = $(
+                'span[data-test=annotateCustomTiers]'
+            ).$$('input');
             assert(tiersCheckboxes[0].isSelected());
             assert(tiersCheckboxes[1].isSelected());
         });
@@ -140,32 +140,26 @@ describe('custom driver annotations feature', function() {
 
             $('input[data-test=HideVUS]').click();
             waitForOncoprint();
-            assert(
-                $('div.alert-info*=17 copy number alterations').isExisting()
-            );
+            assert($('div.alert-info*=17 mutation').isExisting());
 
             $('label*=Class 1')
                 .$('input')
                 .click();
             waitForOncoprint();
-            assert(
-                $('div.alert-info*=17 copy number alterations').isExisting()
-            );
+            assert($('div.alert-info*=17 mutation').isExisting());
 
             $('label*=Class 2')
                 .$('input')
                 .click();
             waitForOncoprint();
-            assert(
-                $('div.alert-info*=16 copy number alterations').isExisting()
-            );
+            assert($('div.alert-info*=16 mutation').isExisting());
         });
 
         it('(de-)selects custom driver checkboxes with main annotation select option', () => {
             var topCheckBox = $('input[data-test=annotateCustomBinary]');
-            var tiersCheckboxes = $('span[data-test=annotateCustomTiers]').$$(
-                'input'
-            );
+            var tiersCheckboxes = $(
+                'span[data-test=annotateCustomTiers]'
+            ).$$('input');
 
             $('input[data-test=ColorByDriver]').click();
             assert(!topCheckBox.isSelected());
@@ -178,4 +172,5 @@ describe('custom driver annotations feature', function() {
             assert(tiersCheckboxes[1].isSelected());
         });
     });
+    
 });
