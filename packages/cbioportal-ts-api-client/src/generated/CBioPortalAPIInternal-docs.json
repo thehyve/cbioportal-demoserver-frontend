@@ -16,6 +16,10 @@
   },
   "tags": [
     {
+      "name": "Alteration Enrichments",
+      "description": " "
+    },
+    {
       "name": "Clinical Data Enrichments",
       "description": " "
     },
@@ -36,7 +40,7 @@
       "description": " "
     },
     {
-      "name": "Expression Enrichments",
+      "name": "Enrichments",
       "description": " "
     },
     {
@@ -97,6 +101,84 @@
     }
   ],
   "paths": {
+    "/alteration-enrichments/fetch": {
+      "post": {
+        "tags": [
+          "Alteration Enrichments"
+        ],
+        "summary": "Fetch alteration enrichments in molecular profiles",
+        "operationId": "fetchAlterationEnrichmentsUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "enrichmentScope",
+            "in": "query",
+            "description": "Type of the enrichment e.g. SAMPLE or PATIENT",
+            "required": false,
+            "type": "string",
+            "default": "SAMPLE",
+            "allowEmptyValue": false,
+            "enum": [
+              "SAMPLE",
+              "PATIENT"
+            ]
+          },
+          {
+            "name": "excludeGermline",
+            "in": "query",
+            "description": "excludeGermline",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "excludeVUS",
+            "in": "query",
+            "description": "excludeVUS",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "in": "body",
+            "name": "groupsAndAlterationTypes",
+            "description": "List of groups containing sample identifiers and list of Alteration Types",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MolecularProfileCasesGroupAndAlterationTypeFilter"
+            }
+          },
+          {
+            "name": "selectedTiers",
+            "in": "query",
+            "description": "selectedTiers",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/AlterationEnrichment"
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
     "/clinical-data-bin-counts/fetch": {
       "post": {
         "tags": [
@@ -345,6 +427,25 @@
         ],
         "parameters": [
           {
+            "name": "excludeVUS",
+            "in": "query",
+            "description": "excludeVUS",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "selectedTiers",
+            "in": "query",
+            "description": "selectedTiers",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "in": "body",
             "name": "studyViewFilter",
             "description": "Study view filter",
@@ -383,6 +484,14 @@
         ],
         "parameters": [
           {
+            "name": "annotationSourceFilter",
+            "in": "query",
+            "description": "VUS and germline filters to be applied to the data",
+            "required": false,
+            "type": "string",
+            "allowEmptyValue": false
+          },
+          {
             "name": "copyNumberEventType",
             "in": "query",
             "description": "Type of the copy number event",
@@ -396,7 +505,7 @@
             ]
           },
           {
-            "name": "enrichmentType",
+            "name": "enrichmentScope",
             "in": "query",
             "description": "Type of the enrichment e.g. SAMPLE or PATIENT",
             "required": false,
@@ -409,6 +518,14 @@
             ]
           },
           {
+            "name": "excludeVUS",
+            "in": "query",
+            "description": "excludeVUS",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
             "in": "body",
             "name": "groups",
             "description": "List of groups containing sample identifiers",
@@ -419,6 +536,17 @@
                 "$ref": "#/definitions/MolecularProfileCasesGroupFilter"
               }
             }
+          },
+          {
+            "name": "selectedTiers",
+            "in": "query",
+            "description": "selectedTiers",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "responses": {
@@ -470,6 +598,530 @@
               "items": {
                 "$ref": "#/definitions/CosmicMutation"
               }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/data-access-token": {
+      "get": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "head": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingHEAD",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "put": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "options": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingOPTIONS",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "patch": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadDataAccessToken",
+        "operationId": "downloadDataAccessTokenUsingPATCH",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "authenticated",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "authorities[0].authority",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "type": "object"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/data-access-token/oauth2": {
+      "get": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "head": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingHEAD",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "put": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "options": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingOPTIONS",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "patch": {
+        "tags": [
+          "Data Access Tokens"
+        ],
+        "summary": "downloadOAuth2DataAccessToken",
+        "operationId": "downloadOAuth2DataAccessTokenUsingPATCH",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
             }
           }
         },
@@ -545,13 +1197,6 @@
         ],
         "parameters": [
           {
-            "name": "allowRevocationOfOtherTokens",
-            "in": "query",
-            "description": "allowRevocationOfOtherTokens",
-            "required": false,
-            "type": "boolean"
-          },
-          {
             "name": "authenticated",
             "in": "query",
             "required": false,
@@ -574,6 +1219,13 @@
             "in": "query",
             "required": false,
             "type": "object"
+          },
+          {
+            "name": "myAllowRevocationOfOtherTokens",
+            "in": "query",
+            "description": "myAllowRevocationOfOtherTokens",
+            "required": false,
+            "type": "boolean"
           },
           {
             "name": "principal",
@@ -699,10 +1351,10 @@
     "/expression-enrichments/fetch": {
       "post": {
         "tags": [
-          "Expression Enrichments"
+          "Enrichments"
         ],
-        "summary": "Fetch expression enrichments in a molecular profile",
-        "operationId": "fetchExpressionEnrichmentsUsingPOST",
+        "summary": "Fetch genomic enrichments in a molecular profile",
+        "operationId": "fetchGenomicEnrichmentsUsingPOST",
         "consumes": [
           "application/json"
         ],
@@ -711,7 +1363,7 @@
         ],
         "parameters": [
           {
-            "name": "enrichmentType",
+            "name": "enrichmentScope",
             "in": "query",
             "description": "Type of the enrichment e.g. SAMPLE or PATIENT",
             "required": false,
@@ -742,7 +1394,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ExpressionEnrichment"
+                "$ref": "#/definitions/GenomicEnrichment"
               }
             }
           }
@@ -813,6 +1465,33 @@
         ],
         "parameters": [
           {
+            "name": "excludeGermline",
+            "in": "query",
+            "description": "excludeGermline",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "excludeVUS",
+            "in": "query",
+            "description": "excludeVUS",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "selectedTiers",
+            "in": "query",
+            "description": "selectedTiers",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "in": "body",
             "name": "studyViewFilter",
             "description": "Study view filter",
@@ -828,7 +1507,112 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/MutationCountByGene"
+                "$ref": "#/definitions/AlterationCountByGene"
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/generic-assay-data-bin-counts/fetch": {
+      "post": {
+        "tags": [
+          "Study View"
+        ],
+        "summary": "Fetch generic assay data bin counts by study view filter",
+        "operationId": "fetchGenericAssayDataBinCountsUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "dataBinMethod",
+            "in": "query",
+            "description": "Method for data binning",
+            "required": false,
+            "type": "string",
+            "default": "DYNAMIC",
+            "allowEmptyValue": false,
+            "enum": [
+              "STATIC",
+              "DYNAMIC"
+            ]
+          },
+          {
+            "in": "body",
+            "name": "genericAssayDataBinCountFilter",
+            "description": "Generic assay data bin count filter",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GenericAssayDataBinCountFilter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GenericAssayDataBin"
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/generic-assay-enrichments/fetch": {
+      "post": {
+        "tags": [
+          "Enrichments"
+        ],
+        "summary": "Fetch generic assay enrichments in a molecular profile",
+        "operationId": "fetchGenericAssayEnrichmentsUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "enrichmentScope",
+            "in": "query",
+            "description": "Type of the enrichment e.g. SAMPLE or PATIENT",
+            "required": false,
+            "type": "string",
+            "default": "SAMPLE",
+            "allowEmptyValue": false,
+            "enum": [
+              "SAMPLE",
+              "PATIENT"
+            ]
+          },
+          {
+            "in": "body",
+            "name": "groups",
+            "description": "List of groups containing sample and molecular profile identifiers",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MolecularProfileCasesGroupFilter"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GenericAssayEnrichment"
               }
             }
           }
@@ -1577,6 +2361,33 @@
         ],
         "parameters": [
           {
+            "name": "excludeGermline",
+            "in": "query",
+            "description": "excludeGermline",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "excludeVUS",
+            "in": "query",
+            "description": "excludeVUS",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "selectedTiers",
+            "in": "query",
+            "description": "selectedTiers",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "in": "body",
             "name": "studyViewFilter",
             "description": "Study view filter",
@@ -1592,7 +2403,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/MutationCountByGene"
+                "$ref": "#/definitions/AlterationCountByGene"
               }
             }
           }
@@ -1615,7 +2426,15 @@
         ],
         "parameters": [
           {
-            "name": "enrichmentType",
+            "name": "annotationSourceFilter",
+            "in": "query",
+            "description": "VUS and germline filters to be applied to the data",
+            "required": false,
+            "type": "string",
+            "allowEmptyValue": false
+          },
+          {
+            "name": "enrichmentScope",
             "in": "query",
             "description": "Type of the enrichment e.g. SAMPLE or PATIENT",
             "required": false,
@@ -1628,6 +2447,22 @@
             ]
           },
           {
+            "name": "excludeGermline",
+            "in": "query",
+            "description": "excludeGermline",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "excludeVUS",
+            "in": "query",
+            "description": "excludeVUS",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
             "in": "body",
             "name": "groups",
             "description": "List of groups containing sample identifiers",
@@ -1638,6 +2473,17 @@
                 "$ref": "#/definitions/MolecularProfileCasesGroupFilter"
               }
             }
+          },
+          {
+            "name": "selectedTiers",
+            "in": "query",
+            "description": "selectedTiers",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "responses": {
@@ -1924,6 +2770,40 @@
     }
   },
   "definitions": {
+    "AlterationCountByGene": {
+      "type": "object",
+      "properties": {
+        "entrezGeneId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "hugoGeneSymbol": {
+          "type": "string"
+        },
+        "matchingGenePanelIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "numberOfAlterations": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "numberOfAlteredCases": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "numberOfProfiledCases": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "qValue": {
+          "type": "number"
+        }
+      },
+      "title": "AlterationCountByGene"
+    },
     "AlterationEnrichment": {
       "type": "object",
       "required": [
@@ -1953,6 +2833,103 @@
         }
       },
       "title": "AlterationEnrichment"
+    },
+    "AlterationEventTypeFilter": {
+      "type": "object",
+      "properties": {
+        "copyNumberAlterationEventTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "HOMDEL",
+              "AMP"
+            ]
+          }
+        },
+        "mutationEventTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "missense_mutation",
+              "missense",
+              "missense_variant",
+              "frame_shift_ins",
+              "frame_shift_del",
+              "frameshift",
+              "frameshift_deletion",
+              "frameshift_insertion",
+              "de_novo_start_outofframe",
+              "frameshift_variant",
+              "nonsense_mutation",
+              "nonsense",
+              "stopgain_snv",
+              "stop_gained",
+              "splice_site",
+              "splice",
+              "splicing",
+              "splice_site_snp",
+              "splice_site_del",
+              "splice_site_indel",
+              "splice_region_variant",
+              "splice_region",
+              "translation_start_site",
+              "initiator_codon_variant",
+              "start_codon_snp",
+              "start_codon_del",
+              "nonstop_mutation",
+              "stop_lost",
+              "inframe_del",
+              "inframe_deletion",
+              "in_frame_del",
+              "in_frame_deletion",
+              "inframe_ins",
+              "inframe_insertion",
+              "in_frame_ins",
+              "in_frame_insertion",
+              "indel",
+              "nonframeshift_deletion",
+              "nonframeshift",
+              "nonframeshift_insertion",
+              "targeted_region",
+              "inframe",
+              "truncating",
+              "feature_truncation",
+              "fusion",
+              "silent",
+              "synonymous_variant",
+              "any",
+              "other"
+            ]
+          }
+        }
+      },
+      "title": "AlterationEventTypeFilter"
+    },
+    "AndedPatientTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OredPatientTreatmentFilters"
+          }
+        }
+      },
+      "title": "AndedPatientTreatmentFilters"
+    },
+    "AndedSampleTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OredSampleTreatmentFilters"
+          }
+        }
+      },
+      "title": "AndedSampleTreatmentFilters"
     },
     "CaseListDataCount": {
       "type": "object",
@@ -2221,6 +3198,10 @@
             "type": "string"
           }
         },
+        "numberOfAlterations": {
+          "type": "integer",
+          "format": "int32"
+        },
         "numberOfAlteredCases": {
           "type": "integer",
           "format": "int32"
@@ -2231,10 +3212,6 @@
         },
         "qValue": {
           "type": "number"
-        },
-        "totalCount": {
-          "type": "integer",
-          "format": "int32"
         }
       },
       "title": "CopyNumberCountByGene"
@@ -2348,37 +3325,6 @@
       },
       "title": "DensityPlotBin"
     },
-    "ExpressionEnrichment": {
-      "type": "object",
-      "required": [
-        "entrezGeneId",
-        "groupsStatistics",
-        "hugoGeneSymbol",
-        "pValue"
-      ],
-      "properties": {
-        "cytoband": {
-          "type": "string"
-        },
-        "entrezGeneId": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "groupsStatistics": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GroupStatistics"
-          }
-        },
-        "hugoGeneSymbol": {
-          "type": "string"
-        },
-        "pValue": {
-          "type": "number"
-        }
-      },
-      "title": "ExpressionEnrichment"
-    },
     "GeneFilter": {
       "type": "object",
       "properties": {
@@ -2399,6 +3345,125 @@
         }
       },
       "title": "GeneFilter"
+    },
+    "GenericAssayDataBin": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "end": {
+          "type": "number"
+        },
+        "profileType": {
+          "type": "string"
+        },
+        "specialValue": {
+          "type": "string"
+        },
+        "stableId": {
+          "type": "string"
+        },
+        "start": {
+          "type": "number"
+        }
+      },
+      "title": "GenericAssayDataBin"
+    },
+    "GenericAssayDataBinCountFilter": {
+      "type": "object",
+      "properties": {
+        "genericAssayDataBinFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GenericAssayDataBinFilter"
+          }
+        },
+        "studyViewFilter": {
+          "$ref": "#/definitions/StudyViewFilter"
+        }
+      },
+      "title": "GenericAssayDataBinCountFilter"
+    },
+    "GenericAssayDataBinFilter": {
+      "type": "object",
+      "properties": {
+        "customBins": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "disableLogScale": {
+          "type": "boolean"
+        },
+        "end": {
+          "type": "number"
+        },
+        "profileType": {
+          "type": "string"
+        },
+        "stableId": {
+          "type": "string"
+        },
+        "start": {
+          "type": "number"
+        }
+      },
+      "title": "GenericAssayDataBinFilter"
+    },
+    "GenericAssayDataFilter": {
+      "type": "object",
+      "properties": {
+        "profileType": {
+          "type": "string"
+        },
+        "stableId": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataFilterValue"
+          }
+        }
+      },
+      "title": "GenericAssayDataFilter"
+    },
+    "GenericAssayEnrichment": {
+      "type": "object",
+      "required": [
+        "genericEntityMetaProperties",
+        "groupsStatistics",
+        "name",
+        "pValue",
+        "stableId"
+      ],
+      "properties": {
+        "genericEntityMetaProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "groupsStatistics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GroupStatistics"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "pValue": {
+          "type": "number"
+        },
+        "stableId": {
+          "type": "string"
+        }
+      },
+      "title": "GenericAssayEnrichment"
     },
     "Geneset": {
       "type": "object",
@@ -2640,6 +3705,37 @@
       },
       "title": "GenomicDataFilter"
     },
+    "GenomicEnrichment": {
+      "type": "object",
+      "required": [
+        "entrezGeneId",
+        "groupsStatistics",
+        "hugoGeneSymbol",
+        "pValue"
+      ],
+      "properties": {
+        "cytoband": {
+          "type": "string"
+        },
+        "entrezGeneId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "groupsStatistics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GroupStatistics"
+          }
+        },
+        "hugoGeneSymbol": {
+          "type": "string"
+        },
+        "pValue": {
+          "type": "number"
+        }
+      },
+      "title": "GenomicEnrichment"
+    },
     "Gistic": {
       "type": "object",
       "required": [
@@ -2821,6 +3917,21 @@
       },
       "title": "MolecularProfileCaseIdentifier"
     },
+    "MolecularProfileCasesGroupAndAlterationTypeFilter": {
+      "type": "object",
+      "properties": {
+        "alterationEventTypes": {
+          "$ref": "#/definitions/AlterationEventTypeFilter"
+        },
+        "molecularProfileCasesGroupFilter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MolecularProfileCasesGroupFilter"
+          }
+        }
+      },
+      "title": "MolecularProfileCasesGroupAndAlterationTypeFilter"
+    },
     "MolecularProfileCasesGroupFilter": {
       "type": "object",
       "properties": {
@@ -2918,40 +4029,6 @@
       },
       "title": "MutSig"
     },
-    "MutationCountByGene": {
-      "type": "object",
-      "properties": {
-        "entrezGeneId": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "hugoGeneSymbol": {
-          "type": "string"
-        },
-        "matchingGenePanelIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "numberOfAlteredCases": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "numberOfProfiledCases": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "qValue": {
-          "type": "number"
-        },
-        "totalCount": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "title": "MutationCountByGene"
-    },
     "MutationSpectrum": {
       "type": "object",
       "required": [
@@ -3027,6 +4104,39 @@
       },
       "title": "MutationSpectrumFilter"
     },
+    "OredPatientTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PatientTreatmentFilter"
+          }
+        }
+      },
+      "title": "OredPatientTreatmentFilters"
+    },
+    "OredSampleTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SampleTreatmentFilter"
+          }
+        }
+      },
+      "title": "OredSampleTreatmentFilters"
+    },
+    "PatientTreatmentFilter": {
+      "type": "object",
+      "properties": {
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "PatientTreatmentFilter"
+    },
     "Sample": {
       "type": "object",
       "required": [
@@ -3086,6 +4196,23 @@
       },
       "title": "SampleIdentifier"
     },
+    "SampleTreatmentFilter": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "enum": [
+            "Pre",
+            "Post",
+            "Unknown"
+          ]
+        },
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "SampleTreatmentFilter"
+    },
     "ServerStatusMessage": {
       "type": "object",
       "properties": {
@@ -3119,6 +4246,12 @@
             "$ref": "#/definitions/GeneFilter"
           }
         },
+        "genericAssayDataFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GenericAssayDataFilter"
+          }
+        },
         "genomicDataFilters": {
           "type": "array",
           "items": {
@@ -3134,11 +4267,17 @@
             }
           }
         },
+        "patientTreatmentFilters": {
+          "$ref": "#/definitions/AndedPatientTreatmentFilters"
+        },
         "sampleIdentifiers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/SampleIdentifier"
           }
+        },
+        "sampleTreatmentFilters": {
+          "$ref": "#/definitions/AndedSampleTreatmentFilters"
         },
         "studyIds": {
           "type": "array",
