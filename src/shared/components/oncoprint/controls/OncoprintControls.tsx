@@ -42,7 +42,7 @@ import { SingleGeneQuery } from '../../../lib/oql/oql-parser';
 import AddClinicalTracks from '../../../../pages/resultsView/oncoprint/AddClinicalTracks';
 import DriverAnnotationControls, {
     IDriverAnnotationControlsHandlers,
-} from '../../../../pages/resultsView/settings/DriverAnnotationControls';
+} from '../../annotationSettingsMenu/DriverAnnotationControls';
 import OncoprintDropdownCount from 'pages/resultsView/oncoprint/OncoprintDropdownCount';
 import { deriveDisplayTextFromGenericAssayType } from 'pages/resultsView/plots/PlotsTabUtils';
 import Select from 'react-select';

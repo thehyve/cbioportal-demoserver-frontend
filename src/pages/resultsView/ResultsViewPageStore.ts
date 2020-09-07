@@ -8,9 +8,12 @@ import {
     ClinicalDataSingleStudyFilter,
     CopyNumberSeg,
     CosmicMutation,
+    DiscreteCopyNumberData,
+    DiscreteCopyNumberFilter,
     Gene,
     GenePanel,
     GenePanelData,
+    GenericAssayData,
     GenericAssayMeta,
     Geneset,
     GenesetDataFilterCriteria,
@@ -30,13 +33,10 @@ import {
     SampleIdentifier,
     SampleList,
     SampleMolecularIdentifier,
-    GenericAssayData,
-    DiscreteCopyNumberFilter,
-    DiscreteCopyNumberData,
 } from 'cbioportal-ts-api-client';
 import client from 'shared/api/cbioportalClientInstance';
 import { remoteData, stringListToSet } from 'cbioportal-frontend-commons';
-import { action, computed, observable, ObservableMap, reaction } from 'mobx';
+import { action, computed, observable } from 'mobx';
 import {
     generateQueryVariantId,
     getProteinPositionFromProteinChange,
@@ -45,9 +45,9 @@ import {
     IOncoKbData,
 } from 'cbioportal-utils';
 import {
-    VariantAnnotation,
     GenomeNexusAPI,
     GenomeNexusAPIInternal,
+    VariantAnnotation,
 } from 'genome-nexus-ts-api-client';
 import { CancerGene, IndicatorQueryResp } from 'oncokb-ts-api-client';
 import { cached, labelMobxPromises, MobxPromise } from 'mobxpromise';
@@ -68,16 +68,16 @@ import {
     fetchOncoKbCancerGenes,
     fetchOncoKbData,
     fetchStudiesForSamplesWithoutCancerTypeClinicalData,
+    fetchSurvivalDataExists,
     fetchVariantAnnotationsIndexedByGenomicLocation,
     generateDataQueryFilter,
     generateUniqueSampleKeyToTumorTypeMap,
+    getGenomeNexusUrl,
+    getSurvivalClinicalAttributesPrefix,
     groupBy,
     IDataQueryFilter,
     isMutationProfile,
     ONCOKB_DEFAULT,
-    getGenomeNexusUrl,
-    fetchSurvivalDataExists,
-    getSurvivalClinicalAttributesPrefix,
 } from 'shared/lib/StoreUtils';
 import { fetchHotspotsData } from 'shared/lib/CancerHotspotsUtils';
 import ResultsViewMutationMapperStore from './mutation/ResultsViewMutationMapperStore';
@@ -114,7 +114,6 @@ import {
 } from './mutationCountHelpers';
 import { CancerStudyQueryUrlParams } from 'shared/components/query/QueryStore';
 import {
-    annotateDiscreteCopyNumberAlterationPutativeDriver,
     compileMutations,
     computeCustomDriverAnnotationReport,
     computeGenePanelInformation,
@@ -130,7 +129,6 @@ import {
     FilteredAndAnnotatedMutationsReport,
     filterSubQueryData,
     getMolecularProfiles,
-    getOncoKbOncogenic,
     getSampleAlteredMap,
     groupDataByCase,
     initializeCustomDriverAnnotationSettings,
@@ -148,7 +146,6 @@ import { getDefaultMolecularProfiles } from '../../shared/lib/getDefaultMolecula
 import {
     parseSamplesSpecifications,
     populateSampleSpecificationsFromVirtualStudies,
-    ResultsViewComparisonSubTab,
     ResultsViewTab,
     substitutePhysicalStudiesForVirtualStudies,
 } from './ResultsViewPageHelpers';
@@ -195,14 +192,12 @@ import { decideMolecularProfileSortingOrder } from './download/DownloadUtils';
 import ResultsViewURLWrapper from 'pages/resultsView/ResultsViewURLWrapper';
 import { ChartTypeEnum } from 'pages/studyView/StudyViewConfig';
 import {
+    fetchGenericAssayDataByStableIdsAndMolecularIds,
     fetchGenericAssayMetaByMolecularProfileIdsGroupByGenericAssayType,
     fetchGenericAssayMetaByMolecularProfileIdsGroupByMolecularProfileId,
-    fetchGenericAssayDataByStableIdsAndMolecularIds,
 } from 'shared/lib/GenericAssayUtils/GenericAssayCommonUtils';
-import ComplexKeySet from '../../shared/lib/complexKeyDataStructures/ComplexKeySet';
 import { createVariantAnnotationsByMutationFetcher } from 'shared/components/mutationMapper/MutationMapperUtils';
 import { getGenomeNexusHgvsgUrl } from 'shared/api/urls';
-import ResultsViewComparisonStore from './comparison/ResultsViewComparisonStore';
 import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
 import {
     ALTERED_COLOR,
@@ -213,10 +208,9 @@ import {
     UNALTERED_COLOR,
 } from './comparison/ResultsViewComparisonUtils';
 import { makeUniqueColorGetter } from '../../shared/components/plots/PlotUtils';
-import ifNotDefined from '../../shared/lib/ifNotDefined';
 import ComplexKeyMap from '../../shared/lib/complexKeyDataStructures/ComplexKeyMap';
 import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
-import { constant } from 'lodash';
+import { DriverAnnotationSettingsStore } from '../../common/driverAnnotations/DriverAnnotationSettingsStore';
 
 type Optional<T> =
     | { isApplicable: true; value: T }
@@ -438,20 +432,6 @@ export function extendSamplesWithCancerType(
     return extendedSamples;
 }
 
-export type DriverAnnotationSettings = {
-    excludeVUS: boolean;
-    cbioportalCount: boolean;
-    cbioportalCountThreshold: number;
-    cosmicCount: boolean;
-    cosmicCountThreshold: number;
-    customBinary: boolean;
-    customTiersDefault: boolean;
-    driverTiers: ObservableMap<boolean>;
-    hotspots: boolean;
-    oncoKb: boolean;
-    driversAnnotated: boolean;
-};
-
 export type ModifyQueryParams = {
     selectedSampleListId: string;
     selectedSampleIds: string[];
@@ -461,108 +441,21 @@ export type ModifyQueryParams = {
 /* fields and methods in the class below are ordered based on roughly
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
-export class ResultsViewPageStore {
+export class ResultsViewPageStore extends DriverAnnotationSettingsStore {
     constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
+        super(urlWrapper);
         labelMobxPromises(this);
-
-        this.urlWrapper = urlWrapper;
-
-        // addErrorHandler((error: any) => {
-        //     this.ajaxErrors.push(error);
-        // });
         this.getURL();
 
-        const store = this;
-
-        this.driverAnnotationSettings = observable({
-            cbioportalCount: false,
-            cbioportalCountThreshold: 0,
-            cosmicCount: false,
-            cosmicCountThreshold: 0,
-            driverTiers: observable.map<boolean>(),
-
-            _hotspots: false,
-            _oncoKb: false,
-            _excludeVUS: false,
-            _customBinary: undefined,
-
-            set hotspots(val: boolean) {
-                this._hotspots = val;
-            },
-            get hotspots() {
-                return (
-                    !!AppConfig.serverConfig.show_hotspot &&
-                    this._hotspots &&
-                    !store.didHotspotFailInOncoprint
-                );
-            },
-            set oncoKb(val: boolean) {
-                this._oncoKb = val;
-            },
-            get oncoKb() {
-                return (
-                    AppConfig.serverConfig.show_oncokb &&
-                    this._oncoKb &&
-                    !store.didOncoKbFailInOncoprint
-                );
-            },
-            set excludeVUS(val: boolean) {
-                this._excludeVUS = val;
-            },
-            get excludeVUS() {
-                return this._excludeVUS && this.driversAnnotated;
-            },
-            get driversAnnotated() {
-                const anySelected =
-                    this.oncoKb ||
-                    this.hotspots ||
-                    this.cbioportalCount ||
-                    this.cosmicCount ||
-                    this.customBinary ||
-                    this.driverTiers
-                        .entries()
-                        .reduce(
-                            (
-                                oneSelected: boolean,
-                                nextEntry: [string, boolean]
-                            ) => {
-                                return oneSelected || nextEntry[1];
-                            },
-                            false
-                        );
-
-                return anySelected;
-            },
-
-            set customBinary(val: boolean) {
-                this._customBinary = val;
-            },
-            get customBinary() {
-                return this._customBinary === undefined
-                    ? AppConfig.serverConfig
-                          .oncoprint_custom_driver_annotation_binary_default
-                    : this._customBinary;
-            },
-            get customTiersDefault() {
-                return AppConfig.serverConfig
-                    .oncoprint_custom_driver_annotation_tiers_default;
-            },
-        });
-
-        this.driverAnnotationsReactionDisposer = reaction(
-            () => this.urlWrapper.query.cancer_study_list,
-            () => {
-                this.initDriverAnnotationSettings();
-            },
-            { fireImmediately: true }
-        );
+        // FIXME restore didHotspotFailOncoprint in DriverAnnotationsSettingsStore
+        // get hotspots() {
+        //     return (
+        //         !!AppConfig.serverConfig.show_hotspot &&
+        //         this._hotspots &&
+        //         !store.didHotspotFailInOncoprint
+        //     );
+        // },
     }
-
-    destroy() {
-        this.driverAnnotationsReactionDisposer();
-    }
-
-    public urlWrapper: ResultsViewURLWrapper;
 
     public driverAnnotationsReactionDisposer: any;
 
@@ -648,8 +541,6 @@ export class ResultsViewPageStore {
         | ModifyQueryParams
         | undefined = undefined;
 
-    public driverAnnotationSettings: DriverAnnotationSettings;
-
     @autobind
     @action
     public setOncoprintAnalysisCaseType(e: OncoprintAnalysisCaseType) {
@@ -724,20 +615,6 @@ export class ResultsViewPageStore {
         } else {
             return undefined;
         }
-    }
-
-    public initDriverAnnotationSettings() {
-        this.driverAnnotationSettings.cbioportalCount = false;
-        this.driverAnnotationSettings.cbioportalCountThreshold = 10;
-        this.driverAnnotationSettings.cosmicCount = false;
-        this.driverAnnotationSettings.cosmicCountThreshold = 10;
-        this.driverAnnotationSettings.driverTiers = observable.map<boolean>();
-        (this.driverAnnotationSettings as any)._oncoKb = !!AppConfig
-            .serverConfig.oncoprint_oncokb_default;
-        this.driverAnnotationSettings.hotspots = !!AppConfig.serverConfig
-            .oncoprint_hotspots_default;
-        (this.driverAnnotationSettings as any)._excludeVUS = !!AppConfig
-            .serverConfig.oncoprint_hide_vus_default;
     }
 
     private makeMutationsTabFilteringSettings() {
@@ -1244,7 +1121,7 @@ export class ResultsViewPageStore {
                                     (gene: Gene) => gene.entrezGeneId
                                 ),
                                 sampleMolecularIdentifiers: identifiers,
-                            } as MolecularDataMultipleStudyFilter
+                            } as MolecularDataMultipleStudyFilter,
                         }
                     );
                 }
@@ -1261,40 +1138,45 @@ export class ResultsViewPageStore {
     >({
         await: () => [this.discreteCopyNumberAlterations, this.molecularData],
         invoke: () => {
-            const cnaData = _.filter(this.molecularData.result as any, (d: any) => {
+            const cnaData = _.filter(
+                this.molecularData.result as any,
+                (d: any) => {
                     return _.includes(
                         this.cnaMolecularProfileIds,
                         d.molecularProfileId
                     );
-                });
+                }
+            );
             _.forEach(cnaData, (d: any) => {
-                    // Lookup the DiscreteCopyNumberData datum that
-                    // holds the custom driver annotation.
-                    const discreteCopyNumberDatumKey = createDiscreteCopyNumberDataKey(
-                        d
-                    );
-                    const discreteCopyNumberDatum =
-                        discreteCopyNumberDatumKey in
-                        this.sampleIdAndEntrezIdToDiscreteCopyNumberData
-                            ? this.sampleIdAndEntrezIdToDiscreteCopyNumberData[
-                                  discreteCopyNumberDatumKey
-                              ]
-                            : undefined;
+                // Lookup the DiscreteCopyNumberData datum that
+                // holds the custom driver annotation.
+                const discreteCopyNumberDatumKey = createDiscreteCopyNumberDataKey(
+                    d
+                );
+                const discreteCopyNumberDatum =
+                    discreteCopyNumberDatumKey in
+                    this.sampleIdAndEntrezIdToDiscreteCopyNumberData
+                        ? this.sampleIdAndEntrezIdToDiscreteCopyNumberData[
+                              discreteCopyNumberDatumKey
+                          ]
+                        : undefined;
 
-                    d.driverFilter = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverFilter
-                        : '';
-                    d.driverFilterAnnotation = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverFilterAnnotation
-                        : '';
-                    d.driverTiersFilter = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverTiersFilter
-                        : '';
-                    d.driverTiersFilterAnnotation = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverTiersFilterAnnotation
-                        : '';
-                });
-            return Promise.resolve(cnaData as DiscreteCopyNumberAlterationMolecularData[]);
+                d.driverFilter = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverFilter
+                    : '';
+                d.driverFilterAnnotation = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverFilterAnnotation
+                    : '';
+                d.driverTiersFilter = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverTiersFilter
+                    : '';
+                d.driverTiersFilterAnnotation = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverTiersFilterAnnotation
+                    : '';
+            });
+            return Promise.resolve(
+                cnaData as DiscreteCopyNumberAlterationMolecularData[]
+            );
         },
     });
 
@@ -2377,14 +2259,16 @@ export class ResultsViewPageStore {
     });
 
     @computed get cnaMolecularProfileIds() {
-        const profiles = this.cnaProfiles.isComplete? this.cnaProfiles.result : [];
+        const profiles = this.cnaProfiles.isComplete
+            ? this.cnaProfiles.result
+            : [];
         const profileIds = _.map(
             profiles,
             (p: MolecularProfile) => p.molecularProfileId
         );
         return profileIds;
     }
-    
+
     @computed
     get chartMetaSet(): { [id: string]: ChartMeta } {
         let _chartMetaSet: { [id: string]: ChartMeta } = {} as {
@@ -2841,10 +2725,9 @@ export class ResultsViewPageStore {
         await: () => [
             this.genes,
             this.studyToMolecularProfileDiscreteCna,
-            this.samples
+            this.samples,
         ],
         invoke: async () => {
-            
             if (this.cnaMolecularProfileIds.length == 0) {
                 return [];
             }
@@ -2860,7 +2743,10 @@ export class ResultsViewPageStore {
                     const sampleIds = _.map(
                         this.samples.result,
                         (sample: Sample) => {
-                            if (sample.studyId in this.studyToMolecularProfileDiscreteCna.result) {
+                            if (
+                                sample.studyId in
+                                this.studyToMolecularProfileDiscreteCna.result
+                            ) {
                                 return sample.sampleId;
                             }
                         }
@@ -4293,14 +4179,18 @@ export class ResultsViewPageStore {
                         getOncoKbMutationAnnotationForOncoprint instanceof Error
                     ) &&
                     getOncoKbMutationAnnotationForOncoprint(mutation);
-                
-                const isHotspotDriver = !(this.isHotspotForOncoprint.result instanceof Error) && this.isHotspotForOncoprint.result!(mutation);
-                const cbioportalCountExceeded = this.getCBioportalCount.isComplete &&
+
+                const isHotspotDriver =
+                    !(this.isHotspotForOncoprint.result instanceof Error) &&
+                    this.isHotspotForOncoprint.result!(mutation);
+                const cbioportalCountExceeded =
+                    this.getCBioportalCount.isComplete &&
                     this.getCBioportalCount.result!(mutation) >=
-                    this.driverAnnotationSettings.cbioportalCountThreshold;
-                const cosmicCountExceeded = this.getCosmicCount.isComplete &&
+                        this.driverAnnotationSettings.cbioportalCountThreshold;
+                const cosmicCountExceeded =
+                    this.getCosmicCount.isComplete &&
                     this.getCosmicCount.result!(mutation) >=
-                    this.driverAnnotationSettings.cosmicCountThreshold;
+                        this.driverAnnotationSettings.cosmicCountThreshold;
 
                 // Note: custom driver annotations are part of the incoming datum
                 return evaluateMutationPutativeDriverInfo(

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import { ResultsViewPageStore } from '../ResultsViewPageStore';
 import autobind from 'autobind-decorator';
 import DriverAnnotationControls, {
     IDriverAnnotationControlsHandlers,
@@ -12,12 +11,13 @@ import {
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
 } from './ResultsPageSettingsUtils';
-import InfoIcon from '../../../shared/components/InfoIcon';
+import InfoIcon from '../InfoIcon';
 import styles from './styles.module.scss';
 import classNames from 'classnames';
-import { OncoprintAnalysisCaseType } from '../ResultsViewPageStoreUtils';
+import { OncoprintAnalysisCaseType } from '../../../pages/resultsView/ResultsViewPageStoreUtils';
+import { ResultsViewPageStore } from '../../../pages/resultsView/ResultsViewPageStore';
 
-export interface IResultsPageSettingsProps {
+export interface IDriverAnnotationSettingsProps {
     store: ResultsViewPageStore;
 }
 
@@ -25,21 +25,20 @@ enum EVENT_KEY {
     hidePutativePassengers = '0',
     showGermlineMutations = '1',
     hideUnprofiledSamples = '1.1',
-
     dataTypeSample = '2',
     dataTypePatient = '3',
 }
 
 @observer
-export default class ResultsPageSettings extends React.Component<
-    IResultsPageSettingsProps,
+export default class DriverAnnotationSettings extends React.Component<
+    IDriverAnnotationSettingsProps,
     {}
 > {
     private driverSettingsState: IDriverAnnotationControlsState &
         IObservableObject;
     private driverSettingsHandlers: IDriverAnnotationControlsHandlers;
 
-    constructor(props: IResultsPageSettingsProps) {
+    constructor(props: IDriverAnnotationSettingsProps) {
         super(props);
         this.driverSettingsState = buildDriverAnnotationControlsState(this);
         this.driverSettingsHandlers = buildDriverAnnotationControlsHandlers(

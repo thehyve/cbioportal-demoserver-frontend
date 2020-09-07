@@ -30,7 +30,7 @@ import {
 import { MakeMobxView } from '../../../shared/components/MobxView';
 import { getGAInstance } from '../../../shared/lib/tracking';
 import { buildCBioPortalPageUrl } from '../../../shared/api/urls';
-import ResultsPageSettings from '../settings/ResultsPageSettings';
+import DriverAnnotationSettings from '../../../shared/components/annotationSettingsMenu/DriverAnnotationSettings';
 import { createQueryStore } from 'shared/lib/createQueryStore';
 import _ from 'lodash';
 import { mixedReferenceGenomeWarning } from 'shared/lib/referenceGenomeUtils';
@@ -309,7 +309,7 @@ export default class QuerySummary extends React.Component<
                                         trigger={['click']}
                                         placement="bottomRight"
                                         overlay={
-                                            <ResultsPageSettings
+                                            <DriverAnnotationSettings
                                                 store={this.props.store}
                                             />
                                         }

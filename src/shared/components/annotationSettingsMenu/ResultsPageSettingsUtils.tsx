@@ -1,10 +1,12 @@
-import ResultsPageSettings from './ResultsPageSettings';
+import DriverAnnotationSettings from './DriverAnnotationSettings';
 import { action, observable } from 'mobx';
 import AppConfig from 'appConfig';
 import { IDriverAnnotationControlsState } from './DriverAnnotationControls';
 import * as React from 'react';
 
-export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
+export function buildDriverAnnotationControlsState(
+    self: DriverAnnotationSettings
+) {
     return observable({
         get distinguishDrivers() {
             return self.props.store.driverAnnotationSettings.driversAnnotated;
@@ -95,7 +97,7 @@ export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
 }
 
 export function buildDriverAnnotationControlsHandlers(
-    self: ResultsPageSettings,
+    self: DriverAnnotationSettings,
     state: IDriverAnnotationControlsState
 ) {
     const handlers = {

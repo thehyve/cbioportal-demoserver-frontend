@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import ErrorIcon from '../../../shared/components/ErrorIcon';
+import ErrorIcon from '../ErrorIcon';
 import { IObservableObject, ObservableMap } from 'mobx';
 import autobind from 'autobind-decorator';
 import {
