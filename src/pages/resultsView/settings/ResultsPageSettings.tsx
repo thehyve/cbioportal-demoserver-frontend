@@ -8,7 +8,6 @@ import DriverAnnotationControls, {
 } from './DriverAnnotationControls';
 import { IObservableObject } from 'mobx';
 import {
-    boldedTabList,
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
 } from './ResultsPageSettingsUtils';
@@ -24,6 +23,19 @@ enum EVENT_KEY {
     hidePutativePassengers = '0',
     showGermlineMutations = '1',
     hideUnprofiledSamples = '1.1',
+}
+
+function boldedTabList(tabs: string[]) {
+    return (
+        <span>
+            {tabs.map((tab, index) => (
+                <span>
+                    <strong>{tab}</strong>
+                    {index < tabs.length - 1 ? ', ' : ''}
+                </span>
+            ))}
+        </span>
+    );
 }
 
 @observer

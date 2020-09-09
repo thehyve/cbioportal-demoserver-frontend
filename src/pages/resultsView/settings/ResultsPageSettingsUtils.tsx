@@ -2,7 +2,6 @@ import ResultsPageSettings from './ResultsPageSettings';
 import { action, observable } from 'mobx';
 import AppConfig from 'appConfig';
 import { IDriverAnnotationControlsState } from './DriverAnnotationControls';
-import * as React from 'react';
 
 export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
     return observable({
@@ -185,17 +184,4 @@ export function buildDriverAnnotationControlsHandlers(
         },
     };
     return handlers;
-}
-
-export function boldedTabList(tabs: string[]) {
-    return (
-        <span>
-            {tabs.map((tab, index) => (
-                <span>
-                    <strong>{tab}</strong>
-                    {index < tabs.length - 1 ? ', ' : ''}
-                </span>
-            ))}
-        </span>
-    );
 }
