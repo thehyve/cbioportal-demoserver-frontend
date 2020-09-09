@@ -1,58 +1,58 @@
-import ResultsPageSettings from './ResultsPageSettings';
+import { DriverAnnotationSettings } from '../ResultsViewPageStore';
 import { action, observable } from 'mobx';
 import AppConfig from 'appConfig';
 import { IDriverAnnotationControlsState } from './DriverAnnotationControls';
 
-export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
+export function buildDriverAnnotationControlsState(
+    driverAnnotationSettings: DriverAnnotationSettings,
+    didOncoKbFailInOncoprint: () => boolean,
+    didHotspotFailInOncoprint: () => boolean,
+    customDriverAnnotationReport: () =>
+        | { hasBinary: boolean; tiers: string[] }
+        | undefined
+): IDriverAnnotationControlsState {
     return observable({
         get distinguishDrivers() {
-            return self.props.store.driverAnnotationSettings.driversAnnotated;
+            return driverAnnotationSettings.driversAnnotated;
         },
         get annotateDriversOncoKb() {
-            return self.props.store.driverAnnotationSettings.oncoKb;
+            return driverAnnotationSettings.oncoKb;
         },
         get annotateDriversOncoKbDisabled() {
             return !AppConfig.serverConfig.show_oncokb;
         },
         get annotateDriversOncoKbError() {
-            return self.props.store.didOncoKbFailInOncoprint;
+            return didOncoKbFailInOncoprint();
         },
         get annotateDriversHotspots() {
-            return self.props.store.driverAnnotationSettings.hotspots;
+            return driverAnnotationSettings.hotspots;
         },
         get annotateDriversHotspotsDisabled() {
             return !AppConfig.serverConfig.show_hotspot;
         },
         get annotateDriversHotspotsError() {
-            return self.props.store.didHotspotFailInOncoprint;
+            return didHotspotFailInOncoprint();
         },
         get annotateDriversCBioPortal() {
-            return self.props.store.driverAnnotationSettings.cbioportalCount;
+            return driverAnnotationSettings.cbioportalCount;
         },
         get annotateDriversCOSMIC() {
-            return self.props.store.driverAnnotationSettings.cosmicCount;
+            return driverAnnotationSettings.cosmicCount;
         },
         get hidePutativePassengers() {
-            return self.props.store.driverAnnotationSettings.excludeVUS;
+            return driverAnnotationSettings.excludeVUS;
         },
         get annotateCBioPortalInputValue() {
-            return (
-                self.props.store.driverAnnotationSettings
-                    .cbioportalCountThreshold + ''
-            );
+            return driverAnnotationSettings.cbioportalCountThreshold + '';
         },
         get annotateCOSMICInputValue() {
-            return (
-                self.props.store.driverAnnotationSettings.cosmicCountThreshold +
-                ''
-            );
+            return driverAnnotationSettings.cosmicCountThreshold + '';
         },
         get customDriverAnnotationBinaryMenuLabel() {
             const label =
                 AppConfig.serverConfig
                     .oncoprint_custom_driver_annotation_binary_menu_label;
-            const customDriverReport =
-                self.props.store.customDriverAnnotationReport.result;
+            const customDriverReport = customDriverAnnotationReport();
             if (label && customDriverReport && customDriverReport.hasBinary) {
                 return label;
             } else {
@@ -63,8 +63,7 @@ export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
             const label =
                 AppConfig.serverConfig
                     .oncoprint_custom_driver_annotation_tiers_menu_label;
-            const customDriverReport =
-                self.props.store.customDriverAnnotationReport.result;
+            const customDriverReport = customDriverAnnotationReport();
             if (
                 label &&
                 customDriverReport &&
@@ -76,8 +75,7 @@ export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
             }
         },
         get customDriverAnnotationTiers() {
-            const customDriverReport =
-                self.props.store.customDriverAnnotationReport.result;
+            const customDriverReport = customDriverAnnotationReport();
             if (customDriverReport && customDriverReport.tiers.length) {
                 return customDriverReport.tiers;
             } else {
@@ -85,102 +83,83 @@ export function buildDriverAnnotationControlsState(self: ResultsPageSettings) {
             }
         },
         get annotateCustomDriverBinary() {
-            return self.props.store.driverAnnotationSettings.customBinary;
+            return driverAnnotationSettings.customBinary;
         },
         get selectedCustomDriverAnnotationTiers() {
-            return self.props.store.driverAnnotationSettings.driverTiers;
+            return driverAnnotationSettings.driverTiers;
         },
     });
 }
 
 export function buildDriverAnnotationControlsHandlers(
-    self: ResultsPageSettings,
+    driverAnnotationSettings: DriverAnnotationSettings,
     state: IDriverAnnotationControlsState
 ) {
     const handlers = {
         onSelectDistinguishDrivers: action((s: boolean) => {
             if (!s) {
-                self.props.store.driverAnnotationSettings.oncoKb = false;
-                self.props.store.driverAnnotationSettings.hotspots = false;
-                self.props.store.driverAnnotationSettings.cbioportalCount = false;
-                self.props.store.driverAnnotationSettings.cosmicCount = false;
-                self.props.store.driverAnnotationSettings.customBinary = false;
-                self.props.store.driverAnnotationSettings.driverTiers.forEach(
-                    (value, key) => {
-                        self.props.store.driverAnnotationSettings.driverTiers.set(
-                            key,
-                            false
-                        );
-                    }
-                );
-                self.props.store.driverAnnotationSettings.excludeVUS = false;
+                driverAnnotationSettings.oncoKb = false;
+                driverAnnotationSettings.hotspots = false;
+                driverAnnotationSettings.cbioportalCount = false;
+                driverAnnotationSettings.cosmicCount = false;
+                driverAnnotationSettings.customBinary = false;
+                driverAnnotationSettings.driverTiers.forEach((value, key) => {
+                    driverAnnotationSettings.driverTiers.set(key, false);
+                });
+                driverAnnotationSettings.excludeVUS = false;
             } else {
                 if (
                     !state.annotateDriversOncoKbDisabled &&
                     !state.annotateDriversOncoKbError
                 )
-                    self.props.store.driverAnnotationSettings.oncoKb = true;
+                    driverAnnotationSettings.oncoKb = true;
 
                 if (
                     !state.annotateDriversHotspotsDisabled &&
                     !state.annotateDriversHotspotsError
                 )
-                    self.props.store.driverAnnotationSettings.hotspots = true;
+                    driverAnnotationSettings.hotspots = true;
 
-                self.props.store.driverAnnotationSettings.cbioportalCount = true;
-                self.props.store.driverAnnotationSettings.cosmicCount = true;
-                self.props.store.driverAnnotationSettings.customBinary = true;
-                self.props.store.driverAnnotationSettings.driverTiers.forEach(
-                    (value, key) => {
-                        self.props.store.driverAnnotationSettings.driverTiers.set(
-                            key,
-                            true
-                        );
-                    }
-                );
+                driverAnnotationSettings.cbioportalCount = true;
+                driverAnnotationSettings.cosmicCount = true;
+                driverAnnotationSettings.customBinary = true;
+                driverAnnotationSettings.driverTiers.forEach((value, key) => {
+                    driverAnnotationSettings.driverTiers.set(key, true);
+                });
             }
         }),
         onSelectAnnotateOncoKb: action((s: boolean) => {
-            self.props.store.driverAnnotationSettings.oncoKb = s;
+            driverAnnotationSettings.oncoKb = s;
         }),
         onSelectAnnotateHotspots: action((s: boolean) => {
-            self.props.store.driverAnnotationSettings.hotspots = s;
+            driverAnnotationSettings.hotspots = s;
         }),
         onSelectAnnotateCBioPortal: action((s: boolean) => {
-            self.props.store.driverAnnotationSettings.cbioportalCount = s;
+            driverAnnotationSettings.cbioportalCount = s;
         }),
         onSelectAnnotateCOSMIC: action((s: boolean) => {
-            self.props.store.driverAnnotationSettings.cosmicCount = s;
+            driverAnnotationSettings.cosmicCount = s;
         }),
         onChangeAnnotateCBioPortalInputValue: action((s: string) => {
-            self.props.store.driverAnnotationSettings.cbioportalCountThreshold = parseInt(
-                s,
-                10
-            );
+            driverAnnotationSettings.cbioportalCountThreshold = parseInt(s, 10);
             handlers.onSelectAnnotateCBioPortal &&
                 handlers.onSelectAnnotateCBioPortal(true);
         }),
         onChangeAnnotateCOSMICInputValue: action((s: string) => {
-            self.props.store.driverAnnotationSettings.cosmicCountThreshold = parseInt(
-                s,
-                10
-            );
+            driverAnnotationSettings.cosmicCountThreshold = parseInt(s, 10);
             handlers.onSelectAnnotateCOSMIC &&
                 handlers.onSelectAnnotateCOSMIC(true);
         }),
         onSelectCustomDriverAnnotationBinary: action((s: boolean) => {
-            self.props.store.driverAnnotationSettings.customBinary = s;
+            driverAnnotationSettings.customBinary = s;
         }),
         onSelectCustomDriverAnnotationTier: action(
             (value: string, checked: boolean) => {
-                self.props.store.driverAnnotationSettings.driverTiers.set(
-                    value,
-                    checked
-                );
+                driverAnnotationSettings.driverTiers.set(value, checked);
             }
         ),
         onSelectHidePutativePassengers: (s: boolean) => {
-            self.props.store.driverAnnotationSettings.excludeVUS = s;
+            driverAnnotationSettings.excludeVUS = s;
         },
     };
     return handlers;

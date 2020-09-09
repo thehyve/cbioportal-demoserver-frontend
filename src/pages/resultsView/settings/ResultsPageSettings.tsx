@@ -6,7 +6,6 @@ import DriverAnnotationControls, {
     IDriverAnnotationControlsHandlers,
     IDriverAnnotationControlsState,
 } from './DriverAnnotationControls';
-import { IObservableObject } from 'mobx';
 import {
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
@@ -43,15 +42,19 @@ export default class ResultsPageSettings extends React.Component<
     IResultsPageSettingsProps,
     {}
 > {
-    private driverSettingsState: IDriverAnnotationControlsState &
-        IObservableObject;
+    private driverSettingsState: IDriverAnnotationControlsState;
     private driverSettingsHandlers: IDriverAnnotationControlsHandlers;
 
     constructor(props: IResultsPageSettingsProps) {
         super(props);
-        this.driverSettingsState = buildDriverAnnotationControlsState(this);
+        this.driverSettingsState = buildDriverAnnotationControlsState(
+            props.store.driverAnnotationSettings,
+            () => props.store.didOncoKbFailInOncoprint,
+            () => props.store.didHotspotFailInOncoprint,
+            () => props.store.customDriverAnnotationReport.result
+        );
         this.driverSettingsHandlers = buildDriverAnnotationControlsHandlers(
-            this,
+            props.store.driverAnnotationSettings,
             this.driverSettingsState
         );
     }
