@@ -658,6 +658,10 @@ export class ResultsViewPageStore {
         });
     }
 
+    public set excludeGermlineMutations(e: boolean) {
+        this.setExcludeGermlineMutations(e);
+    }
+
     @computed
     public get usePatientLevelEnrichments() {
         return this.urlWrapper.query.patient_enrichments === 'true';
@@ -680,6 +684,10 @@ export class ResultsViewPageStore {
         this.urlWrapper.updateURL({
             hide_unprofiled_samples: e.toString(),
         });
+    }
+
+    public set hideUnprofiledSamples(e: boolean) {
+        this.setHideUnprofiledSamples(e);
     }
 
     @computed get hugoGeneSymbols() {
