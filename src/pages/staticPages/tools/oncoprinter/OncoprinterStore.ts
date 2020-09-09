@@ -1,4 +1,4 @@
-import { DriverAnnotationSettings } from '../../../resultsView/ResultsViewPageStore';
+import { DriverAnnotationSettings } from '../../../../shared/driverAnnotation/DriverAnnotationSettings';
 import { action, computed, observable } from 'mobx';
 import AppConfig from 'appConfig';
 import {
