@@ -15,7 +15,6 @@ import {
 import InfoIcon from '../../../shared/components/InfoIcon';
 import styles from './styles.module.scss';
 import classNames from 'classnames';
-import { OncoprintAnalysisCaseType } from '../ResultsViewPageStoreUtils';
 
 export interface IResultsPageSettingsProps {
     store: ResultsViewPageStore;
@@ -25,9 +24,6 @@ enum EVENT_KEY {
     hidePutativePassengers = '0',
     showGermlineMutations = '1',
     hideUnprofiledSamples = '1.1',
-
-    dataTypeSample = '2',
-    dataTypePatient = '3',
 }
 
 @observer
@@ -62,16 +58,6 @@ export default class ResultsPageSettings extends React.Component<
             case EVENT_KEY.showGermlineMutations:
                 this.props.store.setExcludeGermlineMutations(
                     !this.props.store.excludeGermlineMutations
-                );
-                break;
-            case EVENT_KEY.dataTypeSample:
-                this.props.store.setOncoprintAnalysisCaseType(
-                    OncoprintAnalysisCaseType.SAMPLE
-                );
-                break;
-            case EVENT_KEY.dataTypePatient:
-                this.props.store.setOncoprintAnalysisCaseType(
-                    OncoprintAnalysisCaseType.PATIENT
                 );
                 break;
         }
