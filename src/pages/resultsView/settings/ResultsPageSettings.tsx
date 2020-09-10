@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import { DriverAnnotationSettings } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
 import autobind from 'autobind-decorator';
 import {
+    IResultsPageSettingsProps,
     IDriverAnnotationControlsHandlers,
     IDriverAnnotationControlsState,
 } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
@@ -14,19 +14,6 @@ import {
 import InfoIcon from '../../../shared/components/InfoIcon';
 import styles from './styles.module.scss';
 import classNames from 'classnames';
-
-export interface IResultsPageSettingsProps {
-    driverAnnotationSettings: DriverAnnotationSettings;
-    didOncoKbFailInOncoprint: () => boolean;
-    didHotspotFailInOncoprint: () => boolean;
-    customDriverAnnotationReport: () =>
-        | { hasBinary: boolean; tiers: string[] }
-        | undefined;
-    exclusionSetting: {
-        hideUnprofiledSamples: boolean;
-        excludeGermlineMutations: boolean;
-    };
-}
 
 enum EVENT_KEY {
     hidePutativePassengers = '0',

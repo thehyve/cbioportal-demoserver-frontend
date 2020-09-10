@@ -1,5 +1,18 @@
 import { ObservableMap } from 'mobx';
 
+export interface IResultsPageSettingsProps {
+    driverAnnotationSettings: DriverAnnotationSettings;
+    didOncoKbFailInOncoprint: () => boolean;
+    didHotspotFailInOncoprint: () => boolean;
+    customDriverAnnotationReport: () =>
+        | { hasBinary: boolean; tiers: string[] }
+        | undefined;
+    exclusionSetting: {
+        hideUnprofiledSamples: boolean;
+        excludeGermlineMutations: boolean;
+    };
+}
+
 export interface DriverAnnotationSettings {
     excludeVUS: boolean;
     cbioportalCount: boolean;
