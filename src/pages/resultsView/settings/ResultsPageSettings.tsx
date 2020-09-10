@@ -5,12 +5,10 @@ import {
     IResultsPageSettingsProps,
     IDriverAnnotationControlsHandlers,
     IDriverAnnotationControlsState,
-} from '../../../shared/driverAnnotation/DriverAnnotationSettings';
-import DriverAnnotationControls from './DriverAnnotationControls';
-import {
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
-} from './ResultsPageSettingsUtils';
+} from '../../../shared/driverAnnotation/DriverAnnotationSettings';
+import DriverAnnotationControls from './DriverAnnotationControls';
 import InfoIcon from '../../../shared/components/InfoIcon';
 import styles from './styles.module.scss';
 import classNames from 'classnames';
