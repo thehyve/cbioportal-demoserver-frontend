@@ -2,10 +2,11 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import { DriverAnnotationSettings } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
 import autobind from 'autobind-decorator';
-import DriverAnnotationControls, {
+import {
     IDriverAnnotationControlsHandlers,
     IDriverAnnotationControlsState,
-} from './DriverAnnotationControls';
+} from '../../../shared/driverAnnotation/DriverAnnotationSettings';
+import DriverAnnotationControls from './DriverAnnotationControls';
 import {
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,

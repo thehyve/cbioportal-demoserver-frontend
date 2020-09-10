@@ -1,7 +1,7 @@
 import { DriverAnnotationSettings } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
 import { action, observable } from 'mobx';
 import AppConfig from 'appConfig';
-import { IDriverAnnotationControlsState } from './DriverAnnotationControls';
+import { IDriverAnnotationControlsState } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
 
 export function buildDriverAnnotationControlsState(
     driverAnnotationSettings: DriverAnnotationSettings,
