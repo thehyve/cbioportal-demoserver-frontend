@@ -217,7 +217,10 @@ import ifNotDefined from '../../shared/lib/ifNotDefined';
 import ComplexKeyMap from '../../shared/lib/complexKeyDataStructures/ComplexKeyMap';
 import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
 import { constant } from 'lodash';
-import { DriverAnnotationSettings } from '../../shared/driverAnnotation/DriverAnnotationSettings';
+import {
+    DriverAnnotationSettings,
+    buildDriverAnnotationSettings,
+} from '../../shared/driverAnnotation/DriverAnnotationSettings';
 
 type Optional<T> =
     | { isApplicable: true; value: T }
@@ -461,85 +464,15 @@ export class ResultsViewPageStore {
 
         const store = this;
 
-        this.driverAnnotationSettings = observable({
-            cbioportalCount: false,
-            cbioportalCountThreshold: 0,
-            cosmicCount: false,
-            cosmicCountThreshold: 0,
-            driverTiers: observable.map<boolean>(),
-
-            _hotspots: false,
-            _oncoKb: false,
-            _excludeVUS: false,
-            _customBinary: undefined,
-
-            set hotspots(val: boolean) {
-                this._hotspots = val;
-            },
-            get hotspots() {
-                return (
-                    !!AppConfig.serverConfig.show_hotspot &&
-                    this._hotspots &&
-                    !store.didHotspotFailInOncoprint
-                );
-            },
-            set oncoKb(val: boolean) {
-                this._oncoKb = val;
-            },
-            get oncoKb() {
-                return (
-                    AppConfig.serverConfig.show_oncokb &&
-                    this._oncoKb &&
-                    !store.didOncoKbFailInOncoprint
-                );
-            },
-            set excludeVUS(val: boolean) {
-                this._excludeVUS = val;
-            },
-            get excludeVUS() {
-                return this._excludeVUS && this.driversAnnotated;
-            },
-            get driversAnnotated() {
-                const anySelected =
-                    this.oncoKb ||
-                    this.hotspots ||
-                    this.cbioportalCount ||
-                    this.cosmicCount ||
-                    this.customBinary ||
-                    this.driverTiers
-                        .entries()
-                        .reduce(
-                            (
-                                oneSelected: boolean,
-                                nextEntry: [string, boolean]
-                            ) => {
-                                return oneSelected || nextEntry[1];
-                            },
-                            false
-                        );
-
-                return anySelected;
-            },
-
-            set customBinary(val: boolean) {
-                this._customBinary = val;
-            },
-            get customBinary() {
-                return this._customBinary === undefined
-                    ? AppConfig.serverConfig
-                          .oncoprint_custom_driver_annotation_binary_default
-                    : this._customBinary;
-            },
-            get customTiersDefault() {
-                return AppConfig.serverConfig
-                    .oncoprint_custom_driver_annotation_tiers_default;
-            },
-        });
-
+        this.driverAnnotationSettings = buildDriverAnnotationSettings(
+            () => store.didHotspotFailInOncoprint
+        );
         this.driverAnnotationsReactionDisposer = reaction(
             () => this.urlWrapper.query.cancer_study_list,
             () => {
-                this.initDriverAnnotationSettings();
+                this.driverAnnotationSettings = buildDriverAnnotationSettings(
+                    () => store.didHotspotFailInOncoprint
+                );
             },
             { fireImmediately: true }
         );
@@ -719,20 +652,6 @@ export class ResultsViewPageStore {
         } else {
             return undefined;
         }
-    }
-
-    public initDriverAnnotationSettings() {
-        this.driverAnnotationSettings.cbioportalCount = false;
-        this.driverAnnotationSettings.cbioportalCountThreshold = 10;
-        this.driverAnnotationSettings.cosmicCount = false;
-        this.driverAnnotationSettings.cosmicCountThreshold = 10;
-        this.driverAnnotationSettings.driverTiers = observable.map<boolean>();
-        (this.driverAnnotationSettings as any)._oncoKb = !!AppConfig
-            .serverConfig.oncoprint_oncokb_default;
-        this.driverAnnotationSettings.hotspots = !!AppConfig.serverConfig
-            .oncoprint_hotspots_default;
-        (this.driverAnnotationSettings as any)._excludeVUS = !!AppConfig
-            .serverConfig.oncoprint_hide_vus_default;
     }
 
     private makeMutationsTabFilteringSettings() {

@@ -152,6 +152,85 @@ export function buildDriverAnnotationControlsState(
     });
 }
 
+export function buildDriverAnnotationSettings(
+    didOncoKbFailInOncoprint: () => boolean
+) {
+    return observable({
+        cbioportalCount: false,
+        cbioportalCountThreshold: 0,
+        cosmicCount: false,
+        cosmicCountThreshold: 0,
+        driverTiers: observable.map<boolean>(),
+
+        _hotspots: false,
+        _oncoKb: false,
+        _excludeVUS: false,
+        _customBinary: undefined,
+
+        set hotspots(val: boolean) {
+            this._hotspots = val;
+        },
+        get hotspots() {
+            return (
+                !!AppConfig.serverConfig.show_hotspot &&
+                this._hotspots &&
+                !didOncoKbFailInOncoprint()
+            );
+        },
+        set oncoKb(val: boolean) {
+            this._oncoKb = val;
+        },
+        get oncoKb() {
+            return (
+                AppConfig.serverConfig.show_oncokb &&
+                this._oncoKb &&
+                !didOncoKbFailInOncoprint()
+            );
+        },
+        set excludeVUS(val: boolean) {
+            this._excludeVUS = val;
+        },
+        get excludeVUS() {
+            return this._excludeVUS && this.driversAnnotated;
+        },
+        get driversAnnotated() {
+            const anySelected =
+                this.oncoKb ||
+                this.hotspots ||
+                this.cbioportalCount ||
+                this.cosmicCount ||
+                this.customBinary ||
+                this.driverTiers
+                    .entries()
+                    .reduce(
+                        (
+                            oneSelected: boolean,
+                            nextEntry: [string, boolean]
+                        ) => {
+                            return oneSelected || nextEntry[1];
+                        },
+                        false
+                    );
+
+            return anySelected;
+        },
+
+        set customBinary(val: boolean) {
+            this._customBinary = val;
+        },
+        get customBinary() {
+            return this._customBinary === undefined
+                ? AppConfig.serverConfig
+                      .oncoprint_custom_driver_annotation_binary_default
+                : this._customBinary;
+        },
+        get customTiersDefault() {
+            return AppConfig.serverConfig
+                .oncoprint_custom_driver_annotation_tiers_default;
+        },
+    });
+}
+
 export function buildDriverAnnotationControlsHandlers(
     driverAnnotationSettings: DriverAnnotationSettings,
     state: IDriverAnnotationControlsState
