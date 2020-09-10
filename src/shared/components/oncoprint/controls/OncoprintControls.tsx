@@ -40,7 +40,7 @@ import OQLTextArea, { GeneBoxType } from '../../GeneSelectionBox/OQLTextArea';
 import autobind from 'autobind-decorator';
 import { SingleGeneQuery } from '../../../lib/oql/oql-parser';
 import AddClinicalTracks from '../../../../pages/resultsView/oncoprint/AddClinicalTracks';
-import DriverAnnotationControls from '../../../../pages/resultsView/settings/DriverAnnotationControls';
+import DriverAnnotationControls from '../../driverAnnotations/DriverAnnotationControls';
 import {
     IDriverAnnotationControlsState,
     IDriverAnnotationControlsHandlers,

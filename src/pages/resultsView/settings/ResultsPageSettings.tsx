@@ -8,7 +8,7 @@ import {
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
 } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
-import DriverAnnotationControls from './DriverAnnotationControls';
+import DriverAnnotationControls from '../../../shared/components/driverAnnotations/DriverAnnotationControls';
 import InfoIcon from '../../../shared/components/InfoIcon';
 import styles from './styles.module.scss';
 import classNames from 'classnames';

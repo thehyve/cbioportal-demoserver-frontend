@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import ErrorIcon from '../../../shared/components/ErrorIcon';
-import { ObservableMap } from 'mobx';
+import ErrorIcon from '../ErrorIcon';
 import autobind from 'autobind-decorator';
 import {
     IDriverAnnotationControlsState,
     IDriverAnnotationControlsHandlers,
-} from '../../../shared/driverAnnotation/DriverAnnotationSettings';
+} from '../../driverAnnotation/DriverAnnotationSettings';
 import {
     EditableSpan,
     DefaultTooltip,
