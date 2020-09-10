@@ -191,6 +191,10 @@ import { Datalabel } from 'shared/lib/DataUtils';
 import { Group } from '../../shared/api/ComparisonGroupClient';
 import PromisePlus from 'shared/lib/PromisePlus';
 import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
+import {
+    DriverAnnotationSettings,
+    buildDriverAnnotationSettings,
+} from 'shared/driverAnnotation/DriverAnnotationSettings';
 
 export type ChartUserSetting = {
     id: string;
@@ -306,6 +310,11 @@ export class StudyViewPageStore {
     private chartToUsedColors: Map<string, Set<string>>;
 
     public studyViewQueryFilter: StudyViewURLQuery;
+    public driverAnnotationSettings: DriverAnnotationSettings;
+    public customDriverAnnotationReport: {
+        hasBinary: boolean;
+        tiers: string[];
+    };
 
     @observable showComparisonGroupUI = false;
 
@@ -408,6 +417,15 @@ export class StudyViewPageStore {
                 }
             }
         );
+
+        this.driverAnnotationSettings = buildDriverAnnotationSettings(
+            () => false
+        );
+        //TODO Fill in real data
+        this.customDriverAnnotationReport = {
+            hasBinary: true,
+            tiers: ['A', 'B'],
+        };
     }
 
     @computed get isLoggedIn() {

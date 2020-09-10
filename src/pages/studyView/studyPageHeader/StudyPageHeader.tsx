@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
+import { observable } from 'mobx';
 import { StudyViewPageStore } from 'pages/studyView/StudyViewPageStore';
 import RightPanel from './rightPanel/RightPanel';
 import StudySummary from './studySummary/StudySummary';
 import UserSelections from '../UserSelections';
 import * as _ from 'lodash';
 import { DefaultTooltip } from 'cbioportal-frontend-commons';
+import StudyResultSettings from '../StudyResultSettings';
 
 export interface IStudyPageHeaderProps {
     store: StudyViewPageStore;
@@ -17,6 +19,8 @@ export default class StudyPageHeader extends React.Component<
     IStudyPageHeaderProps,
     {}
 > {
+    @observable resultsPageSettingsVisible: boolean = false;
+
     render() {
         return (
             <div className={'headBlock'} data-test="study-view-header">
@@ -34,6 +38,33 @@ export default class StudyPageHeader extends React.Component<
                     </div>
                 )}
                 <div style={{ display: 'flex' }}>
+                    <DefaultTooltip
+                        trigger={['click']}
+                        placement="bottomRight"
+                        overlay={
+                            <StudyResultSettings
+                                driverAnnotationSettings={
+                                    this.props.store.driverAnnotationSettings
+                                }
+                                customDriverAnnotationReport={() =>
+                                    this.props.store
+                                        .customDriverAnnotationReport
+                                }
+                            />
+                        }
+                        visible={this.resultsPageSettingsVisible}
+                        onVisibleChange={visible => {
+                            this.resultsPageSettingsVisible = !!visible;
+                        }}
+                    >
+                        <button
+                            data-test="GlobalSettingsButton"
+                            style={{ marginLeft: 5 }}
+                            className="btn btn-primary"
+                        >
+                            <i className="fa fa-sliders fa-lg" />
+                        </button>
+                    </DefaultTooltip>
                     <StudySummary
                         hasRawDataForDownload={
                             this.props.store.hasRawDataForDownload.result
