@@ -9,6 +9,8 @@ import {
 } from '../../shared/driverAnnotation/DriverAnnotationSettings';
 import DriverAnnotationControls from '../../shared/components/driverAnnotations/DriverAnnotationControls';
 import classNames from 'classnames';
+import { IServerConfig } from 'config/IAppConfig';
+import AppConfig from 'appConfig';
 
 export interface IStudyResultsSettingsProps {
     driverAnnotationSettings: DriverAnnotationSettings;
@@ -27,17 +29,27 @@ export default class StudyResultSettings extends React.Component<
 
     constructor(props: IStudyResultsSettingsProps) {
         super(props);
-        //TODO Find a good way to hide some checkboxes
+
+        const serverConfig = AppConfig.serverConfig;
+        const config = Object.assign({}, serverConfig, {
+            show_oncokb: false,
+            show_hotspot: false,
+        });
+        console.log(config);
         this.driverSettingsState = buildDriverAnnotationControlsState(
             props.driverAnnotationSettings,
             () => false,
             () => false,
-            props.customDriverAnnotationReport
+            props.customDriverAnnotationReport,
+            config
         );
         this.driverSettingsHandlers = buildDriverAnnotationControlsHandlers(
             props.driverAnnotationSettings,
             this.driverSettingsState
         );
+        //FIXME improve the way to hide the cbio and cosmic checkboxes
+        this.driverSettingsHandlers.onChangeAnnotateCBioPortalInputValue = undefined;
+        this.driverSettingsHandlers.onChangeAnnotateCOSMICInputValue = undefined;
     }
 
     render() {

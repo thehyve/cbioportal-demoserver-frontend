@@ -58,7 +58,7 @@ export interface IDriverAnnotationControlsHandlers {
     onSelectAnnotateHotspots?: (annotate: boolean) => void;
     onSelectAnnotateCBioPortal: (annotate: boolean) => void;
     onSelectAnnotateCOSMIC?: (annotate: boolean) => void;
-    onChangeAnnotateCBioPortalInputValue: (value: string) => void;
+    onChangeAnnotateCBioPortalInputValue?: (value: string) => void;
     onChangeAnnotateCOSMICInputValue?: (value: string) => void;
     onSelectCustomDriverAnnotationBinary?: (s: boolean) => void;
     onSelectCustomDriverAnnotationTier?: (value: string, s: boolean) => void;
@@ -70,7 +70,8 @@ export function buildDriverAnnotationControlsState(
     didHotspotFailInOncoprint: () => boolean,
     customDriverAnnotationReport: () =>
         | { hasBinary: boolean; tiers: string[] }
-        | undefined
+        | undefined,
+    config = AppConfig.serverConfig
 ): IDriverAnnotationControlsState {
     return observable({
         get distinguishDrivers() {
@@ -80,7 +81,7 @@ export function buildDriverAnnotationControlsState(
             return driverAnnotationSettings.oncoKb;
         },
         get annotateDriversOncoKbDisabled() {
-            return !AppConfig.serverConfig.show_oncokb;
+            return !config.show_oncokb;
         },
         get annotateDriversOncoKbError() {
             return didOncoKbFailInOncoprint();
@@ -89,7 +90,7 @@ export function buildDriverAnnotationControlsState(
             return driverAnnotationSettings.hotspots;
         },
         get annotateDriversHotspotsDisabled() {
-            return !AppConfig.serverConfig.show_hotspot;
+            return !config.show_hotspot;
         },
         get annotateDriversHotspotsError() {
             return didHotspotFailInOncoprint();
@@ -111,8 +112,7 @@ export function buildDriverAnnotationControlsState(
         },
         get customDriverAnnotationBinaryMenuLabel() {
             const label =
-                AppConfig.serverConfig
-                    .oncoprint_custom_driver_annotation_binary_menu_label;
+                config.oncoprint_custom_driver_annotation_binary_menu_label;
             const customDriverReport = customDriverAnnotationReport();
             if (label && customDriverReport && customDriverReport.hasBinary) {
                 return label;
@@ -122,8 +122,7 @@ export function buildDriverAnnotationControlsState(
         },
         get customDriverAnnotationTiersMenuLabel() {
             const label =
-                AppConfig.serverConfig
-                    .oncoprint_custom_driver_annotation_tiers_menu_label;
+                config.oncoprint_custom_driver_annotation_tiers_menu_label;
             const customDriverReport = customDriverAnnotationReport();
             if (
                 label &&
@@ -153,7 +152,8 @@ export function buildDriverAnnotationControlsState(
 }
 
 export function buildDriverAnnotationSettings(
-    didOncoKbFailInOncoprint: () => boolean
+    didOncoKbFailInOncoprint: () => boolean,
+    config = AppConfig.serverConfig
 ) {
     return observable({
         cbioportalCount: false,
@@ -172,7 +172,7 @@ export function buildDriverAnnotationSettings(
         },
         get hotspots() {
             return (
-                !!AppConfig.serverConfig.show_hotspot &&
+                !!config.show_hotspot &&
                 this._hotspots &&
                 !didOncoKbFailInOncoprint()
             );
@@ -182,7 +182,7 @@ export function buildDriverAnnotationSettings(
         },
         get oncoKb() {
             return (
-                AppConfig.serverConfig.show_oncokb &&
+                config.show_oncokb &&
                 this._oncoKb &&
                 !didOncoKbFailInOncoprint()
             );
@@ -220,13 +220,11 @@ export function buildDriverAnnotationSettings(
         },
         get customBinary() {
             return this._customBinary === undefined
-                ? AppConfig.serverConfig
-                      .oncoprint_custom_driver_annotation_binary_default
+                ? config.oncoprint_custom_driver_annotation_binary_default
                 : this._customBinary;
         },
         get customTiersDefault() {
-            return AppConfig.serverConfig
-                .oncoprint_custom_driver_annotation_tiers_default;
+            return config.oncoprint_custom_driver_annotation_tiers_default;
         },
     });
 }
