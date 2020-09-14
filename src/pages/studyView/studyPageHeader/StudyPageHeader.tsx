@@ -59,7 +59,7 @@ export default class StudyPageHeader extends React.Component<
                     >
                         <button
                             data-test="GlobalSettingsButton"
-                            style={{ marginLeft: 5 }}
+                            style={{ marginRight: 5 }}
                             className="btn btn-primary"
                         >
                             <i className="fa fa-sliders fa-lg" />
