@@ -194,6 +194,7 @@ import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
 import {
     DriverAnnotationSettings,
     buildDriverAnnotationSettings,
+    IAlterationExclusionSettings,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
 
 export type ChartUserSetting = {
@@ -315,6 +316,7 @@ export class StudyViewPageStore {
         hasBinary: boolean;
         tiers: string[];
     };
+    public exclusionSetting: IAlterationExclusionSettings;
 
     @observable showComparisonGroupUI = false;
 
@@ -425,6 +427,10 @@ export class StudyViewPageStore {
         this.customDriverAnnotationReport = {
             hasBinary: true,
             tiers: ['A', 'B'],
+        };
+        this.exclusionSetting = {
+            excludeGermlineMutations: false,
+            hideUnprofiledSamples: false,
         };
     }
 

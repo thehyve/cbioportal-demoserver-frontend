@@ -8,11 +8,13 @@ export interface IDriverSettingsProps {
     customDriverAnnotationReport: () =>
         | { hasBinary: boolean; tiers: string[] }
         | undefined;
-    exclusionSetting: {
-        hideUnprofiledSamples: boolean;
-        excludeGermlineMutations: boolean;
-    };
+    exclusionSetting: IAlterationExclusionSettings;
     parentResultsView?: boolean;
+}
+
+export interface IAlterationExclusionSettings {
+    hideUnprofiledSamples: boolean;
+    excludeGermlineMutations: boolean;
 }
 
 export interface DriverAnnotationSettings {

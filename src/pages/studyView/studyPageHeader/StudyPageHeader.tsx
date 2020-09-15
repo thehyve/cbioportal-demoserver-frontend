@@ -50,6 +50,9 @@ export default class StudyPageHeader extends React.Component<
                                     this.props.store
                                         .customDriverAnnotationReport
                                 }
+                                exclusionSetting={
+                                    this.props.store.exclusionSetting
+                                }
                             />
                         }
                         visible={this.resultsPageSettingsVisible}
