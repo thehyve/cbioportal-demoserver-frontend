@@ -5632,18 +5632,6 @@
           "type": "integer",
           "format": "int32"
         },
-        "driverFilter": {
-          "type": "string"
-        },
-        "driverFilterAnnotation": {
-          "type": "string"
-        },
-        "driverTiersFilter": {
-          "type": "string"
-        },
-        "driverTiersFilterAnnotation": {
-          "type": "string"
-        },
         "entrezGeneId": {
           "type": "integer",
           "format": "int32"
@@ -5754,6 +5742,18 @@
         "alteration": {
           "type": "integer",
           "format": "int32"
+        },
+        "driverFilter": {
+          "type": "string"
+        },
+        "driverFilterAnnotation": {
+          "type": "string"
+        },
+        "driverTiersFilter": {
+          "type": "string"
+        },
+        "driverTiersFilterAnnotation": {
+          "type": "string"
         },
         "entrezGeneId": {
           "type": "integer",
