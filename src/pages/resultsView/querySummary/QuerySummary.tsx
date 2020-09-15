@@ -310,26 +310,23 @@ export default class QuerySummary extends React.Component<
                                         placement="bottomRight"
                                         overlay={
                                             <ResultsPageSettings
-                                                driverAnnotationSettings={
-                                                    this.props.store
-                                                        .driverAnnotationSettings
-                                                }
-                                                didOncoKbFailInOncoprint={() =>
-                                                    this.props.store
-                                                        .didOncoKbFailInOncoprint
-                                                }
-                                                didHotspotFailInOncoprint={() =>
-                                                    this.props.store
-                                                        .didHotspotFailInOncoprint
-                                                }
-                                                customDriverAnnotationReport={() =>
-                                                    this.props.store
-                                                        .customDriverAnnotationReport
-                                                        .result
-                                                }
-                                                exclusionSetting={
-                                                    this.props.store
-                                                }
+                                                store={{
+                                                    driverAnnotationSettings: this
+                                                        .props.store
+                                                        .driverAnnotationSettings,
+                                                    didOncoKbFailInOncoprint: () =>
+                                                        this.props.store
+                                                            .didOncoKbFailInOncoprint,
+                                                    didHotspotFailInOncoprint: () =>
+                                                        this.props.store
+                                                            .didHotspotFailInOncoprint,
+                                                    customDriverAnnotationReport: () =>
+                                                        this.props.store
+                                                            .customDriverAnnotationReport
+                                                            .result,
+                                                    exclusionSetting: this.props
+                                                        .store,
+                                                }}
                                             />
                                         }
                                         visible={

@@ -13,8 +13,9 @@ export interface IDriverSettingsProps {
 }
 
 export interface IAlterationExclusionSettings {
-    hideUnprofiledSamples: boolean;
+    excludeVUS: boolean;
     excludeGermlineMutations: boolean;
+    hideUnprofiledSamples?: boolean;
 }
 
 export interface DriverAnnotationSettings {

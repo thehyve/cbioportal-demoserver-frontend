@@ -451,7 +451,7 @@ export type ModifyQueryParams = {
 /* fields and methods in the class below are ordered based on roughly
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
-export class ResultsViewPageStore {
+export class ResultsViewPageStore implements IAlterationExclusionSettings {
     constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
         labelMobxPromises(this);
 
@@ -594,6 +594,18 @@ export class ResultsViewPageStore {
     public set excludeGermlineMutations(e: boolean) {
         this.setExcludeGermlineMutations(e);
     }
+
+    // @autobind
+    // @action
+    // public setExcludeVUS(e: boolean) {
+    //     this.urlWrapper.updateURL({
+    //         exclude_vus: e.toString(),
+    //     });
+    // }
+
+    // public set excludeVUS(e: boolean) {
+    //     this.setExcludeVUS(e);
+    // }
 
     @computed
     public get usePatientLevelEnrichments() {

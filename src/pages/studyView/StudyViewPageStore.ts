@@ -429,6 +429,7 @@ export class StudyViewPageStore {
             tiers: ['A', 'B'],
         };
         this.exclusionSetting = {
+            excludeVUS: false,
             excludeGermlineMutations: false,
             hideUnprofiledSamples: false,
         };
