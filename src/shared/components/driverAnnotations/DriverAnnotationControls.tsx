@@ -16,6 +16,7 @@ import 'rc-tooltip/assets/bootstrap_white.css';
 export interface IDriverAnnotationControlsProps {
     state: IDriverAnnotationControlsState;
     handlers: IDriverAnnotationControlsHandlers;
+    parentResultsView?: boolean;
 }
 
 enum EVENT_KEY {
@@ -92,13 +93,20 @@ export default class DriverAnnotationControls extends React.Component<
             <div>
                 <div className="checkbox">
                     <label>
-                        <input
-                            data-test="ColorByDriver"
-                            type="checkbox"
-                            value={EVENT_KEY.distinguishDrivers}
-                            checked={this.props.state.distinguishDrivers}
-                            onClick={this.onInputClick}
-                        />{' '}
+                        {this.props.parentResultsView && (
+                            <span>
+                                <input
+                                    data-test="ColorByDriver"
+                                    type="checkbox"
+                                    value={EVENT_KEY.distinguishDrivers}
+                                    checked={
+                                        this.props.state.distinguishDrivers
+                                    }
+                                    onClick={this.onInputClick}
+                                />
+                                &nbsp;
+                            </span>
+                        )}
                         Putative drivers vs VUS:
                     </label>
                 </div>

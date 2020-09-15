@@ -38,9 +38,10 @@ export default class StudyResultSettings extends React.Component<
         console.log(config);
         this.driverSettingsState = buildDriverAnnotationControlsState(
             props.driverAnnotationSettings,
-            () => false,
-            () => false,
+            undefined,
+            undefined,
             props.customDriverAnnotationReport,
+
             config
         );
         this.driverSettingsHandlers = buildDriverAnnotationControlsHandlers(

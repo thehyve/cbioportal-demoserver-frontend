@@ -1,10 +1,10 @@
 import { ObservableMap, action, observable } from 'mobx';
 import AppConfig from 'appConfig';
 
-export interface IResultsPageSettingsProps {
+export interface IDriverSettingsProps {
     driverAnnotationSettings: DriverAnnotationSettings;
-    didOncoKbFailInOncoprint: () => boolean;
-    didHotspotFailInOncoprint: () => boolean;
+    didOncoKbFailInOncoprint?: () => boolean;
+    didHotspotFailInOncoprint?: () => boolean;
     customDriverAnnotationReport: () =>
         | { hasBinary: boolean; tiers: string[] }
         | undefined;
@@ -12,6 +12,7 @@ export interface IResultsPageSettingsProps {
         hideUnprofiledSamples: boolean;
         excludeGermlineMutations: boolean;
     };
+    parentResultsView?: boolean;
 }
 
 export interface DriverAnnotationSettings {
@@ -62,93 +63,6 @@ export interface IDriverAnnotationControlsHandlers {
     onChangeAnnotateCOSMICInputValue?: (value: string) => void;
     onSelectCustomDriverAnnotationBinary?: (s: boolean) => void;
     onSelectCustomDriverAnnotationTier?: (value: string, s: boolean) => void;
-}
-
-export function buildDriverAnnotationControlsState(
-    driverAnnotationSettings: DriverAnnotationSettings,
-    didOncoKbFailInOncoprint: () => boolean,
-    didHotspotFailInOncoprint: () => boolean,
-    customDriverAnnotationReport: () =>
-        | { hasBinary: boolean; tiers: string[] }
-        | undefined,
-    config = AppConfig.serverConfig
-): IDriverAnnotationControlsState {
-    return observable({
-        get distinguishDrivers() {
-            return driverAnnotationSettings.driversAnnotated;
-        },
-        get annotateDriversOncoKb() {
-            return driverAnnotationSettings.oncoKb;
-        },
-        get annotateDriversOncoKbDisabled() {
-            return !config.show_oncokb;
-        },
-        get annotateDriversOncoKbError() {
-            return didOncoKbFailInOncoprint();
-        },
-        get annotateDriversHotspots() {
-            return driverAnnotationSettings.hotspots;
-        },
-        get annotateDriversHotspotsDisabled() {
-            return !config.show_hotspot;
-        },
-        get annotateDriversHotspotsError() {
-            return didHotspotFailInOncoprint();
-        },
-        get annotateDriversCBioPortal() {
-            return driverAnnotationSettings.cbioportalCount;
-        },
-        get annotateDriversCOSMIC() {
-            return driverAnnotationSettings.cosmicCount;
-        },
-        get hidePutativePassengers() {
-            return driverAnnotationSettings.excludeVUS;
-        },
-        get annotateCBioPortalInputValue() {
-            return driverAnnotationSettings.cbioportalCountThreshold + '';
-        },
-        get annotateCOSMICInputValue() {
-            return driverAnnotationSettings.cosmicCountThreshold + '';
-        },
-        get customDriverAnnotationBinaryMenuLabel() {
-            const label =
-                config.oncoprint_custom_driver_annotation_binary_menu_label;
-            const customDriverReport = customDriverAnnotationReport();
-            if (label && customDriverReport && customDriverReport.hasBinary) {
-                return label;
-            } else {
-                return undefined;
-            }
-        },
-        get customDriverAnnotationTiersMenuLabel() {
-            const label =
-                config.oncoprint_custom_driver_annotation_tiers_menu_label;
-            const customDriverReport = customDriverAnnotationReport();
-            if (
-                label &&
-                customDriverReport &&
-                customDriverReport.tiers.length
-            ) {
-                return label;
-            } else {
-                return undefined;
-            }
-        },
-        get customDriverAnnotationTiers() {
-            const customDriverReport = customDriverAnnotationReport();
-            if (customDriverReport && customDriverReport.tiers.length) {
-                return customDriverReport.tiers;
-            } else {
-                return undefined;
-            }
-        },
-        get annotateCustomDriverBinary() {
-            return driverAnnotationSettings.customBinary;
-        },
-        get selectedCustomDriverAnnotationTiers() {
-            return driverAnnotationSettings.driverTiers;
-        },
-    });
 }
 
 export function buildDriverAnnotationSettings(
@@ -301,4 +215,91 @@ export function buildDriverAnnotationControlsHandlers(
         },
     };
     return handlers;
+}
+
+export function buildDriverAnnotationControlsState(
+    driverAnnotationSettings: DriverAnnotationSettings,
+    customDriverAnnotationReport: () =>
+        | { hasBinary: boolean; tiers: string[] }
+        | undefined,
+    didOncoKbFailInOncoprint?: () => boolean,
+    didHotspotFailInOncoprint?: () => boolean,
+    config = AppConfig.serverConfig
+): IDriverAnnotationControlsState {
+    return observable({
+        get distinguishDrivers() {
+            return driverAnnotationSettings.driversAnnotated;
+        },
+        get annotateDriversOncoKb() {
+            return driverAnnotationSettings.oncoKb;
+        },
+        get annotateDriversOncoKbDisabled() {
+            return !config.show_oncokb;
+        },
+        get annotateDriversOncoKbError() {
+            return !!(didOncoKbFailInOncoprint && didOncoKbFailInOncoprint());
+        },
+        get annotateDriversHotspots() {
+            return driverAnnotationSettings.hotspots;
+        },
+        get annotateDriversHotspotsDisabled() {
+            return !config.show_hotspot;
+        },
+        get annotateDriversHotspotsError() {
+            return !!(didHotspotFailInOncoprint && didHotspotFailInOncoprint());
+        },
+        get annotateDriversCBioPortal() {
+            return driverAnnotationSettings.cbioportalCount;
+        },
+        get annotateDriversCOSMIC() {
+            return driverAnnotationSettings.cosmicCount;
+        },
+        get hidePutativePassengers() {
+            return driverAnnotationSettings.excludeVUS;
+        },
+        get annotateCBioPortalInputValue() {
+            return driverAnnotationSettings.cbioportalCountThreshold + '';
+        },
+        get annotateCOSMICInputValue() {
+            return driverAnnotationSettings.cosmicCountThreshold + '';
+        },
+        get customDriverAnnotationBinaryMenuLabel() {
+            const label =
+                config.oncoprint_custom_driver_annotation_binary_menu_label;
+            const customDriverReport = customDriverAnnotationReport();
+            if (label && customDriverReport && customDriverReport.hasBinary) {
+                return label;
+            } else {
+                return undefined;
+            }
+        },
+        get customDriverAnnotationTiersMenuLabel() {
+            const label =
+                config.oncoprint_custom_driver_annotation_tiers_menu_label;
+            const customDriverReport = customDriverAnnotationReport();
+            if (
+                label &&
+                customDriverReport &&
+                customDriverReport.tiers.length
+            ) {
+                return label;
+            } else {
+                return undefined;
+            }
+        },
+        get customDriverAnnotationTiers() {
+            const customDriverReport = customDriverAnnotationReport();
+            if (customDriverReport && customDriverReport.tiers.length) {
+                return customDriverReport.tiers;
+            } else {
+                return undefined;
+            }
+        },
+        get annotateCustomDriverBinary() {
+            return driverAnnotationSettings.customBinary;
+        },
+        get selectedCustomDriverAnnotationTiers() {
+            return driverAnnotationSettings.driverTiers;
+        },
+    });
 }

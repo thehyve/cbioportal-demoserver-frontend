@@ -7,7 +7,7 @@ import StudySummary from './studySummary/StudySummary';
 import UserSelections from '../UserSelections';
 import * as _ from 'lodash';
 import { DefaultTooltip } from 'cbioportal-frontend-commons';
-import StudyResultSettings from '../StudyResultSettings';
+import ResultsPageSettings from 'pages/resultsView/settings/ResultsPageSettings';
 
 export interface IStudyPageHeaderProps {
     store: StudyViewPageStore;
@@ -42,7 +42,7 @@ export default class StudyPageHeader extends React.Component<
                         trigger={['click']}
                         placement="bottomRight"
                         overlay={
-                            <StudyResultSettings
+                            <ResultsPageSettings
                                 driverAnnotationSettings={
                                     this.props.store.driverAnnotationSettings
                                 }

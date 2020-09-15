@@ -693,7 +693,7 @@ export default class ComparisonStore {
                 this.mutationEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchMutationEnrichmentsUsingPOST({
-                    enrichmentType: this.usePatientLevelEnrichments
+                    enrichmentScope: this.usePatientLevelEnrichments
                         ? 'PATIENT'
                         : 'SAMPLE',
                     groups: this.mutationEnrichmentDataRequestGroups.result!,
@@ -837,7 +837,7 @@ export default class ComparisonStore {
     ): Promise<AlterationEnrichment[]> {
         return internalClient.fetchCopyNumberEnrichmentsUsingPOST({
             copyNumberEventType: copyNumberEventType,
-            enrichmentType: this.usePatientLevelEnrichments
+            enrichmentScope: this.usePatientLevelEnrichments
                 ? 'PATIENT'
                 : 'SAMPLE',
             groups,
@@ -920,7 +920,7 @@ export default class ComparisonStore {
                 this.mrnaEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchGenomicEnrichmentsUsingPOST({
-                    enrichmentType: 'SAMPLE',
+                    enrichmentScope: 'SAMPLE',
                     groups: this.mrnaEnrichmentDataRequestGroups.result!,
                 });
             } else {
@@ -1005,7 +1005,7 @@ export default class ComparisonStore {
                 this.proteinEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchGenomicEnrichmentsUsingPOST({
-                    enrichmentType: 'SAMPLE',
+                    enrichmentScope: 'SAMPLE',
                     groups: this.proteinEnrichmentDataRequestGroups.result!,
                 });
             } else {
@@ -1089,7 +1089,7 @@ export default class ComparisonStore {
                 this.methylationEnrichmentDataRequestGroups.result.length > 1
             ) {
                 return internalClient.fetchGenomicEnrichmentsUsingPOST({
-                    enrichmentType: 'SAMPLE',
+                    enrichmentScope: 'SAMPLE',
                     groups: this.methylationEnrichmentDataRequestGroups.result!,
                 });
             } else {

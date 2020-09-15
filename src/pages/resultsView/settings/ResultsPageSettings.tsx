@@ -2,7 +2,7 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import autobind from 'autobind-decorator';
 import {
-    IResultsPageSettingsProps,
+    IDriverSettingsProps,
     IDriverAnnotationControlsHandlers,
     IDriverAnnotationControlsState,
     buildDriverAnnotationControlsHandlers,
@@ -34,19 +34,19 @@ function boldedTabList(tabs: string[]) {
 
 @observer
 export default class ResultsPageSettings extends React.Component<
-    IResultsPageSettingsProps,
+    IDriverSettingsProps,
     {}
 > {
     private driverSettingsState: IDriverAnnotationControlsState;
     private driverSettingsHandlers: IDriverAnnotationControlsHandlers;
 
-    constructor(props: IResultsPageSettingsProps) {
+    constructor(props: IDriverSettingsProps) {
         super(props);
         this.driverSettingsState = buildDriverAnnotationControlsState(
             props.driverAnnotationSettings,
+            props.customDriverAnnotationReport,
             props.didOncoKbFailInOncoprint,
-            props.didHotspotFailInOncoprint,
-            props.customDriverAnnotationReport
+            props.didHotspotFailInOncoprint
         );
         this.driverSettingsHandlers = buildDriverAnnotationControlsHandlers(
             props.driverAnnotationSettings,
@@ -99,6 +99,7 @@ export default class ResultsPageSettings extends React.Component<
                     <DriverAnnotationControls
                         state={this.driverSettingsState}
                         handlers={this.driverSettingsHandlers}
+                        parentResultsView={this.props.parentResultsView}
                     />
                 </div>
 
