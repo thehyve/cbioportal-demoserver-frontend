@@ -42,6 +42,9 @@ export default class StudyPageHeader extends React.Component<
                         trigger={['click']}
                         placement="bottomRight"
                         overlay={
+                            // TODO make this menu appear conditionally.
+                            // Should not show when there are no customn driver annotations for the currently
+                            // represented studies.
                             <ResultsPageSettings store={this.props.store} />
                         }
                         visible={this.resultsPageSettingsVisible}

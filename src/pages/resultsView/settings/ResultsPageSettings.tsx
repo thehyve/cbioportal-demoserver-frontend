@@ -147,22 +147,24 @@ export default class ResultsPageSettings extends React.Component<
                             Exclude germline mutations
                         </label>
                     </div>
-                    <div className="checkbox">
-                        <label>
-                            <input
-                                data-test="HideUnprofiled"
-                                type="checkbox"
-                                value={EVENT_KEY.hideUnprofiledSamples}
-                                checked={
-                                    this.props.store.exclusionSetting
-                                        .hideUnprofiledSamples
-                                }
-                                onClick={this.onInputClick}
-                            />{' '}
-                            Exclude samples that are not profiled for all
-                            queried genes in all queried profiles
-                        </label>
-                    </div>
+                    {this.props.store.resultsView && (
+                        <div className="checkbox">
+                            <label>
+                                <input
+                                    data-test="HideUnprofiled"
+                                    type="checkbox"
+                                    value={EVENT_KEY.hideUnprofiledSamples}
+                                    checked={
+                                        this.props.store.exclusionSetting
+                                            .hideUnprofiledSamples
+                                    }
+                                    onClick={this.onInputClick}
+                                />{' '}
+                                Exclude samples that are not profiled for all
+                                queried genes in all queried profiles
+                            </label>
+                        </div>
+                    )}
                 </div>
             </div>
         );
