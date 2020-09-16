@@ -195,7 +195,9 @@ import {
     DriverAnnotationSettings,
     buildDriverAnnotationSettings,
     IAlterationExclusionSettings,
+    IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
+import { DriverAnnotationsStore } from 'DriverAnnotationsStore.ts';
 
 export type ChartUserSetting = {
     id: string;
@@ -311,16 +313,10 @@ export class StudyViewPageStore {
     private chartToUsedColors: Map<string, Set<string>>;
 
     public studyViewQueryFilter: StudyViewURLQuery;
-    public driverAnnotationSettings: DriverAnnotationSettings;
-    public customDriverAnnotationReport: {
-        hasBinary: boolean;
-        tiers: string[];
-    };
-    public exclusionSetting: IAlterationExclusionSettings;
-
     @observable showComparisonGroupUI = false;
 
     constructor(
+        public driverAnnotationStore: IDriverSettingsProps,
         public appStore: AppStore,
         private sessionServiceIsEnabled: boolean,
         private urlWrapper: StudyViewURLWrapper
@@ -419,20 +415,6 @@ export class StudyViewPageStore {
                 }
             }
         );
-
-        this.driverAnnotationSettings = buildDriverAnnotationSettings(
-            () => false
-        );
-        //TODO Fill in real data
-        this.customDriverAnnotationReport = {
-            hasBinary: true,
-            tiers: ['A', 'B'],
-        };
-        this.exclusionSetting = {
-            excludeVUS: false,
-            excludeGermlineMutations: false,
-            hideUnprofiledSamples: false,
-        };
     }
 
     @computed get isLoggedIn() {

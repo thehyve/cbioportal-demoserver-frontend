@@ -220,6 +220,8 @@ import { constant } from 'lodash';
 import {
     DriverAnnotationSettings,
     buildDriverAnnotationSettings,
+    IAlterationExclusionSettings,
+    IDriverSettingsProps,
 } from '../../shared/driverAnnotation/DriverAnnotationSettings';
 
 type Optional<T> =
@@ -452,7 +454,11 @@ export type ModifyQueryParams = {
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
 export class ResultsViewPageStore implements IAlterationExclusionSettings {
-    constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
+    constructor(
+        public driverAnnotationStore: IDriverSettingsProps,
+        private appStore: AppStore,
+        urlWrapper: ResultsViewURLWrapper
+    ) {
         labelMobxPromises(this);
 
         this.urlWrapper = urlWrapper;
@@ -594,18 +600,6 @@ export class ResultsViewPageStore implements IAlterationExclusionSettings {
     public set excludeGermlineMutations(e: boolean) {
         this.setExcludeGermlineMutations(e);
     }
-
-    // @autobind
-    // @action
-    // public setExcludeVUS(e: boolean) {
-    //     this.urlWrapper.updateURL({
-    //         exclude_vus: e.toString(),
-    //     });
-    // }
-
-    // public set excludeVUS(e: boolean) {
-    //     this.setExcludeVUS(e);
-    // }
 
     @computed
     public get usePatientLevelEnrichments() {

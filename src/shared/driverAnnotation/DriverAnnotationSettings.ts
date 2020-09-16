@@ -9,11 +9,10 @@ export interface IDriverSettingsProps {
         | { hasBinary: boolean; tiers: string[] }
         | undefined;
     exclusionSetting: IAlterationExclusionSettings;
-    parentResultsView?: boolean;
+    resultsView?: boolean;
 }
 
 export interface IAlterationExclusionSettings {
-    excludeVUS: boolean;
     excludeGermlineMutations: boolean;
     hideUnprofiledSamples?: boolean;
 }

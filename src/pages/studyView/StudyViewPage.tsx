@@ -42,7 +42,6 @@ import {
 import ComparisonGroupManager from '../groupComparison/comparisonGroupManager/ComparisonGroupManager';
 import classNames from 'classnames';
 import AppConfig from 'appConfig';
-import SocialAuthButton from '../../shared/components/SocialAuthButton';
 import { ServerConfigHelpers } from '../../config/config';
 import { getButtonNameWithDownPointer } from './StudyViewUtils';
 import { Alert, Modal } from 'react-bootstrap';
@@ -61,7 +60,7 @@ import ResourcesTab, { RESOURCES_TAB_NAME } from './resources/ResourcesTab';
 import { ResourceData } from 'cbioportal-ts-api-client';
 import $ from 'jquery';
 import { StudyViewComparisonGroup } from 'pages/groupComparison/GroupComparisonUtils';
-import { getStudySummaryUrl } from 'shared/api/urls';
+import { DriverAnnotationsStore } from 'pages/studyView/DriverAnnotationsStore';
 
 export interface IStudyViewPageProps {
     routing: any;
@@ -120,7 +119,9 @@ export default class StudyViewPage extends React.Component<
 
         this.urlWrapper = new StudyViewURLWrapper(this.props.routing);
 
+        const driverAnnotationStore = new DriverAnnotationsStore();
         this.store = new StudyViewPageStore(
+            driverAnnotationStore,
             this.props.appStore,
             ServerConfigHelpers.sessionServiceIsEnabled(),
             this.urlWrapper

@@ -43,15 +43,7 @@ export default class StudyPageHeader extends React.Component<
                         placement="bottomRight"
                         overlay={
                             <ResultsPageSettings
-                                store={{
-                                    driverAnnotationSettings: this.props.store
-                                        .driverAnnotationSettings,
-                                    customDriverAnnotationReport: () =>
-                                        this.props.store
-                                            .customDriverAnnotationReport,
-                                    exclusionSetting: this.props.store
-                                        .exclusionSetting,
-                                }}
+                                store={this.props.store.driverAnnotationStore}
                             />
                         }
                         visible={this.resultsPageSettingsVisible}
