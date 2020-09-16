@@ -60,7 +60,6 @@ import ResourcesTab, { RESOURCES_TAB_NAME } from './resources/ResourcesTab';
 import { ResourceData } from 'cbioportal-ts-api-client';
 import $ from 'jquery';
 import { StudyViewComparisonGroup } from 'pages/groupComparison/GroupComparisonUtils';
-import { DriverAnnotationsStore } from 'pages/studyView/DriverAnnotationsStore';
 
 export interface IStudyViewPageProps {
     routing: any;
@@ -119,9 +118,7 @@ export default class StudyViewPage extends React.Component<
 
         this.urlWrapper = new StudyViewURLWrapper(this.props.routing);
 
-        const driverAnnotationStore = new DriverAnnotationsStore();
         this.store = new StudyViewPageStore(
-            driverAnnotationStore,
             this.props.appStore,
             ServerConfigHelpers.sessionServiceIsEnabled(),
             this.urlWrapper

@@ -42,9 +42,7 @@ export default class StudyPageHeader extends React.Component<
                         trigger={['click']}
                         placement="bottomRight"
                         overlay={
-                            <ResultsPageSettings
-                                store={this.props.store.driverAnnotationStore}
-                            />
+                            <ResultsPageSettings store={this.props.store} />
                         }
                         visible={this.resultsPageSettingsVisible}
                         onVisibleChange={visible => {

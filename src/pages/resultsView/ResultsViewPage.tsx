@@ -53,18 +53,12 @@ import OQLTextArea, {
 } from 'shared/components/GeneSelectionBox/OQLTextArea';
 import browser from 'bowser';
 import { QueryStore } from '../../shared/components/query/QueryStore';
-import { DriverAnnotationsStore } from 'pages/studyView/DriverAnnotationsStore';
 
 export function initStore(
     appStore: AppStore,
     urlWrapper: ResultsViewURLWrapper
 ) {
-    const driverAnnotationStore = new DriverAnnotationsStore();
-    const resultsViewPageStore = new ResultsViewPageStore(
-        driverAnnotationStore,
-        appStore,
-        urlWrapper
-    );
+    const resultsViewPageStore = new ResultsViewPageStore(appStore, urlWrapper);
 
     setWindowVariable('resultsViewPageStore', resultsViewPageStore);
 

@@ -8,9 +8,12 @@ import {
     ClinicalDataSingleStudyFilter,
     CopyNumberSeg,
     CosmicMutation,
+    DiscreteCopyNumberData,
+    DiscreteCopyNumberFilter,
     Gene,
     GenePanel,
     GenePanelData,
+    GenericAssayData,
     GenericAssayMeta,
     Geneset,
     GenesetDataFilterCriteria,
@@ -30,9 +33,6 @@ import {
     SampleIdentifier,
     SampleList,
     SampleMolecularIdentifier,
-    GenericAssayData,
-    DiscreteCopyNumberFilter,
-    DiscreteCopyNumberData,
 } from 'cbioportal-ts-api-client';
 import client from 'shared/api/cbioportalClientInstance';
 import { remoteData, stringListToSet } from 'cbioportal-frontend-commons';
@@ -46,9 +46,9 @@ import {
     isLinearClusterHotspot,
 } from 'cbioportal-utils';
 import {
-    VariantAnnotation,
     GenomeNexusAPI,
     GenomeNexusAPIInternal,
+    VariantAnnotation,
 } from 'genome-nexus-ts-api-client';
 import { CancerGene, IndicatorQueryResp } from 'oncokb-ts-api-client';
 import { cached, labelMobxPromises, MobxPromise } from 'mobxpromise';
@@ -69,16 +69,16 @@ import {
     fetchOncoKbCancerGenes,
     fetchOncoKbData,
     fetchStudiesForSamplesWithoutCancerTypeClinicalData,
+    fetchSurvivalDataExists,
     fetchVariantAnnotationsIndexedByGenomicLocation,
     generateDataQueryFilter,
     generateUniqueSampleKeyToTumorTypeMap,
+    getGenomeNexusUrl,
+    getSurvivalClinicalAttributesPrefix,
     groupBy,
     IDataQueryFilter,
     isMutationProfile,
     ONCOKB_DEFAULT,
-    getGenomeNexusUrl,
-    fetchSurvivalDataExists,
-    getSurvivalClinicalAttributesPrefix,
 } from 'shared/lib/StoreUtils';
 import { fetchHotspotsData } from 'shared/lib/CancerHotspotsUtils';
 import ResultsViewMutationMapperStore from './mutation/ResultsViewMutationMapperStore';
@@ -115,7 +115,6 @@ import {
 } from './mutationCountHelpers';
 import { CancerStudyQueryUrlParams } from 'shared/components/query/QueryStore';
 import {
-    annotateDiscreteCopyNumberAlterationPutativeDriver,
     compileMutations,
     computeCustomDriverAnnotationReport,
     computeGenePanelInformation,
@@ -131,7 +130,6 @@ import {
     FilteredAndAnnotatedMutationsReport,
     filterSubQueryData,
     getMolecularProfiles,
-    getOncoKbOncogenic,
     getSampleAlteredMap,
     groupDataByCase,
     initializeCustomDriverAnnotationSettings,
@@ -149,7 +147,6 @@ import { getDefaultMolecularProfiles } from '../../shared/lib/getDefaultMolecula
 import {
     parseSamplesSpecifications,
     populateSampleSpecificationsFromVirtualStudies,
-    ResultsViewComparisonSubTab,
     ResultsViewTab,
     substitutePhysicalStudiesForVirtualStudies,
 } from './ResultsViewPageHelpers';
@@ -195,14 +192,12 @@ import { decideMolecularProfileSortingOrder } from './download/DownloadUtils';
 import ResultsViewURLWrapper from 'pages/resultsView/ResultsViewURLWrapper';
 import { ChartTypeEnum } from 'pages/studyView/StudyViewConfig';
 import {
+    fetchGenericAssayDataByStableIdsAndMolecularIds,
     fetchGenericAssayMetaByMolecularProfileIdsGroupByGenericAssayType,
     fetchGenericAssayMetaByMolecularProfileIdsGroupByMolecularProfileId,
-    fetchGenericAssayDataByStableIdsAndMolecularIds,
 } from 'shared/lib/GenericAssayUtils/GenericAssayCommonUtils';
-import ComplexKeySet from '../../shared/lib/complexKeyDataStructures/ComplexKeySet';
 import { createVariantAnnotationsByMutationFetcher } from 'shared/components/mutationMapper/MutationMapperUtils';
 import { getGenomeNexusHgvsgUrl } from 'shared/api/urls';
-import ResultsViewComparisonStore from './comparison/ResultsViewComparisonStore';
 import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
 import {
     ALTERED_COLOR,
@@ -213,15 +208,12 @@ import {
     UNALTERED_COLOR,
 } from './comparison/ResultsViewComparisonUtils';
 import { makeUniqueColorGetter } from '../../shared/components/plots/PlotUtils';
-import ifNotDefined from '../../shared/lib/ifNotDefined';
 import ComplexKeyMap from '../../shared/lib/complexKeyDataStructures/ComplexKeyMap';
 import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
-import { constant } from 'lodash';
 import {
-    DriverAnnotationSettings,
     buildDriverAnnotationSettings,
+    DriverAnnotationSettings,
     IAlterationExclusionSettings,
-    IDriverSettingsProps,
 } from '../../shared/driverAnnotation/DriverAnnotationSettings';
 
 type Optional<T> =
@@ -454,11 +446,7 @@ export type ModifyQueryParams = {
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
 export class ResultsViewPageStore implements IAlterationExclusionSettings {
-    constructor(
-        public driverAnnotationStore: IDriverSettingsProps,
-        private appStore: AppStore,
-        urlWrapper: ResultsViewURLWrapper
-    ) {
+    constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
         labelMobxPromises(this);
 
         this.urlWrapper = urlWrapper;

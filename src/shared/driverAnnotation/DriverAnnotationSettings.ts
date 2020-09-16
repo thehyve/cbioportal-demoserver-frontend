@@ -67,6 +67,11 @@ export interface IDriverAnnotationControlsHandlers {
     onSelectCustomDriverAnnotationTier?: (value: string, s: boolean) => void;
 }
 
+export interface IDriverAnnotationReport {
+    hasBinary: boolean;
+    tiers: string[];
+}
+
 export function buildDriverAnnotationSettings(
     didOncoKbFailInOncoprint: () => boolean,
     config = AppConfig.serverConfig

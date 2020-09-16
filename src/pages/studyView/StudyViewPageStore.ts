@@ -12,44 +12,39 @@ import {
     toJS,
 } from 'mobx';
 import {
+    AndedPatientTreatmentFilters,
+    AndedSampleTreatmentFilters,
+    CancerStudy,
+    ClinicalAttribute,
+    ClinicalAttributeCount,
+    ClinicalAttributeCountFilter,
+    ClinicalData,
+    ClinicalDataBin,
     ClinicalDataBinCountFilter,
     ClinicalDataBinFilter,
     ClinicalDataCount,
     ClinicalDataCountFilter,
     ClinicalDataCountItem,
     ClinicalDataFilter,
-    DensityPlotBin,
-    Sample,
-    SampleIdentifier,
-    StudyViewFilter,
-    DataFilterValue,
-    GeneFilter,
-    ClinicalDataBin,
-    GenomicDataBinFilter,
-    GenomicDataFilter,
-    GenomicDataBin,
-    AndedPatientTreatmentFilters,
-    AndedSampleTreatmentFilters,
-    OredPatientTreatmentFilters,
-    OredSampleTreatmentFilters,
-    SampleTreatmentFilter,
-    SampleTreatmentRow,
-    PatientTreatmentRow,
-} from 'cbioportal-ts-api-client';
-import {
-    CancerStudy,
-    ClinicalAttribute,
-    ClinicalAttributeCount,
-    ClinicalAttributeCountFilter,
-    ClinicalData,
     ClinicalDataMultiStudyFilter,
     CopyNumberSeg,
+    DataFilterValue,
+    DensityPlotBin,
+    GeneFilter,
     GenePanel,
+    GenomicDataBin,
+    GenomicDataBinFilter,
+    GenomicDataFilter,
     MolecularProfile,
     MolecularProfileFilter,
+    OredPatientTreatmentFilters,
+    OredSampleTreatmentFilters,
     Patient,
     ResourceData,
     ResourceDefinition,
+    Sample,
+    SampleIdentifier,
+    StudyViewFilter,
 } from 'cbioportal-ts-api-client';
 import {
     fetchCopyNumberSegmentsForSamples,
@@ -61,14 +56,15 @@ import { getPatientSurvivals } from 'pages/resultsView/SurvivalStoreHelper';
 import {
     AnalysisGroup,
     calculateLayout,
+    ChartDataCountSet,
     ChartMeta,
     ChartMetaDataTypeEnum,
     ChartMetaWithDimensionAndChartType,
     ChartType,
     clinicalAttributeComparator,
-    ChartDataCountSet,
     ClinicalDataCountSummary,
     ClinicalDataTypeEnum,
+    convertGenomicDataBinsToClinicalDataBins,
     DataType,
     generateScatterPlotDownloadData,
     GenomicDataCountWithSampleUniqueKeys,
@@ -76,15 +72,17 @@ import {
     getChartSettingsMap,
     getClinicalDataBySamples,
     getClinicalDataCountWithColorByClinicalDataCount,
-    getDataIntervalFilterValues,
     getClinicalEqualityFilterValuesByString,
     getCNAByAlteration,
     getCNASamplesCount,
+    getDataIntervalFilterValues,
     getDefaultPriorityByUniqueKey,
     getFilteredAndCompressedDataIntervalFilters,
     getFilteredSampleIdentifiers,
     getFilteredStudiesWithSamples,
     getFrequencyStr,
+    getGenomicChartUniqueKey,
+    getGenomicDataAsClinicalData,
     getGroupsFromBins,
     getGroupsFromQuartiles,
     getMolecularProfileIdsFromUniqueKey,
@@ -100,6 +98,7 @@ import {
     isLogScaleByDataBins,
     MutationCountVsCnaYBinsMin,
     NumericalGroupComparisonType,
+    pickNewColorForClinicData,
     RectangleBounds,
     shouldShowChart,
     showOriginStudiesInSummaryDescription,
@@ -108,12 +107,8 @@ import {
     StudyWithSamples,
     submitToPage,
     updateSavedUserPreferenceChartIds,
-    getGenomicDataAsClinicalData,
-    convertGenomicDataBinsToClinicalDataBins,
-    getGenomicChartUniqueKey,
-    pickNewColorForClinicData,
 } from './StudyViewUtils';
-import MobxPromise, { MobxPromiseUnionType } from 'mobxpromise';
+import MobxPromise from 'mobxpromise';
 import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import autobind from 'autobind-decorator';
 import { updateGeneQuery } from 'pages/studyView/StudyViewUtils';
@@ -138,7 +133,10 @@ import {
 import onMobxPromise from '../../shared/lib/onMobxPromise';
 import request from 'superagent';
 import { trackStudyViewFilterEvent } from '../../shared/lib/tracking';
-import { SessionGroupData } from '../../shared/api/ComparisonGroupClient';
+import {
+    Group,
+    SessionGroupData,
+} from '../../shared/api/ComparisonGroupClient';
 import comparisonClient from '../../shared/api/comparisonGroupClientInstance';
 import {
     finalizeStudiesAttr,
@@ -175,29 +173,28 @@ import {
 import {
     generateStudyViewSurvivalPlotTitle,
     getSurvivalAttributes,
-    plotsPriority,
     getSurvivalStatusBoolean,
     notSurvivalAttribute,
+    plotsPriority,
 } from 'pages/resultsView/survival/SurvivalUtil';
 import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescriptionTable';
 import {
-    toSampleTreatmentFilter,
     toPatientTreatmentFilter,
+    toSampleTreatmentFilter,
     treatmentUniqueKey,
 } from './table/treatments/treatmentsTableUtil';
 import StudyViewURLWrapper from './StudyViewURLWrapper';
 import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
 import { Datalabel } from 'shared/lib/DataUtils';
-import { Group } from '../../shared/api/ComparisonGroupClient';
 import PromisePlus from 'shared/lib/PromisePlus';
 import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
 import {
-    DriverAnnotationSettings,
     buildDriverAnnotationSettings,
+    DriverAnnotationSettings,
     IAlterationExclusionSettings,
+    IDriverAnnotationReport,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
-import { DriverAnnotationsStore } from 'DriverAnnotationsStore.ts';
 
 export type ChartUserSetting = {
     id: string;
@@ -306,7 +303,7 @@ export type OncokbCancerGene = {
     isCancerGene: boolean;
 };
 
-export class StudyViewPageStore {
+export class StudyViewPageStore implements IDriverSettingsProps {
     private reactionDisposers: IReactionDisposer[] = [];
 
     private chartItemToColor: Map<string, string>;
@@ -314,9 +311,11 @@ export class StudyViewPageStore {
 
     public studyViewQueryFilter: StudyViewURLQuery;
     @observable showComparisonGroupUI = false;
+    @observable driverAnnotationSettings: DriverAnnotationSettings;
+    @observable customDriverAnnotationReport: () => IDriverAnnotationReport;
+    @observable exclusionSetting: IAlterationExclusionSettings;
 
     constructor(
-        public driverAnnotationStore: IDriverSettingsProps,
         public appStore: AppStore,
         private sessionServiceIsEnabled: boolean,
         private urlWrapper: StudyViewURLWrapper
@@ -415,6 +414,20 @@ export class StudyViewPageStore {
                 }
             }
         );
+        this.driverAnnotationSettings = buildDriverAnnotationSettings(
+            () => false
+        );
+        //TODO Fill in real data
+        this.customDriverAnnotationReport = () => {
+            return {
+                hasBinary: true,
+                tiers: ['A', 'B'],
+            };
+        };
+        this.exclusionSetting = {
+            excludeGermlineMutations: false,
+            hideUnprofiledSamples: false,
+        };
     }
 
     @computed get isLoggedIn() {
