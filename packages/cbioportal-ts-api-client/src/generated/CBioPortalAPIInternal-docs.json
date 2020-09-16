@@ -36,6 +36,10 @@
       "description": " "
     },
     {
+      "name": "Custom driver annotations",
+      "description": " "
+    },
+    {
       "name": "Data Access Tokens",
       "description": " "
     },
@@ -598,6 +602,43 @@
               "items": {
                 "$ref": "#/definitions/CosmicMutation"
               }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/custom-driver-annotation-report/fetch": {
+      "post": {
+        "tags": [
+          "Custom driver annotations"
+        ],
+        "summary": "Return availability of custom driver annotations for molecular profiles",
+        "operationId": "fetchAlterationDriverAnnotationReportUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "molecularProfileIds",
+            "in": "query",
+            "description": "molecularProfileIds",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CustomDriverAnnotationReport"
             }
           }
         },
@@ -3261,6 +3302,21 @@
         }
       },
       "title": "CountSummary"
+    },
+    "CustomDriverAnnotationReport": {
+      "type": "object",
+      "properties": {
+        "hasBinary": {
+          "type": "boolean"
+        },
+        "tiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "CustomDriverAnnotationReport"
     },
     "DataAccessToken": {
       "type": "object",
