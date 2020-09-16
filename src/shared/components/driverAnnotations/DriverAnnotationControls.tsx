@@ -16,7 +16,7 @@ import 'rc-tooltip/assets/bootstrap_white.css';
 export interface IDriverAnnotationControlsProps {
     state: IDriverAnnotationControlsState;
     handlers: IDriverAnnotationControlsHandlers;
-    parentResultsView?: boolean;
+    resultsView?: boolean;
 }
 
 enum EVENT_KEY {
@@ -93,7 +93,7 @@ export default class DriverAnnotationControls extends React.Component<
             <div>
                 <div className="checkbox">
                     <label>
-                        {this.props.parentResultsView && (
+                        {this.props.resultsView && (
                             <span>
                                 <input
                                     data-test="ColorByDriver"

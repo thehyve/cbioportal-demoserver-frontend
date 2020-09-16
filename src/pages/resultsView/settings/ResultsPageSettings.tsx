@@ -103,7 +103,7 @@ export default class ResultsPageSettings extends React.Component<
                     <DriverAnnotationControls
                         state={this.driverSettingsState}
                         handlers={this.driverSettingsHandlers}
-                        parentResultsView={this.props.store.parentResultsView}
+                        resultsView={this.props.store.resultsView}
                     />
                 </div>
 
