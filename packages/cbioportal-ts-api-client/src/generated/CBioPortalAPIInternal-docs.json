@@ -608,13 +608,13 @@
         "deprecated": false
       }
     },
-    "/custom-driver-annotation-report/fetch": {
+    "/custom-driver-annotation-props/fetch": {
       "post": {
         "tags": [
           "Custom driver annotations"
         ],
-        "summary": "Return availability of custom driver annotations for molecular profiles",
-        "operationId": "fetchAlterationDriverAnnotationReportUsingPOST",
+        "summary": "Check availability of custom driver annotations for molecular profiles",
+        "operationId": "fetchAlterationDriverAnnotationPropsUsingPOST",
         "consumes": [
           "application/json"
         ],
