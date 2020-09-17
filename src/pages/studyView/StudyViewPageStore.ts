@@ -192,9 +192,9 @@ import {
     buildDriverAnnotationSettings,
     DriverAnnotationSettings,
     IAlterationExclusionSettings,
-    IDriverAnnotationReport,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
+import { CustomDriverAnnotationReport } from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
 
 export type ChartUserSetting = {
     id: string;
@@ -312,7 +312,6 @@ export class StudyViewPageStore implements IDriverSettingsProps {
     public studyViewQueryFilter: StudyViewURLQuery;
     @observable showComparisonGroupUI = false;
     @observable driverAnnotationSettings: DriverAnnotationSettings;
-    @observable customDriverAnnotationReport: () => IDriverAnnotationReport;
     @observable exclusionSetting: IAlterationExclusionSettings;
 
     constructor(
@@ -418,12 +417,6 @@ export class StudyViewPageStore implements IDriverSettingsProps {
             () => false
         );
         //TODO Fill in real data
-        this.customDriverAnnotationReport = () => {
-            return {
-                hasBinary: true,
-                tiers: ['A', 'B'],
-            };
-        };
         this.exclusionSetting = {
             excludeGermlineMutations: false,
             hideUnprofiledSamples: false,
@@ -5073,6 +5066,24 @@ export class StudyViewPageStore implements IDriverSettingsProps {
                     const count = parseInt(response.header['total-count'], 10);
                     return count > 0;
                 });
+        },
+    });
+
+    @computed get customDriverAnnotationReport() {
+        return () => this._customDriverAnnotationReport.result;
+    }
+
+    readonly _customDriverAnnotationReport = remoteData<
+        CustomDriverAnnotationReport
+    >({
+        await: () => [this.molecularProfiles],
+        invoke: () => {
+            const molecularProfileIds = this.molecularProfiles.result.map(
+                molecularProfile => molecularProfile.molecularProfileId
+            );
+            return internalClient.fetchAlterationDriverAnnotationReportUsingPOST(
+                { molecularProfileIds }
+            );
         },
     });
 

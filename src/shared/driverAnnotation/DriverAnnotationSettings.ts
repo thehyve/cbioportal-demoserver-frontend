@@ -1,12 +1,13 @@
 import { ObservableMap, action, observable } from 'mobx';
 import AppConfig from 'appConfig';
+import { CustomDriverAnnotationReport } from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
 
 export interface IDriverSettingsProps {
     driverAnnotationSettings: DriverAnnotationSettings;
     didOncoKbFailInOncoprint?: () => boolean;
     didHotspotFailInOncoprint?: () => boolean;
     customDriverAnnotationReport: () =>
-        | { hasBinary: boolean; tiers: string[] }
+        | CustomDriverAnnotationReport
         | undefined;
     exclusionSetting: IAlterationExclusionSettings;
     resultsView?: boolean;
@@ -65,11 +66,6 @@ export interface IDriverAnnotationControlsHandlers {
     onChangeAnnotateCOSMICInputValue?: (value: string) => void;
     onSelectCustomDriverAnnotationBinary?: (s: boolean) => void;
     onSelectCustomDriverAnnotationTier?: (value: string, s: boolean) => void;
-}
-
-export interface IDriverAnnotationReport {
-    hasBinary: boolean;
-    tiers: string[];
 }
 
 export function buildDriverAnnotationSettings(
