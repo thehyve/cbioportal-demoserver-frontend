@@ -214,6 +214,7 @@ import {
     buildDriverAnnotationSettings,
     DriverAnnotationSettings,
     IAlterationExclusionSettings,
+    IDriverSettingsProps,
 } from '../../shared/driverAnnotation/DriverAnnotationSettings';
 
 type Optional<T> =
@@ -445,7 +446,7 @@ export type ModifyQueryParams = {
 /* fields and methods in the class below are ordered based on roughly
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
-export class ResultsViewPageStore implements IAlterationExclusionSettings {
+export class ResultsViewPageStore implements IDriverSettingsProps {
     constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
         labelMobxPromises(this);
 
@@ -470,6 +471,11 @@ export class ResultsViewPageStore implements IAlterationExclusionSettings {
             },
             { fireImmediately: true }
         );
+        this.exclusionSettings = observable({
+            excludeGermlineMutations: false,
+            hideUnprofiledSamples: false,
+        });
+        this.resultsView = true;
     }
 
     destroy() {
@@ -477,7 +483,8 @@ export class ResultsViewPageStore implements IAlterationExclusionSettings {
     }
 
     public urlWrapper: ResultsViewURLWrapper;
-
+    public resultsView: boolean;
+    public exclusionSettings: IAlterationExclusionSettings;
     public driverAnnotationsReactionDisposer: any;
 
     private mutationMapperStoreByGene: {
@@ -4223,13 +4230,16 @@ export class ResultsViewPageStore implements IAlterationExclusionSettings {
                     getOncoKbMutationAnnotationForOncoprint(mutation);
 
                 const isHotspotDriver =
+                    this.driverAnnotationSettings.hotspots &&
                     !(this.isHotspotForOncoprint.result instanceof Error) &&
                     this.isHotspotForOncoprint.result!(mutation);
                 const cbioportalCountExceeded =
+                    this.driverAnnotationSettings.cbioportalCount &&
                     this.getCBioportalCount.isComplete &&
                     this.getCBioportalCount.result!(mutation) >=
                         this.driverAnnotationSettings.cbioportalCountThreshold;
                 const cosmicCountExceeded =
+                    this.driverAnnotationSettings.cosmicCount &&
                     this.getCosmicCount.isComplete &&
                     this.getCosmicCount.result!(mutation) >=
                         this.driverAnnotationSettings.cosmicCountThreshold;

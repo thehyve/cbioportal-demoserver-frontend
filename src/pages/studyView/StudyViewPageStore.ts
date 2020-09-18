@@ -108,7 +108,7 @@ import {
     submitToPage,
     updateSavedUserPreferenceChartIds,
 } from './StudyViewUtils';
-import MobxPromise from 'mobxpromise';
+import MobxPromise, { MobxPromiseUnionType } from 'mobxpromise';
 import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import autobind from 'autobind-decorator';
 import { updateGeneQuery } from 'pages/studyView/StudyViewUtils';
@@ -192,9 +192,13 @@ import {
     buildDriverAnnotationSettings,
     DriverAnnotationSettings,
     IAlterationExclusionSettings,
+    IDriverAnnotationReport,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
-import { CustomDriverAnnotationReport } from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
+import {
+    computeCustomDriverAnnotationReport,
+    initializeCustomDriverAnnotationSettings,
+} from 'pages/resultsView/ResultsViewPageStoreUtils';
 
 export type ChartUserSetting = {
     id: string;
@@ -311,8 +315,8 @@ export class StudyViewPageStore implements IDriverSettingsProps {
 
     public studyViewQueryFilter: StudyViewURLQuery;
     @observable showComparisonGroupUI = false;
-    @observable driverAnnotationSettings: DriverAnnotationSettings;
-    @observable exclusionSetting: IAlterationExclusionSettings;
+    public driverAnnotationSettings: DriverAnnotationSettings;
+    public exclusionSettings: IAlterationExclusionSettings;
 
     constructor(
         public appStore: AppStore,
@@ -416,12 +420,33 @@ export class StudyViewPageStore implements IDriverSettingsProps {
         this.driverAnnotationSettings = buildDriverAnnotationSettings(
             () => false
         );
-        //TODO Fill in real data
-        this.exclusionSetting = {
+        this.exclusionSettings = observable({
             excludeGermlineMutations: false,
             hideUnprofiledSamples: false,
-        };
+        });
     }
+
+    readonly customDriverAnnotationReport = remoteData<{
+        hasBinary: boolean;
+        tiers: string[];
+    }>({
+        await: () => [],
+        invoke: () => {
+            return Promise.resolve({
+                hasBinary: true,
+                tiers: ['A', 'B'],
+            });
+        },
+        onResult: result => {
+            initializeCustomDriverAnnotationSettings(
+                result!,
+                this.driverAnnotationSettings,
+                this.driverAnnotationSettings.customTiersDefault,
+                this.driverAnnotationSettings.oncoKb,
+                this.driverAnnotationSettings.hotspots
+            );
+        },
+    });
 
     @computed get isLoggedIn() {
         return this.appStore.isLoggedIn;
@@ -5066,24 +5091,6 @@ export class StudyViewPageStore implements IDriverSettingsProps {
                     const count = parseInt(response.header['total-count'], 10);
                     return count > 0;
                 });
-        },
-    });
-
-    @computed get customDriverAnnotationReport() {
-        return () => this._customDriverAnnotationReport.result;
-    }
-
-    readonly _customDriverAnnotationReport = remoteData<
-        CustomDriverAnnotationReport
-    >({
-        await: () => [this.molecularProfiles],
-        invoke: () => {
-            const molecularProfileIds = this.molecularProfiles.result.map(
-                molecularProfile => molecularProfile.molecularProfileId
-            );
-            return internalClient.fetchAlterationDriverAnnotationReportUsingPOST(
-                { molecularProfileIds }
-            );
         },
     });
 

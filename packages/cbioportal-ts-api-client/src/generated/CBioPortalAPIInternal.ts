@@ -1604,12 +1604,12 @@ export default class CBioPortalAPIInternal {
                 return response.body;
             });
         };
-    fetchAlterationDriverAnnotationPropsUsingPOSTURL(parameters: {
+    fetchAlterationDriverAnnotationReportUsingPOSTURL(parameters: {
         'molecularProfileIds' ? : Array < string > ,
             $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
-        let path = '/custom-driver-annotation-props/fetch';
+        let path = '/custom-driver-annotation-report/fetch';
         if (parameters['molecularProfileIds'] !== undefined) {
             queryParameters['molecularProfileIds'] = parameters['molecularProfileIds'];
         }
@@ -1625,12 +1625,12 @@ export default class CBioPortalAPIInternal {
     };
 
     /**
-     * Check availability of custom driver annotations for molecular profiles
+     * Return availability of custom driver annotations for molecular profiles
      * @method
-     * @name CBioPortalAPIInternal#fetchAlterationDriverAnnotationPropsUsingPOST
+     * @name CBioPortalAPIInternal#fetchAlterationDriverAnnotationReportUsingPOST
      * @param {array} molecularProfileIds - molecularProfileIds
      */
-    fetchAlterationDriverAnnotationPropsUsingPOSTWithHttpInfo(parameters: {
+    fetchAlterationDriverAnnotationReportUsingPOSTWithHttpInfo(parameters: {
         'molecularProfileIds' ? : Array < string > ,
             $queryParameters ? : any,
             $domain ? : string
@@ -1638,7 +1638,7 @@ export default class CBioPortalAPIInternal {
         const domain = parameters.$domain ? parameters.$domain : this.domain;
         const errorHandlers = this.errorHandlers;
         const request = this.request;
-        let path = '/custom-driver-annotation-props/fetch';
+        let path = '/custom-driver-annotation-report/fetch';
         let body: any;
         let queryParameters: any = {};
         let headers: any = {};
@@ -1664,17 +1664,17 @@ export default class CBioPortalAPIInternal {
     };
 
     /**
-     * Check availability of custom driver annotations for molecular profiles
+     * Return availability of custom driver annotations for molecular profiles
      * @method
-     * @name CBioPortalAPIInternal#fetchAlterationDriverAnnotationPropsUsingPOST
+     * @name CBioPortalAPIInternal#fetchAlterationDriverAnnotationReportUsingPOST
      * @param {array} molecularProfileIds - molecularProfileIds
      */
-    fetchAlterationDriverAnnotationPropsUsingPOST(parameters: {
+    fetchAlterationDriverAnnotationReportUsingPOST(parameters: {
         'molecularProfileIds' ? : Array < string > ,
             $queryParameters ? : any,
             $domain ? : string
     }): Promise < CustomDriverAnnotationReport > {
-        return this.fetchAlterationDriverAnnotationPropsUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
+        return this.fetchAlterationDriverAnnotationReportUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
             return response.body;
         });
     };

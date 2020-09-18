@@ -48,7 +48,7 @@ export default class ResultsPageSettings extends React.Component<
         super(props);
         this.driverSettingsState = buildDriverAnnotationControlsState(
             props.store.driverAnnotationSettings,
-            props.store.customDriverAnnotationReport,
+            props.store.customDriverAnnotationReport.result,
             props.store.didOncoKbFailInOncoprint,
             props.store.didHotspotFailInOncoprint
         );
@@ -65,12 +65,12 @@ export default class ResultsPageSettings extends React.Component<
                     .props.store.driverAnnotationSettings.excludeVUS;
                 break;
             case EVENT_KEY.hideUnprofiledSamples:
-                this.props.store.exclusionSetting.hideUnprofiledSamples = !this
-                    .props.store.exclusionSetting.hideUnprofiledSamples;
+                this.props.store.exclusionSettings.hideUnprofiledSamples = !this
+                    .props.store.exclusionSettings.hideUnprofiledSamples;
                 break;
             case EVENT_KEY.showGermlineMutations:
-                this.props.store.exclusionSetting.excludeGermlineMutations = !this
-                    .props.store.exclusionSetting.excludeGermlineMutations;
+                this.props.store.exclusionSettings.excludeGermlineMutations = !this
+                    .props.store.exclusionSettings.excludeGermlineMutations;
                 break;
         }
     }
@@ -139,7 +139,7 @@ export default class ResultsPageSettings extends React.Component<
                                 type="checkbox"
                                 value={EVENT_KEY.showGermlineMutations}
                                 checked={
-                                    this.props.store.exclusionSetting
+                                    this.props.store.exclusionSettings
                                         .excludeGermlineMutations
                                 }
                                 onClick={this.onInputClick}
@@ -155,7 +155,7 @@ export default class ResultsPageSettings extends React.Component<
                                     type="checkbox"
                                     value={EVENT_KEY.hideUnprofiledSamples}
                                     checked={
-                                        this.props.store.exclusionSetting
+                                        this.props.store.exclusionSettings
                                             .hideUnprofiledSamples
                                     }
                                     onClick={this.onInputClick}
