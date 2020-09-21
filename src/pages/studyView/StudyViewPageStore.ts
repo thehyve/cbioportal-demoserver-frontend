@@ -313,7 +313,7 @@ export class StudyViewPageStore
     public studyViewQueryFilter: StudyViewURLQuery;
     @observable showComparisonGroupUI = false;
     public driverAnnotationSettings: DriverAnnotationSettings;
-    @observable excludeGermlineMutations: boolean;
+    @observable excludeGermlineMutations = false;
 
     constructor(
         public appStore: AppStore,
@@ -417,7 +417,6 @@ export class StudyViewPageStore
         this.driverAnnotationSettings = buildDriverAnnotationSettings(
             () => false
         );
-        this.excludeGermlineMutations = false;
     }
 
     @computed get isLoggedIn() {
