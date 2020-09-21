@@ -108,7 +108,7 @@ import {
     submitToPage,
     updateSavedUserPreferenceChartIds,
 } from './StudyViewUtils';
-import MobxPromise, { MobxPromiseUnionType } from 'mobxpromise';
+import MobxPromise from 'mobxpromise';
 import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import autobind from 'autobind-decorator';
 import { updateGeneQuery } from 'pages/studyView/StudyViewUtils';
@@ -191,14 +191,10 @@ import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
 import {
     buildDriverAnnotationSettings,
     DriverAnnotationSettings,
-    IAlterationExclusionSettings,
-    IDriverAnnotationReport,
+    IExclusionSettings,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
-import {
-    computeCustomDriverAnnotationReport,
-    initializeCustomDriverAnnotationSettings,
-} from 'pages/resultsView/ResultsViewPageStoreUtils';
+import { initializeCustomDriverAnnotationSettings } from 'pages/resultsView/ResultsViewPageStoreUtils';
 
 export type ChartUserSetting = {
     id: string;
@@ -307,7 +303,8 @@ export type OncokbCancerGene = {
     isCancerGene: boolean;
 };
 
-export class StudyViewPageStore implements IDriverSettingsProps {
+export class StudyViewPageStore
+    implements IDriverSettingsProps, IExclusionSettings {
     private reactionDisposers: IReactionDisposer[] = [];
 
     private chartItemToColor: Map<string, string>;
@@ -316,7 +313,7 @@ export class StudyViewPageStore implements IDriverSettingsProps {
     public studyViewQueryFilter: StudyViewURLQuery;
     @observable showComparisonGroupUI = false;
     public driverAnnotationSettings: DriverAnnotationSettings;
-    public exclusionSettings: IAlterationExclusionSettings;
+    @observable excludeGermlineMutations: boolean;
 
     constructor(
         public appStore: AppStore,
@@ -420,10 +417,7 @@ export class StudyViewPageStore implements IDriverSettingsProps {
         this.driverAnnotationSettings = buildDriverAnnotationSettings(
             () => false
         );
-        this.exclusionSettings = observable({
-            excludeGermlineMutations: false,
-            hideUnprofiledSamples: false,
-        });
+        this.excludeGermlineMutations = false;
     }
 
     readonly customDriverAnnotationReport = remoteData<{

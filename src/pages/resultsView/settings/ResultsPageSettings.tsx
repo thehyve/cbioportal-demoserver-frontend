@@ -7,6 +7,7 @@ import {
     IDriverAnnotationControlsState,
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
+    IExclusionSettings,
 } from '../../../shared/driverAnnotation/DriverAnnotationSettings';
 import DriverAnnotationControls from '../../../shared/components/driverAnnotations/DriverAnnotationControls';
 import InfoIcon from '../../../shared/components/InfoIcon';
@@ -33,7 +34,7 @@ function boldedTabList(tabs: string[]) {
 }
 
 export interface IResultsPageSettings {
-    store: IDriverSettingsProps;
+    store: IDriverSettingsProps & IExclusionSettings;
 }
 
 @observer
@@ -65,12 +66,12 @@ export default class ResultsPageSettings extends React.Component<
                     .props.store.driverAnnotationSettings.excludeVUS;
                 break;
             case EVENT_KEY.hideUnprofiledSamples:
-                this.props.store.exclusionSettings.hideUnprofiledSamples = !this
-                    .props.store.exclusionSettings.hideUnprofiledSamples;
+                this.props.store.hideUnprofiledSamples = !this.props.store
+                    .hideUnprofiledSamples;
                 break;
             case EVENT_KEY.showGermlineMutations:
-                this.props.store.exclusionSettings.excludeGermlineMutations = !this
-                    .props.store.exclusionSettings.excludeGermlineMutations;
+                this.props.store.excludeGermlineMutations = !this.props.store
+                    .excludeGermlineMutations;
                 break;
         }
     }
@@ -139,8 +140,7 @@ export default class ResultsPageSettings extends React.Component<
                                 type="checkbox"
                                 value={EVENT_KEY.showGermlineMutations}
                                 checked={
-                                    this.props.store.exclusionSettings
-                                        .excludeGermlineMutations
+                                    this.props.store.excludeGermlineMutations
                                 }
                                 onClick={this.onInputClick}
                             />{' '}
@@ -155,8 +155,7 @@ export default class ResultsPageSettings extends React.Component<
                                     type="checkbox"
                                     value={EVENT_KEY.hideUnprofiledSamples}
                                     checked={
-                                        this.props.store.exclusionSettings
-                                            .hideUnprofiledSamples
+                                        this.props.store.hideUnprofiledSamples
                                     }
                                     onClick={this.onInputClick}
                                 />{' '}

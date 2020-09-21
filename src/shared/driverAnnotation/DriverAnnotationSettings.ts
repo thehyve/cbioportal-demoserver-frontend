@@ -7,11 +7,10 @@ export interface IDriverSettingsProps {
     didOncoKbFailInOncoprint?: boolean;
     didHotspotFailInOncoprint?: boolean;
     customDriverAnnotationReport: MobxPromiseUnionType<IDriverAnnotationReport>;
-    exclusionSettings: IAlterationExclusionSettings;
     resultsView?: boolean;
 }
 
-export interface IAlterationExclusionSettings {
+export interface IExclusionSettings {
     excludeGermlineMutations: boolean;
     hideUnprofiledSamples?: boolean;
 }

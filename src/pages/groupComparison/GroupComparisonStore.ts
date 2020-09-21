@@ -27,12 +27,21 @@ import ComparisonStore, {
 } from '../../shared/lib/comparison/ComparisonStore';
 import { VirtualStudy } from 'shared/model/VirtualStudy';
 import sessionServiceClient from 'shared/api//sessionServiceInstance';
+import {
+    buildDriverAnnotationSettings,
+    DriverAnnotationSettings,
+    IDriverSettingsProps,
+    IExclusionSettings,
+} from 'shared/driverAnnotation/DriverAnnotationSettings';
 
-export default class GroupComparisonStore extends ComparisonStore {
+export default class GroupComparisonStore extends ComparisonStore
+    implements IDriverSettingsProps, IExclusionSettings {
     @observable private _currentTabId:
         | GroupComparisonTab
         | undefined = undefined;
     @observable private sessionId: string;
+    public driverAnnotationSettings: DriverAnnotationSettings;
+    @observable excludeGermlineMutations: boolean;
 
     constructor(
         sessionId: string,
@@ -42,6 +51,11 @@ export default class GroupComparisonStore extends ComparisonStore {
         super(appStore);
 
         this.sessionId = sessionId;
+
+        this.driverAnnotationSettings = buildDriverAnnotationSettings(
+            () => false
+        );
+        this.excludeGermlineMutations = false;
     }
 
     @action public updateOverlapStrategy(strategy: OverlapStrategy) {

@@ -213,7 +213,7 @@ import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
 import {
     buildDriverAnnotationSettings,
     DriverAnnotationSettings,
-    IAlterationExclusionSettings,
+    IExclusionSettings,
     IDriverSettingsProps,
 } from '../../shared/driverAnnotation/DriverAnnotationSettings';
 
@@ -446,7 +446,8 @@ export type ModifyQueryParams = {
 /* fields and methods in the class below are ordered based on roughly
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
-export class ResultsViewPageStore implements IDriverSettingsProps {
+export class ResultsViewPageStore
+    implements IDriverSettingsProps, IExclusionSettings {
     constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
         labelMobxPromises(this);
 
@@ -471,10 +472,6 @@ export class ResultsViewPageStore implements IDriverSettingsProps {
             },
             { fireImmediately: true }
         );
-        this.exclusionSettings = observable({
-            excludeGermlineMutations: false,
-            hideUnprofiledSamples: false,
-        });
         this.resultsView = true;
     }
 
@@ -484,7 +481,6 @@ export class ResultsViewPageStore implements IDriverSettingsProps {
 
     public urlWrapper: ResultsViewURLWrapper;
     public resultsView: boolean;
-    public exclusionSettings: IAlterationExclusionSettings;
     public driverAnnotationsReactionDisposer: any;
 
     private mutationMapperStoreByGene: {
