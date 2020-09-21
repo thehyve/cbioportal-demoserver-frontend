@@ -92,18 +92,14 @@ export default class DriverAnnotationControls extends React.Component<
         return (
             <div>
                 <div className="checkbox">
-                    <label
-                        className={this.props.resultsView ? '' : 'no-checkbox'}
-                    >
-                        {this.props.resultsView && (
-                            <input
-                                data-test="ColorByDriver"
-                                type="checkbox"
-                                value={EVENT_KEY.distinguishDrivers}
-                                checked={this.props.state.distinguishDrivers}
-                                onClick={this.onInputClick}
-                            />
-                        )}
+                    <label>
+                        <input
+                            data-test="ColorByDriver"
+                            type="checkbox"
+                            value={EVENT_KEY.distinguishDrivers}
+                            checked={this.props.state.distinguishDrivers}
+                            onClick={this.onInputClick}
+                        />
                         Putative drivers vs VUS:
                     </label>
                 </div>
