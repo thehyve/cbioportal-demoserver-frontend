@@ -5079,6 +5079,14 @@ export class StudyViewPageStore
         },
     });
 
+    @computed get hasCustomDriverAnnotations() {
+        return (
+            this.customDriverAnnotationReport.isComplete &&
+            (!!this.customDriverAnnotationReport.result!.hasBinary ||
+                this.customDriverAnnotationReport.result!.tiers.length > 0)
+        );
+    }
+
     @computed private get survivalPlots() {
         let survivalTypes: SurvivalType[] = this.survivalClinicalAttributesPrefix.result.map(
             prefix => {

@@ -36,6 +36,8 @@ import styles from './styles.module.scss';
 import { OverlapStrategy } from '../../shared/lib/comparison/ComparisonStore';
 import { buildCBioPortalPageUrl } from 'shared/api/urls';
 import MethylationEnrichments from './MethylationEnrichments';
+import StudyPageHeader from 'pages/studyView/studyPageHeader/StudyPageHeader';
+import ResultsPageSettings from 'pages/resultsView/settings/ResultsPageSettings';
 
 export interface IGroupComparisonPageProps {
     routing: any;
@@ -365,6 +367,9 @@ export default class GroupComparisonPage extends React.Component<
                                 justifyContent: 'space-between',
                             }}
                         >
+                            {this.store.hasCustomDriverAnnotations && (
+                                <ResultsPageSettings store={this.store} />
+                            )}
                             {this.studyLink.component}
                             {this.overlapStrategySelector.component}
                         </div>

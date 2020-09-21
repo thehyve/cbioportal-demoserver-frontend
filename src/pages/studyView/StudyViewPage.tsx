@@ -509,10 +509,12 @@ export default class StudyViewPage extends React.Component<
                     this.store.queriedPhysicalStudies.isComplete &&
                     this.store.queriedPhysicalStudies.result.length > 0 && (
                         <div>
-                            <StudyPageHeader
-                                store={this.store}
-                                onBookmarkClick={this.onBookmarkClick}
-                            />
+                            {this.store.hasCustomDriverAnnotations && (
+                                <StudyPageHeader
+                                    store={this.store}
+                                    onBookmarkClick={this.onBookmarkClick}
+                                />
+                            )}
 
                             <div className={styles.mainTabs}>
                                 <MSKTabs
