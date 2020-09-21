@@ -28,6 +28,7 @@ import {
     ClinicalDataFilter,
     ClinicalDataMultiStudyFilter,
     CopyNumberSeg,
+    CustomDriverAnnotationReport,
     DataFilterValue,
     DensityPlotBin,
     GeneFilter,
@@ -194,7 +195,6 @@ import {
     IExclusionSettings,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
-import { initializeCustomDriverAnnotationSettings } from 'pages/resultsView/ResultsViewPageStoreUtils';
 
 export type ChartUserSetting = {
     id: string;
@@ -419,28 +419,6 @@ export class StudyViewPageStore
         );
         this.excludeGermlineMutations = false;
     }
-
-    readonly customDriverAnnotationReport = remoteData<{
-        hasBinary: boolean;
-        tiers: string[];
-    }>({
-        await: () => [],
-        invoke: () => {
-            return Promise.resolve({
-                hasBinary: true,
-                tiers: ['A', 'B'],
-            });
-        },
-        onResult: result => {
-            initializeCustomDriverAnnotationSettings(
-                result!,
-                this.driverAnnotationSettings,
-                this.driverAnnotationSettings.customTiersDefault,
-                this.driverAnnotationSettings.oncoKb,
-                this.driverAnnotationSettings.hotspots
-            );
-        },
-    });
 
     @computed get isLoggedIn() {
         return this.appStore.isLoggedIn;
@@ -5085,6 +5063,20 @@ export class StudyViewPageStore
                     const count = parseInt(response.header['total-count'], 10);
                     return count > 0;
                 });
+        },
+    });
+
+    readonly customDriverAnnotationReport = remoteData<
+        CustomDriverAnnotationReport
+    >({
+        await: () => [this.molecularProfiles],
+        invoke: () => {
+            const molecularProfileIds = this.molecularProfiles.result.map(
+                molecularProfile => molecularProfile.molecularProfileId
+            );
+            return internalClient.fetchAlterationDriverAnnotationReportUsingPOST(
+                { molecularProfileIds }
+            );
         },
     });
 
