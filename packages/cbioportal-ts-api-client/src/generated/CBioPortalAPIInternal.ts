@@ -1605,8 +1605,8 @@ export default class CBioPortalAPIInternal {
             });
         };
     fetchAlterationDriverAnnotationReportUsingPOSTURL(parameters: {
-        'molecularProfileIds' ? : Array < string > ,
-            $queryParameters ? : any
+        'molecularProfileIds': Array < string > ,
+        $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
         let path = '/custom-driver-annotation-report/fetch';
@@ -1631,9 +1631,9 @@ export default class CBioPortalAPIInternal {
      * @param {array} molecularProfileIds - molecularProfileIds
      */
     fetchAlterationDriverAnnotationReportUsingPOSTWithHttpInfo(parameters: {
-        'molecularProfileIds' ? : Array < string > ,
-            $queryParameters ? : any,
-            $domain ? : string
+        'molecularProfileIds': Array < string > ,
+        $queryParameters ? : any,
+        $domain ? : string
     }): Promise < request.Response > {
         const domain = parameters.$domain ? parameters.$domain : this.domain;
         const errorHandlers = this.errorHandlers;
@@ -1649,6 +1649,11 @@ export default class CBioPortalAPIInternal {
 
             if (parameters['molecularProfileIds'] !== undefined) {
                 queryParameters['molecularProfileIds'] = parameters['molecularProfileIds'];
+            }
+
+            if (parameters['molecularProfileIds'] === undefined) {
+                reject(new Error('Missing required  parameter: molecularProfileIds'));
+                return;
             }
 
             if (parameters.$queryParameters) {
@@ -1670,9 +1675,9 @@ export default class CBioPortalAPIInternal {
      * @param {array} molecularProfileIds - molecularProfileIds
      */
     fetchAlterationDriverAnnotationReportUsingPOST(parameters: {
-        'molecularProfileIds' ? : Array < string > ,
-            $queryParameters ? : any,
-            $domain ? : string
+        'molecularProfileIds': Array < string > ,
+        $queryParameters ? : any,
+        $domain ? : string
     }): Promise < CustomDriverAnnotationReport > {
         return this.fetchAlterationDriverAnnotationReportUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
             return response.body;

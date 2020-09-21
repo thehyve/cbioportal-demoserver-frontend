@@ -626,7 +626,7 @@
             "name": "molecularProfileIds",
             "in": "query",
             "description": "molecularProfileIds",
-            "required": false,
+            "required": true,
             "type": "array",
             "items": {
               "type": "string"
