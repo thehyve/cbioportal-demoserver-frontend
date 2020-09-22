@@ -195,7 +195,7 @@ import {
     IExclusionSettings,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
-import { ISettingsMenuButtonVisible } from 'pages/resultsView/settings/SettingsMenuButton';
+import { ISettingsMenuButtonVisible } from 'shared/components/settings/SettingsMenuButton';
 
 export type ChartUserSetting = {
     id: string;

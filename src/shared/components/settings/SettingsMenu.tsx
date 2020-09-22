@@ -8,9 +8,9 @@ import {
     buildDriverAnnotationControlsHandlers,
     buildDriverAnnotationControlsState,
     IExclusionSettings,
-} from '../../../shared/driverAnnotation/DriverAnnotationSettings';
-import DriverAnnotationControls from '../../../shared/components/driverAnnotations/DriverAnnotationControls';
-import InfoIcon from '../../../shared/components/InfoIcon';
+} from '../../driverAnnotation/DriverAnnotationSettings';
+import DriverAnnotationControls from '../driverAnnotations/DriverAnnotationControls';
+import InfoIcon from '../InfoIcon';
 import styles from './styles.module.scss';
 import classNames from 'classnames';
 
@@ -39,7 +39,7 @@ export interface IResultsPageSettings {
 }
 
 @observer
-export default class ResultsPageSettings extends React.Component<
+export default class SettingsMenu extends React.Component<
     IResultsPageSettings,
     {}
 > {

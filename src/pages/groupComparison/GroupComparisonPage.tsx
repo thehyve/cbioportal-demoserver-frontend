@@ -37,8 +37,8 @@ import { OverlapStrategy } from '../../shared/lib/comparison/ComparisonStore';
 import { buildCBioPortalPageUrl } from 'shared/api/urls';
 import MethylationEnrichments from './MethylationEnrichments';
 import StudyPageHeader from 'pages/studyView/studyPageHeader/StudyPageHeader';
-import ResultsPageSettings from 'pages/resultsView/settings/ResultsPageSettings';
-import SettingsMenuButton from 'pages/resultsView/settings/SettingsMenuButton';
+import SettingsMenu from 'SettingsMenu.tsx';
+import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 
 export interface IGroupComparisonPageProps {
     routing: any;

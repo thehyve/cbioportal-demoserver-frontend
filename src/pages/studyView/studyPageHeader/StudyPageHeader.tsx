@@ -5,7 +5,7 @@ import RightPanel from './rightPanel/RightPanel';
 import StudySummary from './studySummary/StudySummary';
 import UserSelections from '../UserSelections';
 import * as _ from 'lodash';
-import SettingsMenuButton from 'pages/resultsView/settings/SettingsMenuButton';
+import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 
 export interface IStudyPageHeaderProps {
     store: StudyViewPageStore;

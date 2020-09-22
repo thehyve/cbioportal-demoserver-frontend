@@ -30,11 +30,11 @@ import {
 import { MakeMobxView } from '../../../shared/components/MobxView';
 import { getGAInstance } from '../../../shared/lib/tracking';
 import { buildCBioPortalPageUrl } from '../../../shared/api/urls';
-import ResultsPageSettings from '../settings/ResultsPageSettings';
+import SettingsMenu from '../../../shared/components/settings/SettingsMenu';
 import { createQueryStore } from 'shared/lib/createQueryStore';
 import _ from 'lodash';
 import { mixedReferenceGenomeWarning } from 'shared/lib/referenceGenomeUtils';
-import SettingsMenuButton from 'pages/resultsView/settings/SettingsMenuButton';
+import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 
 interface QuerySummaryProps {
     routingStore: ExtendedRouterStore;
