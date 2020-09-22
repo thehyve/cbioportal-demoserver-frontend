@@ -7,7 +7,6 @@ export interface IDriverSettingsProps {
     didOncoKbFailInOncoprint?: boolean;
     didHotspotFailInOncoprint?: boolean;
     customDriverAnnotationReport: MobxPromiseUnionType<IDriverAnnotationReport>;
-    resultsView?: boolean;
 }
 
 export interface IExclusionSettings {

@@ -195,6 +195,7 @@ import {
     IExclusionSettings,
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
+import { ISettingsMenuButtonVisible } from 'pages/resultsView/settings/SettingsMenuButton';
 
 export type ChartUserSetting = {
     id: string;
@@ -304,7 +305,10 @@ export type OncokbCancerGene = {
 };
 
 export class StudyViewPageStore
-    implements IDriverSettingsProps, IExclusionSettings {
+    implements
+        IDriverSettingsProps,
+        IExclusionSettings,
+        ISettingsMenuButtonVisible {
     private reactionDisposers: IReactionDisposer[] = [];
 
     private chartItemToColor: Map<string, string>;
@@ -314,6 +318,7 @@ export class StudyViewPageStore
     @observable showComparisonGroupUI = false;
     public driverAnnotationSettings: DriverAnnotationSettings;
     @observable excludeGermlineMutations = false;
+    @observable settingsMenuVisible = false;
 
     constructor(
         public appStore: AppStore,

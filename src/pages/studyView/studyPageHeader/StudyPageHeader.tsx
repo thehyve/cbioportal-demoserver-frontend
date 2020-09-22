@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import { observable } from 'mobx';
 import { StudyViewPageStore } from 'pages/studyView/StudyViewPageStore';
 import RightPanel from './rightPanel/RightPanel';
 import StudySummary from './studySummary/StudySummary';
 import UserSelections from '../UserSelections';
 import * as _ from 'lodash';
-import { DefaultTooltip } from 'cbioportal-frontend-commons';
-import ResultsPageSettings from 'pages/resultsView/settings/ResultsPageSettings';
+import SettingsMenuButton from 'pages/resultsView/settings/SettingsMenuButton';
 
 export interface IStudyPageHeaderProps {
     store: StudyViewPageStore;
@@ -19,8 +17,6 @@ export default class StudyPageHeader extends React.Component<
     IStudyPageHeaderProps,
     {}
 > {
-    @observable resultsPageSettingsVisible: boolean = false;
-
     render() {
         return (
             <div className={'headBlock'} data-test="study-view-header">
@@ -38,28 +34,9 @@ export default class StudyPageHeader extends React.Component<
                     </div>
                 )}
                 <div style={{ display: 'flex' }}>
-                    <DefaultTooltip
-                        trigger={['click']}
-                        placement="bottomRight"
-                        overlay={
-                            // TODO make this menu appear conditionally.
-                            // Should not show when there are no customn driver annotations for the currently
-                            // represented studies.
-                            <ResultsPageSettings store={this.props.store} />
-                        }
-                        visible={this.resultsPageSettingsVisible}
-                        onVisibleChange={visible => {
-                            this.resultsPageSettingsVisible = !!visible;
-                        }}
-                    >
-                        <button
-                            data-test="GlobalSettingsButton"
-                            style={{ marginRight: 5 }}
-                            className="btn btn-primary"
-                        >
-                            <i className="fa fa-sliders fa-lg" />
-                        </button>
-                    </DefaultTooltip>
+                    {this.props.store.hasCustomDriverAnnotations && (
+                        <SettingsMenuButton store={this.props.store} />
+                    )}
                     <StudySummary
                         hasRawDataForDownload={
                             this.props.store.hasRawDataForDownload.result

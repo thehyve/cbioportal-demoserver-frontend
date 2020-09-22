@@ -216,6 +216,7 @@ import {
     IExclusionSettings,
     IDriverSettingsProps,
 } from '../../shared/driverAnnotation/DriverAnnotationSettings';
+import { ISettingsMenuButtonVisible } from 'pages/resultsView/settings/SettingsMenuButton';
 
 type Optional<T> =
     | { isApplicable: true; value: T }
@@ -447,7 +448,10 @@ export type ModifyQueryParams = {
 /* chronological setup concerns, rather than on encapsulation and public API *
 /* tslint:disable: member-ordering */
 export class ResultsViewPageStore
-    implements IDriverSettingsProps, IExclusionSettings {
+    implements
+        IDriverSettingsProps,
+        IExclusionSettings,
+        ISettingsMenuButtonVisible {
     constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
         labelMobxPromises(this);
 
@@ -472,7 +476,6 @@ export class ResultsViewPageStore
             },
             { fireImmediately: true }
         );
-        this.resultsView = true;
     }
 
     destroy() {
@@ -480,7 +483,6 @@ export class ResultsViewPageStore
     }
 
     public urlWrapper: ResultsViewURLWrapper;
-    public resultsView: boolean;
     public driverAnnotationsReactionDisposer: any;
 
     private mutationMapperStoreByGene: {
@@ -532,7 +534,7 @@ export class ResultsViewPageStore
         return this.urlWrapper.tabId || ResultsViewTab.ONCOPRINT;
     }
 
-    @observable public resultsPageSettingsVisible = false;
+    @observable public settingsMenuVisible = false;
 
     @observable public checkingVirtualStudies = false;
 

@@ -34,6 +34,7 @@ import ResultsPageSettings from '../settings/ResultsPageSettings';
 import { createQueryStore } from 'shared/lib/createQueryStore';
 import _ from 'lodash';
 import { mixedReferenceGenomeWarning } from 'shared/lib/referenceGenomeUtils';
+import SettingsMenuButton from 'pages/resultsView/settings/SettingsMenuButton';
 
 interface QuerySummaryProps {
     routingStore: ExtendedRouterStore;
@@ -305,33 +306,10 @@ export default class QuerySummary extends React.Component<
                                             ? 'Cancel Modify Query'
                                             : 'Modify Query'}
                                     </button>
-                                    <DefaultTooltip
-                                        trigger={['click']}
-                                        placement="bottomRight"
-                                        overlay={
-                                            <ResultsPageSettings
-                                                store={this.props.store}
-                                            />
-                                        }
-                                        visible={
-                                            this.props.store
-                                                .resultsPageSettingsVisible
-                                        }
-                                        onVisibleChange={visible => {
-                                            this.props.store.resultsPageSettingsVisible = !!visible;
-                                        }}
-                                        onPopupAlign={tooltipEl =>
-                                            setArrowLeft(tooltipEl, '22px')
-                                        }
-                                    >
-                                        <button
-                                            data-test="GlobalSettingsButton"
-                                            style={{ marginLeft: 5 }}
-                                            className="btn btn-primary"
-                                        >
-                                            <i className="fa fa-sliders fa-lg" />
-                                        </button>
-                                    </DefaultTooltip>
+                                    <SettingsMenuButton
+                                        store={this.props.store}
+                                        resultsView={true}
+                                    />
                                 </div>
                             )}
 

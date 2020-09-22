@@ -38,6 +38,7 @@ import { buildCBioPortalPageUrl } from 'shared/api/urls';
 import MethylationEnrichments from './MethylationEnrichments';
 import StudyPageHeader from 'pages/studyView/studyPageHeader/StudyPageHeader';
 import ResultsPageSettings from 'pages/resultsView/settings/ResultsPageSettings';
+import SettingsMenuButton from 'pages/resultsView/settings/SettingsMenuButton';
 
 export interface IGroupComparisonPageProps {
     routing: any;
@@ -364,11 +365,13 @@ export default class GroupComparisonPage extends React.Component<
                         <div
                             style={{
                                 display: 'flex',
-                                justifyContent: 'space-between',
+                                flexDirection: 'row',
+                                justifyContent: 'left',
+                                alignItems: 'center',
                             }}
                         >
                             {this.store.hasCustomDriverAnnotations && (
-                                <ResultsPageSettings store={this.store} />
+                                <SettingsMenuButton store={this.store} />
                             )}
                             {this.studyLink.component}
                             {this.overlapStrategySelector.component}

@@ -6,8 +6,7 @@ import {
     IExclusionSettings,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
 import { observer } from 'mobx-react';
-import styles from './styles.module.scss';
-import { computed } from 'mobx';
+import { computed, observable } from 'mobx';
 
 export interface ISettingsMenu {
     store: IDriverSettingsProps &
@@ -17,7 +16,7 @@ export interface ISettingsMenu {
 }
 
 export interface ISettingsMenuButtonVisible {
-    settingsMenuVisible: boolean;
+    settingsMenuVisible?: boolean;
 }
 
 @observer
@@ -35,6 +34,24 @@ export default class SettingsMenuButton extends React.Component<
         return 0;
     }
 
+    @observable visible = false;
+
+    // determine whether visibility is controlled by a
+    // store component or by local state
+    @computed get visibilityState() {
+        if (this.props.store.settingsMenuVisible !== undefined)
+            return this.props.store.settingsMenuVisible;
+        return this.visible;
+    }
+
+    private setVisibilityState(visible: boolean | undefined) {
+        if (visible !== undefined) {
+            if (this.props.store.settingsMenuVisible !== undefined)
+                this.props.store.settingsMenuVisible = !!visible;
+            else this.visible = !!visible;
+        }
+    }
+
     render() {
         return (
             <DefaultTooltip
@@ -46,15 +63,16 @@ export default class SettingsMenuButton extends React.Component<
                         resultsView={this.props.resultsView}
                     />
                 }
-                visible={this.props.store.settingsMenuVisible}
+                visible={this.visibilityState}
                 onVisibleChange={visible => {
-                    this.props.store.settingsMenuVisible = !!visible;
+                    this.setVisibilityState(visible);
                 }}
                 onPopupAlign={tooltipEl => setArrowLeft(tooltipEl, '22px')}
             >
                 <button
                     data-test="GlobalSettingsButton"
                     style={{
+                        height: 38,
                         marginRight: this.marginRight,
                         marginLeft: this.marginLeft,
                     }}

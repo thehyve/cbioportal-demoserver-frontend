@@ -1237,7 +1237,7 @@ export default class OncoprintControls extends React.Component<
                             }}
                             className="btn btn-primary"
                             onClick={() => {
-                                store.resultsPageSettingsVisible = !store.resultsPageSettingsVisible;
+                                store.settingsMenuVisible = !store.settingsMenuVisible;
                             }}
                         >
                             <i className="fa fa-sliders" />

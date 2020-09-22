@@ -35,6 +35,7 @@ function boldedTabList(tabs: string[]) {
 
 export interface IResultsPageSettings {
     store: IDriverSettingsProps & IExclusionSettings;
+    resultsView?: boolean;
 }
 
 @observer
@@ -104,7 +105,7 @@ export default class ResultsPageSettings extends React.Component<
                     <DriverAnnotationControls
                         state={this.driverSettingsState}
                         handlers={this.driverSettingsHandlers}
-                        resultsView={this.props.store.resultsView}
+                        resultsView={this.props.resultsView}
                     />
                 </div>
 
@@ -147,7 +148,7 @@ export default class ResultsPageSettings extends React.Component<
                             Exclude germline mutations
                         </label>
                     </div>
-                    {this.props.store.resultsView && (
+                    {this.props.resultsView && (
                         <div className="checkbox">
                             <label>
                                 <input
