@@ -4880,8 +4880,14 @@ export class StudyViewPageStore
                   ],
         invoke: async () => {
             if (!_.isEmpty(this.mutationProfiles.result)) {
+                const selectedTiers = this.selectedTiers;
+                const excludeVus = this.driverAnnotationSettings.excludeVUS;
+                const excludeGermlineMutations = this.excludeGermlineMutations;
                 let mutatedGenes = await internalClient.fetchMutatedGenesUsingPOST(
                     {
+                        selectedTiers: selectedTiers,
+                        excludeVus: excludeVus,
+                        excludeGermline: excludeGermlineMutations,
                         studyViewFilter: this
                             .studyViewFilterWithFilteredSampleIdentifiers
                             .result!,
@@ -4940,8 +4946,14 @@ export class StudyViewPageStore
                   ],
         invoke: async () => {
             if (!_.isEmpty(this.structuralVariantProfiles.result)) {
+                const selectedTiers = this.selectedTiers;
+                const excludeVus = this.driverAnnotationSettings.excludeVUS;
+                const excludeGermlineMutations = this.excludeGermlineMutations;
                 const fusionGenes = await internalClient.fetchFusionGenesUsingPOST(
                     {
+                        selectedTiers: selectedTiers,
+                        excludeVus: excludeVus,
+                        excludeGermline: excludeGermlineMutations,
                         studyViewFilter: this
                             .studyViewFilterWithFilteredSampleIdentifiers
                             .result!,
