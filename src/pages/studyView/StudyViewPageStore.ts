@@ -5000,7 +5000,11 @@ export class StudyViewPageStore
                   ],
         invoke: async () => {
             if (!_.isEmpty(this.cnaProfiles.result)) {
+                const selectedTiers = this.selectedTiers;
+                const excludeVus = this.driverAnnotationSettings.excludeVUS;
                 let cnaGenes = await internalClient.fetchCNAGenesUsingPOST({
+                    selectedTiers: selectedTiers,
+                    excludeVus: excludeVus,
                     studyViewFilter: this
                         .studyViewFilterWithFilteredSampleIdentifiers.result!,
                 });
@@ -5069,6 +5073,12 @@ export class StudyViewPageStore
                 });
         },
     });
+
+    @computed get selectedTiers() {
+        return this.customDriverAnnotationReport.result?.tiers.filter(tier =>
+            this.driverAnnotationSettings.driverTiers.get(tier)
+        );
+    }
 
     readonly customDriverAnnotationReport = remoteData<
         CustomDriverAnnotationReport
