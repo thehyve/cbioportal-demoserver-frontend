@@ -392,19 +392,12 @@ export default class GroupComparisonStore extends ComparisonStore
         default: [],
     });
 
-    @computed get studyIds() {
-        if (this._session.isComplete) {
-            return getStudyIds(this._session.result!.groups);
-        }
-        return [];
-    }
-
     readonly studies = remoteData(
         {
-            await: () => [this.allStudyIdToStudy],
+            await: () => [this.studyIds, this.allStudyIdToStudy],
             invoke: () => {
                 return Promise.resolve(
-                    this.studyIds.map(
+                    this.studyIds.result!.map(
                         studyId => this.allStudyIdToStudy.result![studyId]
                     )
                 );
@@ -413,12 +406,25 @@ export default class GroupComparisonStore extends ComparisonStore
         []
     );
 
+    readonly studyIds = remoteData(
+        {
+            await: () => [this._session],
+            invoke: () => {
+                return Promise.resolve(
+                    getStudyIds(this._session.result!.groups)
+                );
+            },
+        },
+        []
+    );
+
     readonly molecularProfilesInStudies = remoteData<MolecularProfile[]>(
         {
+            await: () => [this.studyIds],
             invoke: async () => {
                 return client.fetchMolecularProfilesUsingPOST({
                     molecularProfileFilter: {
-                        studyIds: this.studyIds,
+                        studyIds: this.studyIds.result,
                     } as MolecularProfileFilter,
                 });
             },
@@ -426,31 +432,44 @@ export default class GroupComparisonStore extends ComparisonStore
         []
     );
 
-    @computed get customDriverAnnotationProfileIds() {
-        return _(this.molecularProfilesInStudies.result)
-            .filter(
-                (profile: MolecularProfile) =>
-                    // discrete CNA's
-                    (profile.molecularAlterationType ===
-                        AlterationTypeConstants.COPY_NUMBER_ALTERATION &&
-                        profile.datatype === 'DISCRETE') ||
-                    // mutations
-                    profile.molecularAlterationType ===
-                        AlterationTypeConstants.MUTATION_EXTENDED ||
-                    // structural variants
-                    profile.molecularAlterationType ===
-                        AlterationTypeConstants.STRUCTURAL_VARIANT
-            )
-            .map((profile: MolecularProfile) => profile.molecularProfileId)
-            .value();
-    }
+    readonly customDriverAnnotationProfileIds = remoteData<string[]>(
+        {
+            await: () => [this.molecularProfilesInStudies],
+            invoke: async () => {
+                return _(this.molecularProfilesInStudies.result)
+                    .filter(
+                        (profile: MolecularProfile) =>
+                            // discrete CNA's
+                            (profile.molecularAlterationType ===
+                                AlterationTypeConstants.COPY_NUMBER_ALTERATION &&
+                                profile.datatype === 'DISCRETE') ||
+                            // mutations
+                            profile.molecularAlterationType ===
+                                AlterationTypeConstants.MUTATION_EXTENDED ||
+                            // structural variants
+                            profile.molecularAlterationType ===
+                                AlterationTypeConstants.STRUCTURAL_VARIANT
+                    )
+                    .map(
+                        (profile: MolecularProfile) =>
+                            profile.molecularProfileId
+                    )
+                    .value();
+            },
+        },
+        []
+    );
 
     readonly customDriverAnnotationReport = remoteData<
         CustomDriverAnnotationReport
     >({
+        await: () => [this.customDriverAnnotationProfileIds],
         invoke: () => {
             return internalClient.fetchAlterationDriverAnnotationReportUsingPOST(
-                { molecularProfileIds: this.customDriverAnnotationProfileIds }
+                {
+                    molecularProfileIds: this.customDriverAnnotationProfileIds
+                        .result,
+                }
             );
         },
     });
