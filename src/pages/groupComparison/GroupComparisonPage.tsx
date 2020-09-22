@@ -28,16 +28,12 @@ import ClinicalData from './ClinicalData';
 import ReactSelect from 'react-select';
 import { trackEvent } from 'shared/lib/tracking';
 import URL from 'url';
-import GroupComparisonURLWrapper, {
-    GroupComparisonURLQuery,
-} from './GroupComparisonURLWrapper';
+import GroupComparisonURLWrapper from './GroupComparisonURLWrapper';
 
 import styles from './styles.module.scss';
 import { OverlapStrategy } from '../../shared/lib/comparison/ComparisonStore';
 import { buildCBioPortalPageUrl } from 'shared/api/urls';
 import MethylationEnrichments from './MethylationEnrichments';
-import StudyPageHeader from 'pages/studyView/studyPageHeader/StudyPageHeader';
-import SettingsMenu from 'SettingsMenu.tsx';
 import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 
 export interface IGroupComparisonPageProps {
