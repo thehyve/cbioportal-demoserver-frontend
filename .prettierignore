@@ -1,4 +1,4 @@
-*png
+ *png
 *eps
 *pdf
 *ai
@@ -26,3 +26,4 @@ yarn.lock
 .gitignore
 .kodiak.toml
 *maf
+*properties

@@ -268,7 +268,7 @@ export class MultiSelectionTable extends React.Component<
                             className: styles.autoMarginCheckbox,
                         }}
                     >
-                        <span>
+                        <span data-test={'numberOfAlteredCasesText'}>
                             {data.numberOfAlteredCases.toLocaleString()}
                         </span>
                     </LabeledCheckbox>

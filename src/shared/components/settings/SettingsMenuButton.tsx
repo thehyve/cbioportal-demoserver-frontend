@@ -57,7 +57,7 @@ export default class SettingsMenuButton extends React.Component<
     @computed get overlay() {
         if (this.props.disabled) {
             return (
-                <div>
+                <div data-test={'GlobalSettingsButtonHint'}>
                     <div>
                         Filtering based on annotations is not available for this
                         study.

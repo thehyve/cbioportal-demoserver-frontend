@@ -49,7 +49,7 @@ function getTextInOncoprintLegend() {
     return browser.getText('#oncoprintDiv .oncoprint-legend-div svg');
 }
 
-function setResultsPageSettingsMenuOpen(open) {
+function setSettingsMenuOpen(open) {
     const button = 'button[data-test="GlobalSettingsButton"]';
     const dropdown = 'div[data-test="GlobalSettingsDropdown"]';
     browser.waitForVisible(button);
@@ -448,7 +448,7 @@ module.exports = {
     selectCheckedOption: selectCheckedOption,
     getOncoprintGroupHeaderOptionsElements: getOncoprintGroupHeaderOptionsElements,
     showGsva: showGsva,
-    setResultsPageSettingsMenuOpen: setResultsPageSettingsMenuOpen,
+    setSettingsMenuOpen: setSettingsMenuOpen,
     setDropdownOpen: setDropdownOpen,
     postDataToUrl: postDataToUrl,
     getPortalUrlFromEnv: getPortalUrlFromEnv,
