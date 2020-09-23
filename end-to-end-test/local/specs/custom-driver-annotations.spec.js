@@ -101,7 +101,7 @@ describe('custom driver annotations feature', function() {
             });
         });
 
-        describe('oncoprint tab - discete CNA', () => {
+        describe('oncoprint tab - discrete CNA', () => {
             beforeEach(() => {
                 goToUrlAndSetLocalStorage(oncoprintTabUrlCna);
                 waitForOncoprint();
@@ -143,19 +143,25 @@ describe('custom driver annotations feature', function() {
 
                 $('input[data-test=HideVUS]').click();
                 waitForOncoprint();
-                assert($('div.alert-info*=17 mutations').isExisting());
+                assert(
+                    $('div.alert-info*=17 copy number alterations').isExisting()
+                );
 
                 $('label*=Class 1')
                     .$('input')
                     .click();
                 waitForOncoprint();
-                assert($('div.alert-info*=17 mutations').isExisting());
+                assert(
+                    $('div.alert-info*=17 copy number alterations').isExisting()
+                );
 
                 $('label*=Class 2')
                     .$('input')
                     .click();
                 waitForOncoprint();
-                assert($('div.alert-info*=16 mutations').isExisting());
+                assert(
+                    $('div.alert-info*=16 copy number alterations').isExisting()
+                );
             });
 
             it('(de-)selects custom driver checkboxes with main annotation select option', () => {
@@ -177,20 +183,13 @@ describe('custom driver annotations feature', function() {
         });
 
         describe('study view', () => {
-            beforeEach(() => {
-                goToUrlAndSetLocalStorage(studyViewUrlEs_0);
-                $('[data-test=study-view-header]').waitForVisible();
-                assert($('[data-test=GlobalSettingsButton]').isVisible());
-                browser.moveToObject('[data-test=GlobalSettingsButton]');
-                setSettingsMenuOpen(true);
-            });
-
             describe('study without custom driver annotations', () => {
                 it('shows hint with instructions when hovering menu', () => {
                     goToUrlAndSetLocalStorage(studyViewUrlGenPanels);
                     $('[data-test=study-view-header]').waitForVisible();
                     assert($('[data-test=GlobalSettingsButton]').isVisible());
                     browser.moveToObject('[data-test=GlobalSettingsButton]');
+                    $('[data-test=GlobalSettingsButtonHint]').waitForVisible();
                     assert(
                         $('[data-test=GlobalSettingsButtonHint]').isVisible()
                     );
@@ -198,6 +197,19 @@ describe('custom driver annotations feature', function() {
             });
 
             describe('study with custom driver annotations', () => {
+                beforeEach(() => {
+                    goToUrlAndSetLocalStorage(studyViewUrlEs_0);
+                    $('[data-test=study-view-header]').waitForVisible();
+                    $('[data-test=mutations-table]').waitForVisible();
+                    $$('[data-test=cancer-gene-filter]').forEach(f =>
+                        f.click()
+                    );
+                    $('[data-test=mutations-table]').waitForVisible();
+                    $('[data-test=GlobalSettingsButton]').waitForVisible();
+                    browser.moveToObject('[data-test=GlobalSettingsButton]');
+                    setSettingsMenuOpen(true);
+                });
+
                 it('shows settings menu', () => {
                     // shows custom driver options
                     var topCheckBox = $(
@@ -222,19 +234,26 @@ describe('custom driver annotations feature', function() {
                 });
 
                 it('updates mutated genes counts when VUS alterations are excluded', () => {
-                    $('input[data-test=HideVUS]').click();
-                    $('[data-test=mutations-table]').waitForVisible();
+                    var values = $$(
+                        '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
+                    );
 
-                    // FIXME add test
-                    assert(false);
+                    assert(values.length === 15);
+
+                    $('input[data-test=HideVUS]').click();
+
+                    $('[data-test=mutations-table]').waitForVisible();
+                    values = $$(
+                        '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
+                    );
+                    assert(values.length === 2);
                 });
 
                 it('updates CNA genes counts when VUS alterations are excluded', () => {
                     var values = $$(
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values[0].getText() === '7');
-                    assert(values[1].getText() === '2');
+                    assert(values.length === 14);
 
                     $('input[data-test=HideVUS]').click();
                     $(
@@ -244,24 +263,22 @@ describe('custom driver annotations feature', function() {
                     values = $$(
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values[0].getText() === '1');
-                    assert(values[1].getText() === '1');
+                    assert(values.length === 3);
                 });
 
                 it('updates fusion genes counts when VUS alterations are excluded', () => {
+                    var values = $$(
+                        '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
+                    );
+                    assert(values.length === 3);
+
                     $('input[data-test=HideVUS]').click();
-                    $('[data-test=fusions-table]').waitForVisible();
+                    $('[data-test=mutations-table]').waitForVisible();
 
-                    // FIXME add test
-                    assert(false);
-                });
-
-                it('updates fusion genes counts when VUS alterations are excluded', () => {
-                    $('input[data-test=HideVUS]').click();
-                    $('[data-test=fusions-table]').waitForVisible();
-
-                    // FIXME add test
-                    assert(false);
+                    values = $$(
+                        '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
+                    );
+                    assert(values.length === 0);
                 });
             });
         });
