@@ -13,6 +13,7 @@ export interface ISettingsMenu {
         IExclusionSettings &
         ISettingsMenuButtonVisible;
     resultsView?: boolean;
+    disabled?: boolean;
 }
 
 export interface ISettingsMenuButtonVisible {
@@ -36,8 +37,9 @@ export default class SettingsMenuButton extends React.Component<
 
     @observable visible = false;
 
-    // determine whether visibility is controlled by a
-    // store component or by local state
+    // determine whether visibility is controlled
+    // by a store component or by local state
+    // by a store component or by local state
     @computed get visibilityState() {
         if (this.props.store.settingsMenuVisible !== undefined)
             return this.props.store.settingsMenuVisible;
@@ -52,17 +54,44 @@ export default class SettingsMenuButton extends React.Component<
         }
     }
 
+    @computed get overlay() {
+        if (this.props.disabled) {
+            return (
+                <div>
+                    <div>
+                        Filtering based on annotations is not available for this
+                        study.
+                    </div>
+                    <div>
+                        Load custom driver annotations for the selected study to
+                        enable filtering.
+                    </div>
+                </div>
+            );
+        } else {
+            return (
+                <SettingsMenu
+                    store={this.props.store}
+                    resultsView={this.props.resultsView}
+                />
+            );
+        }
+    }
+
+    @computed get trigger() {
+        if (this.props.disabled) {
+            return 'hover';
+        } else {
+            return 'click';
+        }
+    }
+
     render() {
         return (
             <DefaultTooltip
-                trigger={['click']}
+                trigger={[this.trigger]}
                 placement="bottomRight"
-                overlay={
-                    <SettingsMenu
-                        store={this.props.store}
-                        resultsView={this.props.resultsView}
-                    />
-                }
+                overlay={this.overlay}
                 visible={this.visibilityState}
                 onVisibleChange={visible => {
                     this.setVisibilityState(visible);

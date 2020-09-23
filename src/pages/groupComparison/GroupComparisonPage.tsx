@@ -366,8 +366,14 @@ export default class GroupComparisonPage extends React.Component<
                                 alignItems: 'center',
                             }}
                         >
-                            {this.store.hasCustomDriverAnnotations && (
-                                <SettingsMenuButton store={this.store} />
+                            {(window as any).frontendConfig.serverConfig
+                                .skin_show_settings_menu && (
+                                <SettingsMenuButton
+                                    store={this.store}
+                                    disabled={
+                                        !!this.store.hasCustomDriverAnnotations
+                                    }
+                                />
                             )}
                             {this.studyLink.component}
                             {this.overlapStrategySelector.component}

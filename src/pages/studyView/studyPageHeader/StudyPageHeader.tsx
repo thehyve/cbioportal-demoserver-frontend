@@ -34,8 +34,14 @@ export default class StudyPageHeader extends React.Component<
                     </div>
                 )}
                 <div style={{ display: 'flex' }}>
-                    {this.props.store.hasCustomDriverAnnotations && (
-                        <SettingsMenuButton store={this.props.store} />
+                    {(window as any).frontendConfig.serverConfig
+                        .skin_show_settings_menu && (
+                        <SettingsMenuButton
+                            store={this.props.store}
+                            disabled={
+                                !this.props.store.hasCustomDriverAnnotations
+                            }
+                        />
                     )}
                     <StudySummary
                         hasRawDataForDownload={
