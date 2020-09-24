@@ -142,7 +142,7 @@ export default class AccessorsForOqlFilter
                 (d as NumericGeneMolecularData).value
             ];
         } else {
-            return null;
+            return undefined;
         }
     }
 

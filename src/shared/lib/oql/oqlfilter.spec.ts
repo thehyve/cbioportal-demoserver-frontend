@@ -92,7 +92,7 @@ const THREE_GENE_TWO_SAMPLE_CNA_DATA = ([
         putativeDriver: true,
         sampleId: 'TCGA-02-0003-01',
         entrezGeneId: 672,
-        value: 0,
+        value: -2,
         molecularProfileId: 'gbm_tcga_gistic',
         uniqueSampleKey: 'VENHQS0wMi0wMDAzLTAxOmdibV90Y2dh',
         uniquePatientKey: 'VENHQS0wMi0wMDAzOmdibV90Y2dh',

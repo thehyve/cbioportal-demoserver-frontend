@@ -98,7 +98,7 @@ describe('custom driver annotations feature', function() {
         });
     }
 
-    describe('oncoprint tab - discete CNA', () => {
+    describe('oncoprint tab - discrete CNA', () => {
         beforeEach(() => {
             goToUrlAndSetLocalStorage(oncoprintTabUrlCna);
             waitForOncoprint();
@@ -140,19 +140,25 @@ describe('custom driver annotations feature', function() {
 
             $('input[data-test=HideVUS]').click();
             waitForOncoprint();
-            assert($('div.alert-info*=17 mutations').isExisting());
+            assert(
+                $('div.alert-info*=17 copy number alterations').isExisting()
+            );
 
             $('label*=Class 1')
                 .$('input')
                 .click();
             waitForOncoprint();
-            assert($('div.alert-info*=17 mutations').isExisting());
+            assert(
+                $('div.alert-info*=17 copy number alterations').isExisting()
+            );
 
             $('label*=Class 2')
                 .$('input')
                 .click();
             waitForOncoprint();
-            assert($('div.alert-info*=16 mutations').isExisting());
+            assert(
+                $('div.alert-info*=16 copy number alterations').isExisting()
+            );
         });
 
         it('(de-)selects custom driver checkboxes with main annotation select option', () => {
