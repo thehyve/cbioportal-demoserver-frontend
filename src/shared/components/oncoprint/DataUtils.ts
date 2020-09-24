@@ -1,7 +1,8 @@
 import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation,
-    CaseAggregatedData, DiscreteCopyNumberAlterationMolecularData,
+    CaseAggregatedData,
+    DiscreteCopyNumberAlterationMolecularData,
     ExtendedAlteration,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import {
@@ -170,7 +171,8 @@ export function fillGeneticTrackDatum(
                         oncoprintCnaType += '_rec';
                     }
                     // not diploid
-                    dispCnaCounts[oncoprintCnaType] = dispCnaCounts[oncoprintCnaType] || 0;
+                    dispCnaCounts[oncoprintCnaType] =
+                        dispCnaCounts[oncoprintCnaType] || 0;
                     dispCnaCounts[oncoprintCnaType] += 1;
                 }
                 break;

@@ -952,7 +952,6 @@ export function evaluateMutationPutativeDriverInfo(
     customDriverAnnotationsActive: boolean,
     customDriverTierSelection: ObservableMap<boolean> | undefined
 ) {
-    
     const oncoKb = oncoKbDatum ? getOncoKbOncogenic(oncoKbDatum) : '';
     const hotspots = hotspotAnnotationsActive && hotspotDriver;
     const cbioportalCount = cbioportalCountActive && cosmicCountExceeded;

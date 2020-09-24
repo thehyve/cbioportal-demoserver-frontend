@@ -1244,7 +1244,7 @@ export class ResultsViewPageStore {
                                     (gene: Gene) => gene.entrezGeneId
                                 ),
                                 sampleMolecularIdentifiers: identifiers,
-                            } as MolecularDataMultipleStudyFilter
+                            } as MolecularDataMultipleStudyFilter,
                         }
                     );
                 }
@@ -1261,40 +1261,45 @@ export class ResultsViewPageStore {
     >({
         await: () => [this.discreteCopyNumberAlterations, this.molecularData],
         invoke: () => {
-            const cnaData = _.filter(this.molecularData.result as any, (d: any) => {
+            const cnaData = _.filter(
+                this.molecularData.result as any,
+                (d: any) => {
                     return _.includes(
                         this.cnaMolecularProfileIds,
                         d.molecularProfileId
                     );
-                });
+                }
+            );
             _.forEach(cnaData, (d: any) => {
-                    // Lookup the DiscreteCopyNumberData datum that
-                    // holds the custom driver annotation.
-                    const discreteCopyNumberDatumKey = createDiscreteCopyNumberDataKey(
-                        d
-                    );
-                    const discreteCopyNumberDatum =
-                        discreteCopyNumberDatumKey in
-                        this.sampleIdAndEntrezIdToDiscreteCopyNumberData
-                            ? this.sampleIdAndEntrezIdToDiscreteCopyNumberData[
-                                  discreteCopyNumberDatumKey
-                              ]
-                            : undefined;
+                // Lookup the DiscreteCopyNumberData datum that
+                // holds the custom driver annotation.
+                const discreteCopyNumberDatumKey = createDiscreteCopyNumberDataKey(
+                    d
+                );
+                const discreteCopyNumberDatum =
+                    discreteCopyNumberDatumKey in
+                    this.sampleIdAndEntrezIdToDiscreteCopyNumberData
+                        ? this.sampleIdAndEntrezIdToDiscreteCopyNumberData[
+                              discreteCopyNumberDatumKey
+                          ]
+                        : undefined;
 
-                    d.driverFilter = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverFilter
-                        : '';
-                    d.driverFilterAnnotation = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverFilterAnnotation
-                        : '';
-                    d.driverTiersFilter = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverTiersFilter
-                        : '';
-                    d.driverTiersFilterAnnotation = discreteCopyNumberDatum
-                        ? discreteCopyNumberDatum.driverTiersFilterAnnotation
-                        : '';
-                });
-            return Promise.resolve(cnaData as DiscreteCopyNumberAlterationMolecularData[]);
+                d.driverFilter = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverFilter
+                    : '';
+                d.driverFilterAnnotation = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverFilterAnnotation
+                    : '';
+                d.driverTiersFilter = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverTiersFilter
+                    : '';
+                d.driverTiersFilterAnnotation = discreteCopyNumberDatum
+                    ? discreteCopyNumberDatum.driverTiersFilterAnnotation
+                    : '';
+            });
+            return Promise.resolve(
+                cnaData as DiscreteCopyNumberAlterationMolecularData[]
+            );
         },
     });
 
@@ -2377,14 +2382,16 @@ export class ResultsViewPageStore {
     });
 
     @computed get cnaMolecularProfileIds() {
-        const profiles = this.cnaProfiles.isComplete? this.cnaProfiles.result : [];
+        const profiles = this.cnaProfiles.isComplete
+            ? this.cnaProfiles.result
+            : [];
         const profileIds = _.map(
             profiles,
             (p: MolecularProfile) => p.molecularProfileId
         );
         return profileIds;
     }
-    
+
     @computed
     get chartMetaSet(): { [id: string]: ChartMeta } {
         let _chartMetaSet: { [id: string]: ChartMeta } = {} as {
@@ -2841,10 +2848,9 @@ export class ResultsViewPageStore {
         await: () => [
             this.genes,
             this.studyToMolecularProfileDiscreteCna,
-            this.samples
+            this.samples,
         ],
         invoke: async () => {
-            
             if (this.cnaMolecularProfileIds.length == 0) {
                 return [];
             }
@@ -2860,7 +2866,10 @@ export class ResultsViewPageStore {
                     const sampleIds = _.map(
                         this.samples.result,
                         (sample: Sample) => {
-                            if (sample.studyId in this.studyToMolecularProfileDiscreteCna.result) {
+                            if (
+                                sample.studyId in
+                                this.studyToMolecularProfileDiscreteCna.result
+                            ) {
                                 return sample.sampleId;
                             }
                         }
@@ -4304,14 +4313,18 @@ export class ResultsViewPageStore {
                         getOncoKbMutationAnnotationForOncoprint instanceof Error
                     ) &&
                     getOncoKbMutationAnnotationForOncoprint(mutation);
-                
-                const isHotspotDriver = !(this.isHotspotForOncoprint.result instanceof Error) && this.isHotspotForOncoprint.result!(mutation);
-                const cbioportalCountExceeded = this.getCBioportalCount.isComplete &&
+
+                const isHotspotDriver =
+                    !(this.isHotspotForOncoprint.result instanceof Error) &&
+                    this.isHotspotForOncoprint.result!(mutation);
+                const cbioportalCountExceeded =
+                    this.getCBioportalCount.isComplete &&
                     this.getCBioportalCount.result!(mutation) >=
-                    this.driverAnnotationSettings.cbioportalCountThreshold;
-                const cosmicCountExceeded = this.getCosmicCount.isComplete &&
+                        this.driverAnnotationSettings.cbioportalCountThreshold;
+                const cosmicCountExceeded =
+                    this.getCosmicCount.isComplete &&
                     this.getCosmicCount.result!(mutation) >=
-                    this.driverAnnotationSettings.cosmicCountThreshold;
+                        this.driverAnnotationSettings.cosmicCountThreshold;
 
                 // Note: custom driver annotations are part of the incoming datum
                 return evaluateMutationPutativeDriverInfo(

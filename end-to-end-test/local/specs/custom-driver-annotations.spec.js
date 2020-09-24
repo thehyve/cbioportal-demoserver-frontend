@@ -91,27 +91,27 @@ describe('custom driver annotations feature', function() {
                 assert(!tiersCheckboxes[1].isSelected());
 
                 $('input[data-test=ColorByDriver]').click();
-                    assert(topCheckBox.isSelected());
-                    assert(tiersCheckboxes[0].isSelected());
-                    assert(tiersCheckboxes[1].isSelected());
-                });
-            });
-        }
-        
-        describe('oncoprint tab - discete CNA', () => {
-            beforeEach(() => {
-                goToUrlAndSetLocalStorage(oncoprintTabUrlCna);
-                waitForOncoprint();
-                setResultsPageSettingsMenuOpen(true);
-            });
-    
-            it('shows custom driver annotation elements in config menu', () => {
-                var topCheckBox = $('input[data-test=annotateCustomBinary]');
                 assert(topCheckBox.isSelected());
-    
-                var tiersCheckboxes = $(
-                'span[data-test=annotateCustomTiers]'
-            ).$$('input');
+                assert(tiersCheckboxes[0].isSelected());
+                assert(tiersCheckboxes[1].isSelected());
+            });
+        });
+    }
+
+    describe('oncoprint tab - discete CNA', () => {
+        beforeEach(() => {
+            goToUrlAndSetLocalStorage(oncoprintTabUrlCna);
+            waitForOncoprint();
+            setResultsPageSettingsMenuOpen(true);
+        });
+
+        it('shows custom driver annotation elements in config menu', () => {
+            var topCheckBox = $('input[data-test=annotateCustomBinary]');
+            assert(topCheckBox.isSelected());
+
+            var tiersCheckboxes = $('span[data-test=annotateCustomTiers]').$$(
+                'input'
+            );
             assert(tiersCheckboxes[0].isSelected());
             assert(tiersCheckboxes[1].isSelected());
         });
@@ -157,9 +157,9 @@ describe('custom driver annotations feature', function() {
 
         it('(de-)selects custom driver checkboxes with main annotation select option', () => {
             var topCheckBox = $('input[data-test=annotateCustomBinary]');
-            var tiersCheckboxes = $(
-                'span[data-test=annotateCustomTiers]'
-            ).$$('input');
+            var tiersCheckboxes = $('span[data-test=annotateCustomTiers]').$$(
+                'input'
+            );
 
             $('input[data-test=ColorByDriver]').click();
             assert(!topCheckBox.isSelected());
@@ -172,5 +172,4 @@ describe('custom driver annotations feature', function() {
             assert(tiersCheckboxes[1].isSelected());
         });
     });
-    
 });

@@ -1513,7 +1513,7 @@ describe('ResultsViewPageStoreUtils', () => {
             );
         });
     });
-    
+
     describe('getOncoKbOncogenic', () => {
         it('should return Likely Oncogenic if thats the input', () => {
             assert.equal(
