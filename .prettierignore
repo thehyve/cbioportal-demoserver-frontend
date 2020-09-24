@@ -1,4 +1,4 @@
-*.r
+ *.r
 *png
 *eps
 *pdf
@@ -26,3 +26,4 @@ yarn.lock
 .DS_Store
 .gitignore
 .kodiak.toml
+*properties
