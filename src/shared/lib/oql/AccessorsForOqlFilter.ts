@@ -247,7 +247,7 @@ export default class AccessorsForOqlFilter
             AlterationTypeConstants.COPY_NUMBER_ALTERATION
         ) {
             // covers CNA
-            return (d as AnnotatedDiscreteCNAMolecularData).putativeDriver;
+            return !!(d as AnnotatedDiscreteCNAMolecularData).putativeDriver;
         } else {
             return null;
         }
