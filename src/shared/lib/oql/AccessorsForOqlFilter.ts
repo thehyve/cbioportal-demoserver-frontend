@@ -6,7 +6,7 @@ import {
 import * as _ from 'lodash';
 import {
     AlterationTypeConstants,
-    AnnotatedDiscreteCopyNumberAlterationMolecularData,
+    AnnotatedDiscreteCNAMolecularData,
     AnnotatedExtendedAlteration,
     AnnotatedMutation,
 } from '../../../pages/resultsView/ResultsViewPageStore';
@@ -100,7 +100,7 @@ export type Datum =
     | Mutation
     | NumericGeneMolecularData
     | AnnotatedMutation
-    | AnnotatedDiscreteCopyNumberAlterationMolecularData;
+    | AnnotatedDiscreteCNAMolecularData;
 
 export default class AccessorsForOqlFilter
     implements IAccessorsForOqlFilter<Datum> {
@@ -247,8 +247,7 @@ export default class AccessorsForOqlFilter
             AlterationTypeConstants.COPY_NUMBER_ALTERATION
         ) {
             // covers CNA
-            return (d as AnnotatedDiscreteCopyNumberAlterationMolecularData)
-                .putativeDriver;
+            return (d as AnnotatedDiscreteCNAMolecularData).putativeDriver;
         } else {
             return null;
         }

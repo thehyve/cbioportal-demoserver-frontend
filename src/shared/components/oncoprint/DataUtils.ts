@@ -2,7 +2,7 @@ import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation,
     CaseAggregatedData,
-    DiscreteCopyNumberAlterationMolecularData,
+    DiscreteCNAMolecularData,
     ExtendedAlteration,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import {
@@ -164,7 +164,7 @@ export function fillGeneticTrackDatum(
             case 'COPY_NUMBER_ALTERATION':
                 let oncoprintCnaType =
                     cnaDataToString[
-                        event.value as DiscreteCopyNumberAlterationMolecularData['value']
+                        event.value as DiscreteCNAMolecularData['value']
                     ];
                 if (oncoprintCnaType) {
                     if (event.putativeDriver) {

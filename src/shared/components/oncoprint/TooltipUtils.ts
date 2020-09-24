@@ -19,7 +19,7 @@ import {
     AnnotatedMutation,
     ExtendedAlteration,
     AlterationTypeConstants,
-    AnnotatedDiscreteCopyNumberAlterationMolecularData,
+    AnnotatedDiscreteCNAMolecularData,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import _ from 'lodash';
 import { alterationTypeToProfiledForText } from './ResultsViewOncoprintUtils';
@@ -690,13 +690,13 @@ export function makeGeneticTrackTooltip(
                     case 'COPY_NUMBER_ALTERATION':
                         if (
                             disp_cna.hasOwnProperty(
-                                datum.value as AnnotatedDiscreteCopyNumberAlterationMolecularData['value']
+                                datum.value as AnnotatedDiscreteCNAMolecularData['value']
                             )
                         ) {
                             const tooltip_datum: any = {
                                 cna:
                                     disp_cna[
-                                        datum.value as AnnotatedDiscreteCopyNumberAlterationMolecularData['value']
+                                        datum.value as AnnotatedDiscreteCNAMolecularData['value']
                                     ],
                                 hugo_gene_symbol: hugoGeneSymbol,
                             };
