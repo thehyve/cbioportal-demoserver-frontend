@@ -59,7 +59,6 @@ function setResultsPageSettingsMenuOpen(open) {
                 return true;
             } else {
                 browser.click(button);
-                $('[data-test=GlobalSettingsDropdown]').waitForVisible();
                 return false;
             }
         },
