@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import _ from 'lodash';
 import { observer } from 'mobx-react-lite';
 import { CoverageInformation } from '../../resultsView/ResultsViewPageStoreUtils';
 import { ClinicalEvent, Sample } from 'cbioportal-ts-api-client';
@@ -124,6 +125,10 @@ const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer
         return (
             <>
                 <div style={{ marginTop: 20 }}>
+                    <VAFChartControls
+                        wrapperStore={wrapperStore}
+                        sampleManager={sampleManager}
+                    />
                     <Timeline
                         store={stores[0]}
                         width={width}
@@ -132,10 +137,6 @@ const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer
                         hideXAxis={wrapperStore.showSequentialMode}
                         visibleTracks={[]}
                         customTracks={customTracks}
-                    />
-                    <VAFChartControls
-                        wrapperStore={wrapperStore}
-                        sampleManager={sampleManager}
                     />
                 </div>
             </>
