@@ -546,7 +546,6 @@ export function makeGeneticTrackTooltip(
                 d.cna,
                 d.oncokb_oncogenic,
                 d.driver_filter,
-                //FIXME Should not be part of the key
                 d.driver_filter_annotation,
                 d.driver_tiers_filter,
                 d.driver_tiers_filter_annotation
