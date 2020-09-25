@@ -1,1 +1,2 @@
-export BACKEND_BRANCH=thehyve:rfc56_pdannotations_for_cna
+export CBIOPORTAL_URL=http://localhost:8080
+export BACKEND=thehyve:rfc56_pdannotation_for_cna
