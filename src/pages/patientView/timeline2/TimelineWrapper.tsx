@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { CoverageInformation } from '../../resultsView/ResultsViewPageStoreUtils';
 import { Sample } from 'cbioportal-ts-api-client';
 import PatientViewMutationsDataStore from '../mutation/PatientViewMutationsDataStore';
-import { VAFChartControls, VAFChartHeader } from './VAFChartControls';
+import { VAFChartControls } from './VAFChartControls';
 import VAFChart from 'pages/patientView/timeline2/VAFChart';
 import TimelineWrapperStore from 'pages/patientView/timeline2/TimelineWrapperStore';
 
@@ -25,6 +25,7 @@ import {
     configureGenieTimeline,
     sortTracks,
 } from 'pages/patientView/timeline2/helpers';
+import { VAFChartHeader } from 'pages/patientView/timeline2/VAFChartHeader';
 
 export interface ISampleMetaDeta {
     color: { [sampleId: string]: string };
@@ -146,11 +147,8 @@ const TimelineWrapper: React.FunctionComponent<ITimeline2Props> = observer(
                             visibleTracks={[]}
                             customTracks={[
                                 {
-                                    renderHeader: (store: TimelineStore) => (
-                                        <VAFChartHeader
-                                            wrapperStore={wrapperStore}
-                                        />
-                                    ),
+                                    renderHeader: (store: TimelineStore) =>
+                                        null,
                                     renderTrack: (store: TimelineStore) => (
                                         <VAFChart
                                             dataStore={dataStore}
