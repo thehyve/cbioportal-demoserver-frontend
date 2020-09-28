@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { CoverageInformation } from '../../resultsView/ResultsViewPageStoreUtils';
 import { Sample } from 'cbioportal-ts-api-client';
 import PatientViewMutationsDataStore from '../mutation/PatientViewMutationsDataStore';
-import VAFChartControls from './VAFChartControls';
+import { VAFChartControls, VAFChartHeader } from './VAFChartControls';
 import VAFChart from 'pages/patientView/timeline2/VAFChart';
 import TimelineWrapperStore from 'pages/patientView/timeline2/TimelineWrapperStore';
 
@@ -142,11 +142,15 @@ const TimelineWrapper: React.FunctionComponent<ITimeline2Props> = observer(
                             width={width}
                             onClickDownload={() => downloadZippedTracks(data)}
                             hideLabels={false}
-                            hideXAxis={true}
+                            hideXAxis={wrapperStore.showSequentialMode}
                             visibleTracks={[]}
                             customTracks={[
                                 {
-                                    renderHeader: () => 'VAF',
+                                    renderHeader: (store: TimelineStore) => (
+                                        <VAFChartHeader
+                                            wrapperStore={wrapperStore}
+                                        />
+                                    ),
                                     renderTrack: (store: TimelineStore) => (
                                         <VAFChart
                                             dataStore={dataStore}
