@@ -320,6 +320,15 @@ export class StudyViewPageStore
     @observable excludeGermlineMutations = false;
     @observable settingsMenuVisible = false;
 
+    @observable filteredMutationAlteredCases = 0;
+    @observable totalMutationAlteredCases = 0;
+
+    @observable filteredFusionAlteredCases = 0;
+    @observable totalFusionAlteredCases = 0;
+
+    @observable filteredCnaAlteredCases = 0;
+    @observable totalCnaAlteredCases = 0;
+
     constructor(
         public appStore: AppStore,
         private sessionServiceIsEnabled: boolean,
@@ -381,6 +390,50 @@ export class StudyViewPageStore
                     ) {
                         this.previousSettings = this.currentChartSettingsMap;
                         this.loadUserSettings();
+                    }
+                }
+            )
+        );
+
+        this.reactionDisposers.push(
+            reaction(
+                () => this.computedMutationAlteredCases,
+                computedMutationAlteredCases => {
+                    this.filteredMutationAlteredCases = computedMutationAlteredCases;
+                    const gotMoreData =
+                        computedMutationAlteredCases >
+                        this.totalMutationAlteredCases;
+                    if (gotMoreData) {
+                        this.totalMutationAlteredCases = computedMutationAlteredCases;
+                    }
+                }
+            )
+        );
+
+        this.reactionDisposers.push(
+            reaction(
+                () => this.computedFusionAlteredCases,
+                computedFusionAlteredCases => {
+                    this.filteredFusionAlteredCases = computedFusionAlteredCases;
+                    const gotMoreData =
+                        computedFusionAlteredCases >
+                        this.totalFusionAlteredCases;
+                    if (gotMoreData) {
+                        this.totalFusionAlteredCases = computedFusionAlteredCases;
+                    }
+                }
+            )
+        );
+
+        this.reactionDisposers.push(
+            reaction(
+                () => this.computedCnaAlteredCases,
+                computedCnaAlteredCases => {
+                    this.filteredCnaAlteredCases = computedCnaAlteredCases;
+                    const gotMoreData =
+                        computedCnaAlteredCases > this.totalCnaAlteredCases;
+                    if (gotMoreData) {
+                        this.totalCnaAlteredCases = computedCnaAlteredCases;
                     }
                 }
             )
@@ -5881,6 +5934,28 @@ export class StudyViewPageStore
             });
         },
     });
+
+    @computed get computedMutationAlteredCases() {
+        return this.computeCasesCounts(this.mutatedGeneTableRowData.result);
+    }
+
+    @computed get computedFusionAlteredCases() {
+        return this.computeCasesCounts(this.fusionGeneTableRowData.result);
+    }
+
+    @computed get computedCnaAlteredCases() {
+        return this.computeCasesCounts(this.cnaGeneTableRowData.result);
+    }
+
+    computeCasesCounts(rows: MultiSelectionTableRow[]): number {
+        if (rows && rows.length > 0) {
+            return rows
+                .filter(row => row.isCancerGene)
+                .map(row => row.numberOfAlteredCases)
+                .reduce((accu, cases) => accu + cases, 0);
+        }
+        return 0;
+    }
 
     readonly molecularProfileSampleCountSet = remoteData({
         await: () => [this.molecularProfileSampleCounts],
