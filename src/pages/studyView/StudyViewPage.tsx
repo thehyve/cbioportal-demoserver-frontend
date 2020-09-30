@@ -541,6 +541,7 @@ export default class StudyViewPage extends React.Component<
                                                     .totalMutationAlteredCases && (
                                                 <div
                                                     className="alert alert-info"
+                                                    data-test="hidden-muttation-alterations-bar"
                                                     style={{ marginBottom: 6 }}
                                                 >
                                                     <img
@@ -575,6 +576,7 @@ export default class StudyViewPage extends React.Component<
                                                     .totalFusionAlteredCases && (
                                                 <div
                                                     className="alert alert-info"
+                                                    data-test="hidden-fussion-alterations-bar"
                                                     style={{ marginBottom: 6 }}
                                                 >
                                                     <img
@@ -608,6 +610,7 @@ export default class StudyViewPage extends React.Component<
                                                     .totalCnaAlteredCases && (
                                                 <div
                                                     className="alert alert-info"
+                                                    data-test="hidden-cna-alterations-bar"
                                                     style={{ marginBottom: 6 }}
                                                 >
                                                     <img

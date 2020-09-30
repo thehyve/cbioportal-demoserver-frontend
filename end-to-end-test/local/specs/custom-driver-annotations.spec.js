@@ -24,6 +24,12 @@ const studyViewUrlEs_0 = CBIOPORTAL_URL + '/study/summary?id=study_es_0';
 const studyViewUrlGenPanels =
     CBIOPORTAL_URL + '/study/summary?id=teststudy_genepanels';
 
+const HIDDEN_MUTTATION_ALTERATIONS_BAR =
+    "[data-test='hidden-muttation-alterations-bar']";
+const HIDDEN_FUSION_ALTERATIONS_BAR =
+    "[data-test='hidden-fussion-alterations-bar']";
+const HIDDEN_CNA_ALTERATIONS_BAR = "[data-test='hidden-cna-alterations-bar']";
+
 describe('custom driver annotations feature', function() {
     if (useExternalFrontend) {
         describe('oncoprint tab - mutations', () => {
@@ -186,7 +192,7 @@ describe('custom driver annotations feature', function() {
             describe('study without custom driver annotations', () => {
                 it('shows hint with instructions when hovering menu', () => {
                     goToUrlAndSetLocalStorage(studyViewUrlGenPanels);
-                    $('[data-test=study-view-header]').waitForVisible();
+                    $('[data-test=study-view-header]').waitForVisible(30000);
                     assert($('[data-test=GlobalSettingsButton]').isVisible());
                     browser.moveToObject('[data-test=GlobalSettingsButton]');
                     $('[data-test=GlobalSettingsButtonHint]').waitForVisible();
@@ -200,7 +206,7 @@ describe('custom driver annotations feature', function() {
                 beforeEach(() => {
                     goToUrlAndSetLocalStorage(studyViewUrlEs_0);
                     $('[data-test=study-view-header]').waitForVisible();
-                    $('[data-test=mutations-table]').waitForVisible();
+                    $('[data-test=mutations-table]').waitForVisible(100000);
                     $$('[data-test=cancer-gene-filter]').forEach(f =>
                         f.click()
                     );
@@ -239,6 +245,7 @@ describe('custom driver annotations feature', function() {
                     );
 
                     assert(values.length === 15);
+                    assert(!$(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
 
@@ -247,6 +254,12 @@ describe('custom driver annotations feature', function() {
                         '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert(values.length === 2);
+                    assert($(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
+                    assert(
+                        $(HIDDEN_MUTTATION_ALTERATIONS_BAR)
+                            .getText()
+                            .includes('17 mutation')
+                    );
                 });
 
                 it('updates CNA genes counts when VUS alterations are excluded', () => {
@@ -254,6 +267,7 @@ describe('custom driver annotations feature', function() {
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert(values.length === 14);
+                    assert(!$(HIDDEN_CNA_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
                     $(
@@ -264,6 +278,12 @@ describe('custom driver annotations feature', function() {
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert(values.length === 3);
+                    assert($(HIDDEN_CNA_ALTERATIONS_BAR).isExisting());
+                    assert(
+                        $(HIDDEN_CNA_ALTERATIONS_BAR)
+                            .getText()
+                            .includes('7 copy number alteration')
+                    );
                 });
 
                 it('updates fusion genes counts when VUS alterations are excluded', () => {
@@ -271,6 +291,7 @@ describe('custom driver annotations feature', function() {
                         '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert(values.length === 3);
+                    assert(!$(HIDDEN_FUSION_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
                     $('[data-test=mutations-table]').waitForVisible();
@@ -279,6 +300,12 @@ describe('custom driver annotations feature', function() {
                         '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert(values.length === 0);
+                    assert($(HIDDEN_FUSION_ALTERATIONS_BAR).isExisting());
+                    assert(
+                        $(HIDDEN_FUSION_ALTERATIONS_BAR)
+                            .getText()
+                            .includes('3 fusion')
+                    );
                 });
             });
         });
