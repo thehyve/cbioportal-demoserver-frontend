@@ -124,7 +124,7 @@ const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer
 
         return (
             <>
-                <div style={{ marginTop: 20 }}>
+                <div style={{ marginTop: 20 }} data-test={'VAFChartWrapper'}>
                     <VAFChartControls
                         wrapperStore={wrapperStore}
                         sampleManager={sampleManager}
