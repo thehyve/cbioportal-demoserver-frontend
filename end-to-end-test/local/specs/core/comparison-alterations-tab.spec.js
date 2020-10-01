@@ -19,7 +19,7 @@ if (useExternalFrontend) {
 
         it('shows basic counts', function() {
             var alteredCount = selectAlteredCount('ABLIM1');
-            assert(selectAlteredCount('ABLIM1') === '1 (8.33%)');
+            assert.strictEqual(selectAlteredCount('ABLIM1'), '1 (8.33%)');
         });
 
         it('shows banner when no results retrieved', function() {
@@ -32,23 +32,27 @@ if (useExternalFrontend) {
         it('filters mutation types', function() {
             clickCheckBox('Copy Number Alterations');
             submit();
+            $('[data-test=LazyMobXTable]').waitForVisible();
             var rows = $$('[data-test=LazyMobXTable] tbody tr');
-            assert(rows.length === 13);
+            assert.strictEqual(rows.length, 13);
             clickCheckBox('Mutations');
             clickCheckBox('Frameshift Deletion');
             submit();
+            $('[data-test=LazyMobXTable]').waitForVisible();
             rows = $$('[data-test=LazyMobXTable] tbody tr');
-            assert(rows.length === 1);
+            assert.strictEqual(rows.length, 1);
         });
 
         it('filters CNA types', function() {
             clickCheckBox('Mutations');
             submit();
-            assert(selectUnalteredCount('ACAP3') === '9 (1.16%)');
+            $('[data-test=LazyMobXTable]').waitForVisible();
+            assert.strictEqual(selectUnalteredCount('ACAP3'), '9 (1.16%)');
             clickCheckBox('Copy Number Alterations');
             clickCheckBox('Amplification');
             submit();
-            assert(selectUnalteredCount('ACAP3') === '7 (0.90%)');
+            $('[data-test=LazyMobXTable]').waitForVisible();
+            assert.strictEqual(selectUnalteredCount('ACAP3'), '7 (0.90%)');
         });
     });
 }
