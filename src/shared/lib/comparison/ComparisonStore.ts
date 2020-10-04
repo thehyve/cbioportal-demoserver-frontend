@@ -71,6 +71,11 @@ import {
     CopyNumberEnrichmentEventType,
     MutationEnrichmentEventType,
 } from 'pages/resultsView/comparison/ComparisonTabUtils';
+import {
+    buildDriverAnnotationSettings,
+    DriverAnnotationSettings,
+} from 'shared/driverAnnotation/DriverAnnotationSettings';
+
 export enum OverlapStrategy {
     INCLUDE = 'Include',
     EXCLUDE = 'Exclude',
@@ -138,6 +143,9 @@ export default class ComparisonStore {
         'other',
     ];
 
+    public driverAnnotationSettings: DriverAnnotationSettings;
+    @observable excludeGermlineMutations = false;
+
     constructor(
         protected appStore: AppStore,
         protected resultsViewStore?: ResultsViewPageStore
@@ -171,6 +179,9 @@ export default class ComparisonStore {
         // this.selectedCopyNumberEnrichmentEventTypes = observable();
 
         // this.selectedMutationEnrichmentEventTypes = observable();
+        this.driverAnnotationSettings = buildDriverAnnotationSettings(
+            () => false
+        );
     }
 
     public destroy() {
@@ -839,6 +850,16 @@ export default class ComparisonStore {
         },
     });
 
+    get allTiers(): string[] {
+        return [];
+    }
+
+    @computed get selectedTiers() {
+        return this.allTiers.filter(tier =>
+            this.driverAnnotationSettings.driverTiers.get(tier)
+        );
+    }
+
     public readonly mutationEnrichmentData = makeEnrichmentDataPromise({
         storeForExcludingQueryGenes: this.resultsViewStore,
         await: () => [this.mutationEnrichmentDataRequestGroups],
@@ -850,7 +871,13 @@ export default class ComparisonStore {
                 this.mutationEnrichmentDataRequestGroups.result &&
                 this.mutationEnrichmentDataRequestGroups.result.length > 1
             ) {
+                const selectedTiers = this.selectedTiers;
+                const excludeVus = this.driverAnnotationSettings.excludeVUS;
+                const excludeGermlineMutations = this.excludeGermlineMutations;
                 return internalClient.fetchMutationEnrichmentsUsingPOST({
+                    selectedTiers: selectedTiers,
+                    excludeVus: excludeVus,
+                    excludeGermline: excludeGermlineMutations,
                     enrichmentScope: this.usePatientLevelEnrichments
                         ? 'PATIENT'
                         : 'SAMPLE',
@@ -1126,7 +1153,14 @@ export default class ComparisonStore {
                     (this.selectedMutationEnrichmentEventTypes.length > 0 ||
                         this.selectedCopyNumberEnrichmentEventTypes.length > 0)
                 ) {
+                    const selectedTiers = this.selectedTiers;
+                    const excludeVus = this.driverAnnotationSettings.excludeVUS;
+                    const excludeGermlineMutations = this
+                        .excludeGermlineMutations;
                     return internalClient.fetchAlterationEnrichmentsUsingPOST({
+                        selectedTiers: selectedTiers,
+                        excludeVus: excludeVus,
+                        excludeGermline: excludeGermlineMutations,
                         enrichmentScope: this.usePatientLevelEnrichments
                             ? 'PATIENT'
                             : 'SAMPLE',
@@ -1152,7 +1186,11 @@ export default class ComparisonStore {
         groups: MolecularProfileCasesGroupFilter[],
         copyNumberEventType: 'HOMDEL' | 'AMP'
     ): Promise<AlterationEnrichment[]> {
+        const selectedTiers = this.selectedTiers;
+        const excludeVus = this.driverAnnotationSettings.excludeVUS;
         return internalClient.fetchCopyNumberEnrichmentsUsingPOST({
+            selectedTiers: selectedTiers,
+            excludeVus: excludeVus,
             copyNumberEventType: copyNumberEventType,
             enrichmentScope: this.usePatientLevelEnrichments
                 ? 'PATIENT'

@@ -34,8 +34,6 @@ import ComparisonStore, {
 import { VirtualStudy } from 'shared/model/VirtualStudy';
 import sessionServiceClient from 'shared/api//sessionServiceInstance';
 import {
-    buildDriverAnnotationSettings,
-    DriverAnnotationSettings,
     IDriverSettingsProps,
     IExclusionSettings,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
@@ -48,8 +46,6 @@ export default class GroupComparisonStore extends ComparisonStore
         | GroupComparisonTab
         | undefined = undefined;
     @observable private sessionId: string;
-    public driverAnnotationSettings: DriverAnnotationSettings;
-    @observable excludeGermlineMutations = false;
 
     constructor(
         sessionId: string,
@@ -59,10 +55,6 @@ export default class GroupComparisonStore extends ComparisonStore
         super(appStore);
 
         this.sessionId = sessionId;
-
-        this.driverAnnotationSettings = buildDriverAnnotationSettings(
-            () => false
-        );
     }
 
     @action public updateOverlapStrategy(strategy: OverlapStrategy) {
@@ -480,5 +472,11 @@ export default class GroupComparisonStore extends ComparisonStore
             (!!this.customDriverAnnotationReport.result!.hasBinary ||
                 this.customDriverAnnotationReport.result!.tiers.length > 0)
         );
+    }
+
+    @computed get allTiers() {
+        return this.customDriverAnnotationReport.isComplete
+            ? this.customDriverAnnotationReport.result!.tiers
+            : [];
     }
 }

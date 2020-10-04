@@ -377,7 +377,7 @@ export default class GroupComparisonPage extends React.Component<
                                 <SettingsMenuButton
                                     store={this.store}
                                     disabled={
-                                        !!this.store.hasCustomDriverAnnotations
+                                        !this.store.hasCustomDriverAnnotations
                                     }
                                 />
                             )}
