@@ -35,8 +35,8 @@ import {
     IQueriedMergedTrackCaseData,
     ResultsViewPageStore,
     AlterationTypeConstants,
-    DiscreteCopyNumberAlterationMolecularData,
-    AnnotatedDiscreteCopyNumberAlterationMolecularData,
+    DiscreteCNAMolecularData,
+    AnnotatedDiscreteCNAMolecularData,
 } from './ResultsViewPageStore';
 import { remoteData } from 'cbioportal-frontend-commons';
 import { IndicatorQueryResp } from 'oncokb-ts-api-client';
@@ -160,14 +160,14 @@ export function annotateMutationPutativeDriver(
     ) as AnnotatedMutation;
 }
 
-export function annotateDiscreteCopyNumberAlterationPutativeDriver(
-    cnaMolecularDatum: DiscreteCopyNumberAlterationMolecularData,
+export function annotateDiscreteCNAPutativeDriver(
+    cnaMolecularDatum: DiscreteCNAMolecularData,
     putativeDriverInfo: {
         oncoKb: string;
         customDriverBinary: boolean;
         customDriverTier?: string;
     }
-): AnnotatedDiscreteCopyNumberAlterationMolecularData {
+): AnnotatedDiscreteCNAMolecularData {
     const putativeDriver = !!(
         putativeDriverInfo.oncoKb ||
         putativeDriverInfo.customDriverBinary ||
@@ -180,7 +180,7 @@ export function annotateDiscreteCopyNumberAlterationPutativeDriver(
             oncoKbOncogenic: putativeDriverInfo.oncoKb,
         },
         cnaMolecularDatum
-    ) as AnnotatedDiscreteCopyNumberAlterationMolecularData;
+    ) as AnnotatedDiscreteCNAMolecularData;
 }
 
 export type FilteredAndAnnotatedMutationsReport<
@@ -192,8 +192,8 @@ export type FilteredAndAnnotatedMutationsReport<
     vusAndGermline: T[];
 };
 
-export type FilteredAndAnnotatedDiscreteCopyNumberAlterationReport<
-    T extends AnnotatedDiscreteCopyNumberAlterationMolecularData = AnnotatedDiscreteCopyNumberAlterationMolecularData
+export type FilteredAndAnnotatedDiscreteCNAReport<
+    T extends AnnotatedDiscreteCNAMolecularData = AnnotatedDiscreteCNAMolecularData
 > = {
     data: T[];
     vus: T[];
@@ -244,23 +244,21 @@ export function filterAndAnnotateMutations(
     };
 }
 
-export function filterAndAnnotateDiscreteCopyNumberAlterations(
-    cnaData: DiscreteCopyNumberAlterationMolecularData[],
+export function filterAndAnnotateDiscreteCNAs(
+    cnaData: DiscreteCNAMolecularData[],
     getPutativeDriverInfo: (
-        cnaDatum: DiscreteCopyNumberAlterationMolecularData
+        cnaDatum: DiscreteCNAMolecularData
     ) => {
         oncoKb: string;
         customDriverBinary: boolean;
         customDriverTier?: string | undefined;
     },
     entrezGeneIdToGene: { [entrezGeneId: number]: Gene }
-): FilteredAndAnnotatedDiscreteCopyNumberAlterationReport<
-    AnnotatedDiscreteCopyNumberAlterationMolecularData
-> {
-    const vus: AnnotatedDiscreteCopyNumberAlterationMolecularData[] = [];
+): FilteredAndAnnotatedDiscreteCNAReport<AnnotatedDiscreteCNAMolecularData> {
+    const vus: AnnotatedDiscreteCNAMolecularData[] = [];
     const filteredAnnotatedCnaData = [];
     for (const cnaDatum of cnaData) {
-        const annotatedCna = annotateDiscreteCopyNumberAlterationPutativeDriver(
+        const annotatedCna = annotateDiscreteCNAPutativeDriver(
             cnaDatum,
             getPutativeDriverInfo(cnaDatum)
         ); // annotate
@@ -840,6 +838,77 @@ export function makeEnrichmentDataPromise<
     });
 }
 
+export function makeEnrichmentDataPromiseWithoutProfile<
+    T extends {
+        cytoband?: string;
+        hugoGeneSymbol: string;
+        pValue: number;
+        qValue?: number;
+    }
+>(params: {
+    storeForExcludingQueryGenes?: ResultsViewPageStore;
+    await: MobxPromise_await;
+    referenceGenesPromise: MobxPromise<{
+        [hugoGeneSymbol: string]: ReferenceGenomeGene;
+    }>;
+    fetchData: () => Promise<T[]>;
+}): MobxPromise<(T & { qValue: number })[]> {
+    return remoteData({
+        await: () => {
+            const ret = params.await();
+            if (params.storeForExcludingQueryGenes) {
+                ret.push(
+                    params.storeForExcludingQueryGenes.selectedMolecularProfiles
+                );
+            }
+            ret.push(params.referenceGenesPromise);
+            return ret;
+        },
+        invoke: async () => {
+            let data = await params.fetchData();
+            // filter out query genes, if looking at a queried profile
+            // its important that we filter out *before* calculating Q values
+            if (params.storeForExcludingQueryGenes) {
+                const queryGenes = _.keyBy(
+                    params.storeForExcludingQueryGenes.hugoGeneSymbols,
+                    x => x.toUpperCase()
+                );
+                data = data.filter(
+                    d => !(d.hugoGeneSymbol.toUpperCase() in queryGenes)
+                );
+            }
+
+            let referenceGenes = params.referenceGenesPromise.result!;
+            // add cytoband from reference gene
+            for (const d of data) {
+                const refGene = referenceGenes[d.hugoGeneSymbol];
+
+                if (refGene) d.cytoband = refGene.cytoband;
+            }
+
+            const dataWithpValue: T[] = [];
+            const dataWithoutpValue: T[] = [];
+            data.forEach(datum => {
+                datum.pValue === undefined
+                    ? dataWithoutpValue.push(datum)
+                    : dataWithpValue.push(datum);
+            });
+
+            const sortedByPValue = _.sortBy(dataWithpValue, c => c.pValue);
+            const qValues = calculateQValues(sortedByPValue.map(c => c.pValue));
+
+            qValues.forEach((qValue, index) => {
+                sortedByPValue[index].qValue = qValue;
+            });
+
+            return sortEnrichmentData([
+                ...sortedByPValue,
+                ...dataWithoutpValue,
+            ]);
+        },
+    });
+}
+
 function sortEnrichmentData(data: any[]): any[] {
     return _.sortBy(data, ['pValue', 'hugoGeneSymbol']);
 }
@@ -907,8 +976,8 @@ export function createDiscreteCopyNumberDataKey(
     return d.sampleId + '_' + d.molecularProfileId + '_' + d.entrezGeneId;
 }
 
-export function evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
-    cnaDatum: DiscreteCopyNumberAlterationMolecularData,
+export function evaluateDiscreteCNAPutativeDriverInfo(
+    cnaDatum: DiscreteCNAMolecularData,
     oncoKbDatum: IndicatorQueryResp | undefined | null | false,
     customDriverAnnotationsActive: boolean,
     customDriverTierSelection: ObservableMap<boolean> | undefined
@@ -952,7 +1021,6 @@ export function evaluateMutationPutativeDriverInfo(
     customDriverAnnotationsActive: boolean,
     customDriverTierSelection: ObservableMap<boolean> | undefined
 ) {
-    
     const oncoKb = oncoKbDatum ? getOncoKbOncogenic(oncoKbDatum) : '';
     const hotspots = hotspotAnnotationsActive && hotspotDriver;
     const cbioportalCount = cbioportalCountActive && cosmicCountExceeded;

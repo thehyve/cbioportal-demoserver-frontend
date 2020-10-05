@@ -53,7 +53,7 @@ import { CoverageInformation } from '../ResultsViewPageStoreUtils';
 import { IBoxScatterPlotData } from '../../../shared/components/plots/BoxScatterPlot';
 import {
     AlterationTypeConstants,
-    AnnotatedDiscreteCopyNumberAlterationMolecularData,
+    AnnotatedDiscreteCNAMolecularData,
     AnnotatedMutation,
 } from '../ResultsViewPageStore';
 import numeral from 'numeral';
@@ -78,6 +78,7 @@ import AppConfig from 'appConfig';
 import { SpecialChartsUniqueKeyEnum } from 'pages/studyView/StudyViewUtils';
 import { observable, ObservableMap } from 'mobx';
 import { toFixedWithoutTrailingZeros } from '../../../shared/lib/FormatUtils';
+import jStat from 'jStat';
 
 export const CLIN_ATTR_DATA_TYPE = 'clinical_attribute';
 export const GENESET_DATA_TYPE = 'GENESET_SCORE';
@@ -219,13 +220,13 @@ export interface IPlotSampleData {
     uniqueSampleKey: string;
     sampleId: string;
     studyId: string;
-    dispCna?: AnnotatedDiscreteCopyNumberAlterationMolecularData;
+    dispCna?: AnnotatedDiscreteCNAMolecularData;
     dispMutationType?: OncoprintMutationType;
     dispClinicalValue?: string | number;
     profiledCna?: boolean;
     profiledMutations?: boolean;
     mutations: AnnotatedMutation[];
-    copyNumberAlterations: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+    copyNumberAlterations: AnnotatedDiscreteCNAMolecularData[];
 }
 
 export interface IThreshold1D {
@@ -2045,12 +2046,8 @@ export function tooltipMutationsSection(mutations: AnnotatedMutation[]) {
     );
 }
 
-export function tooltipCnaSection(
-    data: AnnotatedDiscreteCopyNumberAlterationMolecularData[]
-) {
-    const oncoKbIcon = (
-        alt: AnnotatedDiscreteCopyNumberAlterationMolecularData
-    ) => (
+export function tooltipCnaSection(data: AnnotatedDiscreteCNAMolecularData[]) {
+    const oncoKbIcon = (alt: AnnotatedDiscreteCNAMolecularData) => (
         <img
             src={require('../../../rootImages/oncokb-oncogenic-1.svg')}
             title={alt.oncoKbOncogenic}
@@ -2350,7 +2347,7 @@ export function makeBoxScatterPlotData(
     },
     copyNumberAlterations?: {
         molecularProfileIds: string[];
-        data: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        data: AnnotatedDiscreteCNAMolecularData[];
     },
     selectedGeneForStyling?: Gene,
     clinicalData?: {
@@ -2372,10 +2369,16 @@ export function makeBoxScatterPlotData(
     let ret = _.entries(categoryToData).map(entry => ({
         label: entry[0],
         data: entry[1],
+        median: jStat.median(
+            entry[1].map((d: IBoxScatterPlotPoint) => d.value)
+        ),
     }));
     const categoryOrder = horzData.categoryOrder;
     if (categoryOrder) {
         ret = _.sortBy(ret, datum => categoryOrder.indexOf(datum.label));
+    } else {
+        // default sort alphabetically
+        ret = _.sortBy(ret, datum => datum.label);
     }
     return ret;
 }
@@ -2391,7 +2394,7 @@ export function makeScatterPlotData(
     },
     copyNumberAlterations?: {
         molecularProfileIds: string[];
-        data: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        data: AnnotatedDiscreteCNAMolecularData[];
     },
     selectedGeneForStyling?: Gene,
     clinicalData?: {
@@ -2411,7 +2414,7 @@ export function makeScatterPlotData(
     },
     copyNumberAlterations?: {
         molecularProfileIds: string[];
-        data: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        data: AnnotatedDiscreteCNAMolecularData[];
     },
     selectedGeneForStyling?: Gene,
     clinicalData?: {
@@ -2431,7 +2434,7 @@ export function makeScatterPlotData(
     },
     copyNumberAlterations?: {
         molecularProfileIds: string[];
-        data: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        data: AnnotatedDiscreteCNAMolecularData[];
     },
     selectedGeneForStyling?: Gene,
     clinicalData?: {
@@ -2443,7 +2446,7 @@ export function makeScatterPlotData(
         [uniqueSampleKey: string]: AnnotatedMutation[];
     } = mutations ? _.groupBy(mutations.data, m => m.uniqueSampleKey) : {};
     const cnaMap: {
-        [uniqueSampleKey: string]: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        [uniqueSampleKey: string]: AnnotatedDiscreteCNAMolecularData[];
     } = copyNumberAlterations
         ? _.groupBy(copyNumberAlterations.data, d => d.uniqueSampleKey)
         : {};
@@ -2478,11 +2481,9 @@ export function makeScatterPlotData(
     for (const d of horzData.data) {
         const sample = uniqueSampleKeyToSample[d.uniqueSampleKey];
         const sampleCopyNumberAlterations:
-            | AnnotatedDiscreteCopyNumberAlterationMolecularData[]
+            | AnnotatedDiscreteCNAMolecularData[]
             | undefined = cnaMap[d.uniqueSampleKey];
-        let dispCna:
-            | AnnotatedDiscreteCopyNumberAlterationMolecularData
-            | undefined = undefined;
+        let dispCna: AnnotatedDiscreteCNAMolecularData | undefined = undefined;
         if (sampleCopyNumberAlterations && sampleCopyNumberAlterations.length) {
             dispCna = sampleCopyNumberAlterations[0];
             for (const alt of sampleCopyNumberAlterations) {
@@ -2627,7 +2628,7 @@ export function makeWaterfallPlotData(
     },
     copyNumberAlterations?: {
         molecularProfileIds: string[];
-        data: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        data: AnnotatedDiscreteCNAMolecularData[];
     },
     clinicalData?: {
         clinicalAttribute: ClinicalAttribute;
@@ -2639,7 +2640,7 @@ export function makeWaterfallPlotData(
     } = mutations ? _.groupBy(mutations.data, m => m.uniqueSampleKey) : {};
 
     const cnaMap: {
-        [uniqueSampleKey: string]: AnnotatedDiscreteCopyNumberAlterationMolecularData[];
+        [uniqueSampleKey: string]: AnnotatedDiscreteCNAMolecularData[];
     } = copyNumberAlterations
         ? _.groupBy(copyNumberAlterations.data, d => d.uniqueSampleKey)
         : {};
@@ -2666,11 +2667,9 @@ export function makeWaterfallPlotData(
     for (const d of axisData.data) {
         const sample = uniqueSampleKeyToSample[d.uniqueSampleKey];
         const sampleCopyNumberAlterations:
-            | AnnotatedDiscreteCopyNumberAlterationMolecularData[]
+            | AnnotatedDiscreteCNAMolecularData[]
             | undefined = cnaMap[d.uniqueSampleKey];
-        let dispCna:
-            | AnnotatedDiscreteCopyNumberAlterationMolecularData
-            | undefined = undefined;
+        let dispCna: AnnotatedDiscreteCNAMolecularData | undefined = undefined;
         let dispMutationType: OncoprintMutationType | undefined = undefined;
         const sampleMutations: AnnotatedMutation[] | undefined =
             mutationsMap[d.uniqueSampleKey];
@@ -2685,7 +2684,7 @@ export function makeWaterfallPlotData(
             // filter CNA's for the selected gene and return (a random) one with the highest value
             dispCna = _(sampleCopyNumberAlterations)
                 .filter(
-                    (d: AnnotatedDiscreteCopyNumberAlterationMolecularData) =>
+                    (d: AnnotatedDiscreteCNAMolecularData) =>
                         d.entrezGeneId === selectedGene.entrezGeneId
                 )
                 .maxBy('value');

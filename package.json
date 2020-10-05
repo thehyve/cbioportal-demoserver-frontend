@@ -1,7 +1,7 @@
 {
   "name": "cbioportal-frontend",
   "private": true,
-  "version": "3.3.37",
+  "version": "3.3.38",
   "workspaces": {
     "packages": [
       ".",
@@ -131,7 +131,7 @@
     "bootstrap-sass": "3.3.7",
     "bowser": "^1.7.1",
     "bundle-loader": "^0.5.4",
-    "cbioportal-clinical-timeline": "^0.1.8",
+    "cbioportal-clinical-timeline": "^0.1.9",
     "cbioportal-frontend-commons": "^0.3.7",
     "cbioportal-ts-api-client": "^0.9.12",
     "cbioportal-utils": "^0.2.5",
@@ -172,6 +172,7 @@
     "jszip": "^3.5.0",
     "lerna": "3.19.0",
     "less": "^2.7.2",
+    "linear-algebra": "^3.1.4",
     "little-loader": "^0.2.0",
     "loader-utils": "^1.0.2",
     "lodash": "^4.17.11",
@@ -271,6 +272,7 @@
     "seamless-immutable": "^7.0.1",
     "seedrandom": "^2.4.3",
     "shallowequal": "^1.1.0",
+    "snap": "^1.1.0",
     "source-map-loader": "^0.1.6",
     "style-loader": "^0.23.1",
     "styled-components": "^4.2.1",
@@ -287,6 +289,7 @@
     "underscore": "^1.8.3",
     "url": "^0.11.0",
     "url-loader": "^1.1.2",
+    "v8": "^0.1.0",
     "venn.js": "^0.2.20",
     "victory": "30.0.0",
     "webpack": "^4.30.0",

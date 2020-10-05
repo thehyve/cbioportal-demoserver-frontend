@@ -21,6 +21,7 @@ import {
     IReactionDisposer,
     observable,
     reaction,
+    IObservableObject,
 } from 'mobx';
 import autobind from 'autobind-decorator';
 import { AppStore } from '../../AppStore';
@@ -28,12 +29,19 @@ import ClinicalData from './ClinicalData';
 import ReactSelect from 'react-select';
 import { trackEvent } from 'shared/lib/tracking';
 import URL from 'url';
-import GroupComparisonURLWrapper from './GroupComparisonURLWrapper';
+import GroupComparisonURLWrapper, {
+    GroupComparisonURLQuery,
+} from './GroupComparisonURLWrapper';
 
 import styles from './styles.module.scss';
 import { OverlapStrategy } from '../../shared/lib/comparison/ComparisonStore';
 import { buildCBioPortalPageUrl } from 'shared/api/urls';
 import MethylationEnrichments from './MethylationEnrichments';
+import AlterationsEnrichments from './AlterationsEnrichments';
+import AlterationEnrichmentTypeSelector, {
+    IAlterationEnrichmentTypeSelectorHandlers,
+} from './AlterationEnrichmentTypeSelector';
+import { buildAlterationEnrichmentTypeSelectorHandlers } from 'pages/resultsView/comparison/ComparisonTabUtils';
 import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 
 export interface IGroupComparisonPageProps {
@@ -50,6 +58,7 @@ export default class GroupComparisonPage extends React.Component<
     @observable.ref private store: GroupComparisonStore;
     private queryReaction: IReactionDisposer;
     private urlWrapper: GroupComparisonURLWrapper;
+    private alterationEnrichmentTypeSelectorHandlers: IAlterationEnrichmentTypeSelectorHandlers;
 
     constructor(props: IGroupComparisonPageProps) {
         super(props);
@@ -76,6 +85,10 @@ export default class GroupComparisonPage extends React.Component<
                 (window as any).groupComparisonStore = this.store;
             },
             { fireImmediately: true }
+        );
+
+        this.alterationEnrichmentTypeSelectorHandlers = buildAlterationEnrichmentTypeSelectorHandlers(
+            this.store
         );
 
         (window as any).groupComparisonPage = this;
@@ -150,30 +163,23 @@ export default class GroupComparisonPage extends React.Component<
                     >
                         <ClinicalData store={this.store} />
                     </MSKTab>
-                    {this.store.showMutationsTab && (
+                    {this.store.showAlterationsTab && (
                         <MSKTab
-                            id={GroupComparisonTab.MUTATIONS}
-                            linkText="Mutations"
+                            id={GroupComparisonTab.ALTERATIONS}
+                            linkText="Alterations"
                             anchorClassName={
-                                this.store.mutationsTabUnavailable
+                                this.store.alterationsTabUnavailable
                                     ? 'greyedOut'
                                     : ''
                             }
                         >
-                            <MutationEnrichments store={this.store} />
-                        </MSKTab>
-                    )}
-                    {this.store.showCopyNumberTab && (
-                        <MSKTab
-                            id={GroupComparisonTab.CNA}
-                            linkText="Copy-number"
-                            anchorClassName={
-                                this.store.copyNumberUnavailable
-                                    ? 'greyedOut'
-                                    : ''
-                            }
-                        >
-                            <CopyNumberEnrichments store={this.store} />
+                            <AlterationEnrichmentTypeSelector
+                                handlers={
+                                    this
+                                        .alterationEnrichmentTypeSelectorHandlers!
+                                }
+                            />
+                            <AlterationsEnrichments store={this.store} />
                         </MSKTab>
                     )}
                     {this.store.showMRNATab && (

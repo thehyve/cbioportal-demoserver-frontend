@@ -23,7 +23,7 @@ import {
     AlterationTypeConstants,
     AnnotatedMutation,
     GenericAssayTypeConstants,
-    AnnotatedDiscreteCopyNumberAlterationMolecularData,
+    AnnotatedDiscreteCNAMolecularData,
 } from '../ResultsViewPageStore';
 import { MutationCountBy, AxisMenuSelection } from './PlotsTab';
 import {
@@ -242,7 +242,7 @@ describe('PlotsTabUtils', () => {
                         oncoKbOncogenic: 'DuplicationD',
                         value: 4,
                     },
-                ] as AnnotatedDiscreteCopyNumberAlterationMolecularData[],
+                ] as AnnotatedDiscreteCNAMolecularData[],
             },
         };
 

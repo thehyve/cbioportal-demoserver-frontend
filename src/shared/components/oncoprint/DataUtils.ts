@@ -1,7 +1,8 @@
 import {
     AnnotatedExtendedAlteration,
     AnnotatedMutation,
-    CaseAggregatedData, DiscreteCopyNumberAlterationMolecularData,
+    CaseAggregatedData,
+    DiscreteCNAMolecularData,
     ExtendedAlteration,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import {
@@ -163,14 +164,15 @@ export function fillGeneticTrackDatum(
             case 'COPY_NUMBER_ALTERATION':
                 let oncoprintCnaType =
                     cnaDataToString[
-                        event.value as DiscreteCopyNumberAlterationMolecularData['value']
+                        event.value as DiscreteCNAMolecularData['value']
                     ];
                 if (oncoprintCnaType) {
                     if (event.putativeDriver) {
                         oncoprintCnaType += '_rec';
                     }
                     // not diploid
-                    dispCnaCounts[oncoprintCnaType] = dispCnaCounts[oncoprintCnaType] || 0;
+                    dispCnaCounts[oncoprintCnaType] =
+                        dispCnaCounts[oncoprintCnaType] || 0;
                     dispCnaCounts[oncoprintCnaType] += 1;
                 }
                 break;

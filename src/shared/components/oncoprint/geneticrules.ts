@@ -253,16 +253,21 @@ const non_mutation_rule_params: GeneticAlterationRuleParams = {
     conditional: {
         // Copy number alteration
         disp_cna: {
+            amp_rec: {
+                shapes: [shapeBank[ShapeId.ampRectangle]],
+                legend_label: 'Amplification (putative driver)',
+                legend_order: AMP_LEGEND_ORDER,
+            },
             // Red rectangle for amplification
             amp: {
                 shapes: [shapeBank[ShapeId.ampRectangle]],
                 legend_label: 'Amplification (unknown significance)',
                 legend_order: AMP_LEGEND_ORDER,
             },
-            amp_rec: {
-                shapes: [shapeBank[ShapeId.ampRectangle]],
-                legend_label: 'Amplification (putative driver)',
-                legend_order: AMP_LEGEND_ORDER,
+            gain_rec: {
+                shapes: [shapeBank[ShapeId.gainRectangle]],
+                legend_label: 'Gain (putative driver)',
+                legend_order: GAIN_LEGEND_ORDER,
             },
             // Light red rectangle for gain
             gain: {
@@ -270,10 +275,10 @@ const non_mutation_rule_params: GeneticAlterationRuleParams = {
                 legend_label: 'Gain (unknown significance)',
                 legend_order: GAIN_LEGEND_ORDER,
             },
-            gain_rec: {
-                shapes: [shapeBank[ShapeId.gainRectangle]],
-                legend_label: 'Gain (putative driver)',
-                legend_order: GAIN_LEGEND_ORDER,
+            homdel_rec: {
+                shapes: [shapeBank[ShapeId.homdelRectangle]],
+                legend_label: 'Deep Deletion (putative driver)',
+                legend_order: HOMDEL_LEGEND_ORDER,
             },
             // Blue rectangle for deep deletion
             homdel: {
@@ -281,20 +286,15 @@ const non_mutation_rule_params: GeneticAlterationRuleParams = {
                 legend_label: 'Deep Deletion (unknown significance)',
                 legend_order: HOMDEL_LEGEND_ORDER,
             },
-            homdel_rec: {
-                shapes: [shapeBank[ShapeId.homdelRectangle]],
-                legend_label: 'Deep Deletion (putative driver)',
-                legend_order: HOMDEL_LEGEND_ORDER,
+            hetloss_rec: {
+                shapes: [shapeBank[ShapeId.hetlossRectangle]],
+                legend_label: 'Shallow Deletion (putative driver)',
+                legend_order: HETLOSS_LEGEND_ORDER,
             },
             // Light blue rectangle for shallow deletion
             hetloss: {
                 shapes: [shapeBank[ShapeId.hetlossRectangle]],
                 legend_label: 'Shallow Deletion (unknown significance)',
-                legend_order: HETLOSS_LEGEND_ORDER,
-            },
-            hetloss_rec: {
-                shapes: [shapeBank[ShapeId.hetlossRectangle]],
-                legend_label: 'Shallow Deletion (putative driver)',
                 legend_order: HETLOSS_LEGEND_ORDER,
             },
         },

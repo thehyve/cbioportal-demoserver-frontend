@@ -10,7 +10,7 @@ import {
     CancerStudy,
 } from 'cbioportal-ts-api-client';
 import {
-    annotateDiscreteCopyNumberAlterationPutativeDriver,
+    annotateDiscreteCNAPutativeDriver,
     annotateMutationPutativeDriver,
     computeCustomDriverAnnotationReport,
     computeGenePanelInformation,
@@ -28,14 +28,14 @@ import {
     getSingleGeneResultKey,
     getMultipleGeneResultKey,
     parseGenericAssayGroups,
-    filterAndAnnotateDiscreteCopyNumberAlterations,
-    evaluateDiscreteCopyNumberAlterationPutativeDriverInfo,
+    filterAndAnnotateDiscreteCNAs,
+    evaluateDiscreteCNAPutativeDriverInfo,
 } from './ResultsViewPageStoreUtils';
 import {
     IQueriedMergedTrackCaseData,
     AnnotatedExtendedAlteration,
-    DiscreteCopyNumberAlterationMolecularData,
-    AnnotatedDiscreteCopyNumberAlterationMolecularData,
+    DiscreteCNAMolecularData,
+    AnnotatedDiscreteCNAMolecularData,
 } from './ResultsViewPageStore';
 import {
     OQLLineFilterOutput,
@@ -707,15 +707,15 @@ describe('ResultsViewPageStoreUtils', () => {
         });
     });
 
-    describe('annotateDiscreteCopyNumberAlterationPutativeDriver', () => {
+    describe('annotateDiscreteCNAPutativeDriver', () => {
         it('annotates single element as driver when OncoKB string passed', () => {
             assert.deepEqual(
-                annotateDiscreteCopyNumberAlterationPutativeDriver(
+                annotateDiscreteCNAPutativeDriver(
                     {
                         value: 0,
                         molecularProfileId: 'profile',
                         entrezGeneId: 9,
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     { oncoKb: 'any_string' } as any
                 ),
                 {
@@ -729,12 +729,12 @@ describe('ResultsViewPageStoreUtils', () => {
         });
         it('annotates single element as VUS when empty string passed', () => {
             assert.deepEqual(
-                annotateDiscreteCopyNumberAlterationPutativeDriver(
+                annotateDiscreteCNAPutativeDriver(
                     {
                         value: 0,
                         molecularProfileId: 'profile',
                         entrezGeneId: 9,
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     { oncoKb: '' } as any
                 ),
                 {
@@ -1105,14 +1105,10 @@ describe('ResultsViewPageStoreUtils', () => {
         });
     });
 
-    describe('filterAndAnnotateDiscreteCopyNumberAlterations', () => {
+    describe('filterAndAnnotateDiscreteCNAs', () => {
         it('returns empty list for empty input', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
-                    [],
-                    () => ({} as any),
-                    {}
-                ),
+                filterAndAnnotateDiscreteCNAs([], () => ({} as any), {}),
                 {
                     data: [],
                     vus: [],
@@ -1121,12 +1117,12 @@ describe('ResultsViewPageStoreUtils', () => {
         });
         it('annotates a single VUS CNA datum', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         {
                             value: 0,
                             entrezGeneId: 1,
-                        } as DiscreteCopyNumberAlterationMolecularData,
+                        } as DiscreteCNAMolecularData,
                     ],
                     () => ({
                         oncoKb: '',
@@ -1144,19 +1140,19 @@ describe('ResultsViewPageStoreUtils', () => {
                             entrezGeneId: 1,
                             oncoKbOncogenic: '',
                             putativeDriver: false,
-                        } as AnnotatedDiscreteCopyNumberAlterationMolecularData,
+                        } as AnnotatedDiscreteCNAMolecularData,
                     ],
                 }
             );
         });
         it('annotates a single driver CNA datum - OncoKB', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         {
                             value: 0,
                             entrezGeneId: 1,
-                        } as DiscreteCopyNumberAlterationMolecularData,
+                        } as DiscreteCNAMolecularData,
                     ],
                     () => ({
                         oncoKb: 'Oncogenic',
@@ -1174,19 +1170,19 @@ describe('ResultsViewPageStoreUtils', () => {
                             entrezGeneId: 1,
                             oncoKbOncogenic: 'Oncogenic',
                             putativeDriver: true,
-                        } as AnnotatedDiscreteCopyNumberAlterationMolecularData,
+                        } as AnnotatedDiscreteCNAMolecularData,
                     ],
                 }
             );
         });
         it('annotates a single driver CNA datum - custom driver annotation', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         {
                             value: 0,
                             entrezGeneId: 1,
-                        } as DiscreteCopyNumberAlterationMolecularData,
+                        } as DiscreteCNAMolecularData,
                     ],
                     () => ({
                         oncoKb: '',
@@ -1204,19 +1200,19 @@ describe('ResultsViewPageStoreUtils', () => {
                             entrezGeneId: 1,
                             oncoKbOncogenic: '',
                             putativeDriver: true,
-                        } as AnnotatedDiscreteCopyNumberAlterationMolecularData,
+                        } as AnnotatedDiscreteCNAMolecularData,
                     ],
                 }
             );
         });
         it('annotates a single driver CNA datum - custom driver tier', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         {
                             value: 0,
                             entrezGeneId: 1,
-                        } as DiscreteCopyNumberAlterationMolecularData,
+                        } as DiscreteCNAMolecularData,
                     ],
                     () => ({
                         oncoKb: '',
@@ -1236,19 +1232,19 @@ describe('ResultsViewPageStoreUtils', () => {
                             entrezGeneId: 1,
                             oncoKbOncogenic: '',
                             putativeDriver: true,
-                        } as AnnotatedDiscreteCopyNumberAlterationMolecularData,
+                        } as AnnotatedDiscreteCNAMolecularData,
                     ],
                 }
             );
         });
         it('annotates a single driver VUS datum - disregards empty string custom driver tier', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         {
                             value: 0,
                             entrezGeneId: 1,
-                        } as DiscreteCopyNumberAlterationMolecularData,
+                        } as DiscreteCNAMolecularData,
                     ],
                     () => ({
                         oncoKb: '',
@@ -1266,7 +1262,7 @@ describe('ResultsViewPageStoreUtils', () => {
                             entrezGeneId: 1,
                             oncoKbOncogenic: '',
                             putativeDriver: false,
-                        } as AnnotatedDiscreteCopyNumberAlterationMolecularData,
+                        } as AnnotatedDiscreteCNAMolecularData,
                     ],
                     data: [],
                 }
@@ -1274,14 +1270,14 @@ describe('ResultsViewPageStoreUtils', () => {
         });
         it('annotates a few CNA data points', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         { value: 0, entrezGeneId: 1 },
                         {
                             value: 1,
                             entrezGeneId: 2,
-                        } as DiscreteCopyNumberAlterationMolecularData,
-                    ] as DiscreteCopyNumberAlterationMolecularData[],
+                        } as DiscreteCNAMolecularData,
+                    ] as DiscreteCNAMolecularData[],
                     () => ({
                         oncoKb: '',
                         customDriverBinary: true,
@@ -1310,20 +1306,20 @@ describe('ResultsViewPageStoreUtils', () => {
                             oncoKbOncogenic: '',
                             putativeDriver: true,
                         },
-                    ] as AnnotatedDiscreteCopyNumberAlterationMolecularData[],
+                    ] as AnnotatedDiscreteCNAMolecularData[],
                 }
             );
         });
         it('correctly sorts VUS and annotated CNA data points', () => {
             assert.deepEqual(
-                filterAndAnnotateDiscreteCopyNumberAlterations(
+                filterAndAnnotateDiscreteCNAs(
                     [
                         { value: 0, entrezGeneId: 1 },
                         {
                             value: 1,
                             entrezGeneId: 2,
-                        } as DiscreteCopyNumberAlterationMolecularData,
-                    ] as DiscreteCopyNumberAlterationMolecularData[],
+                        } as DiscreteCNAMolecularData,
+                    ] as DiscreteCNAMolecularData[],
                     cnaDatum => {
                         if (cnaDatum.entrezGeneId === 1) {
                             return {
@@ -1353,7 +1349,7 @@ describe('ResultsViewPageStoreUtils', () => {
                             oncoKbOncogenic: '',
                             putativeDriver: true,
                         },
-                    ] as AnnotatedDiscreteCopyNumberAlterationMolecularData[],
+                    ] as AnnotatedDiscreteCNAMolecularData[],
                     vus: [
                         {
                             value: 1,
@@ -1362,16 +1358,16 @@ describe('ResultsViewPageStoreUtils', () => {
                             oncoKbOncogenic: '',
                             putativeDriver: false,
                         },
-                    ] as AnnotatedDiscreteCopyNumberAlterationMolecularData[],
+                    ] as AnnotatedDiscreteCNAMolecularData[],
                 }
             );
         });
     });
 
-    describe('evaluateDiscreteCopyNumberAlterationPutativeDriverInfo', () => {
+    describe('evaluateDiscreteCNAPutativeDriverInfo', () => {
         it('no driver annotations present', () => {
             assert.deepEqual(
-                evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
+                evaluateDiscreteCNAPutativeDriverInfo(
                     {
                         entrezGeneId: 1,
                         value: 0,
@@ -1379,7 +1375,7 @@ describe('ResultsViewPageStoreUtils', () => {
                         driverFilterAnnotation: '',
                         driverTiersFilter: 'Class 1',
                         driverTiersFilterAnnotation: '',
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     {
                         oncogenic: 'Unknown',
                     } as IndicatorQueryResp,
@@ -1395,7 +1391,7 @@ describe('ResultsViewPageStoreUtils', () => {
         });
         it('OncoKb', () => {
             assert.deepEqual(
-                evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
+                evaluateDiscreteCNAPutativeDriverInfo(
                     {
                         entrezGeneId: 1,
                         value: 0,
@@ -1403,7 +1399,7 @@ describe('ResultsViewPageStoreUtils', () => {
                         driverFilterAnnotation: '',
                         driverTiersFilter: 'Class 1',
                         driverTiersFilterAnnotation: '',
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     {
                         oncogenic: 'Oncogenic',
                     } as IndicatorQueryResp,
@@ -1419,7 +1415,7 @@ describe('ResultsViewPageStoreUtils', () => {
         });
         it('custom driver annnotation', () => {
             assert.deepEqual(
-                evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
+                evaluateDiscreteCNAPutativeDriverInfo(
                     {
                         entrezGeneId: 1,
                         value: 0,
@@ -1427,7 +1423,7 @@ describe('ResultsViewPageStoreUtils', () => {
                         driverFilterAnnotation: '',
                         driverTiersFilter: 'Class 1',
                         driverTiersFilterAnnotation: '',
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     {
                         oncogenic: 'Unknown',
                     } as IndicatorQueryResp,
@@ -1441,7 +1437,7 @@ describe('ResultsViewPageStoreUtils', () => {
                 }
             );
             assert.deepEqual(
-                evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
+                evaluateDiscreteCNAPutativeDriverInfo(
                     {
                         entrezGeneId: 1,
                         value: 0,
@@ -1449,7 +1445,7 @@ describe('ResultsViewPageStoreUtils', () => {
                         driverFilterAnnotation: '',
                         driverTiersFilter: 'Class 1',
                         driverTiersFilterAnnotation: '',
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     {
                         oncogenic: 'Unknown',
                     } as IndicatorQueryResp,
@@ -1465,7 +1461,7 @@ describe('ResultsViewPageStoreUtils', () => {
         });
         it('custom tiers active', () => {
             assert.deepEqual(
-                evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
+                evaluateDiscreteCNAPutativeDriverInfo(
                     {
                         entrezGeneId: 1,
                         value: 0,
@@ -1473,7 +1469,7 @@ describe('ResultsViewPageStoreUtils', () => {
                         driverFilterAnnotation: '',
                         driverTiersFilter: 'Class 1',
                         driverTiersFilterAnnotation: '',
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     {
                         oncogenic: 'Unknown',
                     } as IndicatorQueryResp,
@@ -1487,7 +1483,7 @@ describe('ResultsViewPageStoreUtils', () => {
                 }
             );
             assert.deepEqual(
-                evaluateDiscreteCopyNumberAlterationPutativeDriverInfo(
+                evaluateDiscreteCNAPutativeDriverInfo(
                     {
                         entrezGeneId: 1,
                         value: 0,
@@ -1495,7 +1491,7 @@ describe('ResultsViewPageStoreUtils', () => {
                         driverFilterAnnotation: '',
                         driverTiersFilter: 'Class 2',
                         driverTiersFilterAnnotation: '',
-                    } as DiscreteCopyNumberAlterationMolecularData,
+                    } as DiscreteCNAMolecularData,
                     {
                         oncogenic: 'Unknown',
                     } as IndicatorQueryResp,
@@ -1513,7 +1509,7 @@ describe('ResultsViewPageStoreUtils', () => {
             );
         });
     });
-    
+
     describe('getOncoKbOncogenic', () => {
         it('should return Likely Oncogenic if thats the input', () => {
             assert.equal(
