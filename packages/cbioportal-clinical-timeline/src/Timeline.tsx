@@ -243,6 +243,8 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
         _.sumBy(customTracks || [], t => t.height(store)) +
         SCROLLBAR_PADDING;
 
+    console.log(headerWidth);
+
     const refs = {
         cursor: useRef(null),
         wrapper: useRef(null),
@@ -337,8 +339,9 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
                             'tl-displaynone': hideLabels,
                         })}
                         style={{
+                            display: 'flex',
                             width: headerWidth || 'auto',
-                            minWidth: store.headersWidth,
+                            minWidth: headerWidth || store.headersWidth,
                         }}
                     >
                         {filteredTracks.map(track => {

@@ -39,6 +39,7 @@ export interface IVAFChartWrapperProps {
     samples: Sample[];
     mutationProfileId: string;
     coverageInformation: CoverageInformation;
+    headerWidth?: number;
 }
 
 const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer(
@@ -51,6 +52,7 @@ const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer
         samples,
         mutationProfileId,
         coverageInformation,
+        headerWidth,
     }: IVAFChartWrapperProps) {
         const [events, setEvents] = useState<
             TimelineTrackSpecification[] | null
@@ -110,6 +112,7 @@ const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer
                     mutationProfileId={mutationProfileId}
                     coverageInformation={coverageInformation}
                     sampleManager={sampleManager}
+                    headerWidth={headerWidth}
                 />
             ),
             disableHover: true,
@@ -136,6 +139,7 @@ const VAFChartWrapper: React.FunctionComponent<IVAFChartWrapperProps> = observer
                         hideXAxis={wrapperStore.showSequentialMode}
                         visibleTracks={[]}
                         customTracks={customTracks}
+                        headerWidth={headerWidth}
                     />
                 </div>
             </>
