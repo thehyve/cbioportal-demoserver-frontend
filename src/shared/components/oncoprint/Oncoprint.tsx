@@ -15,7 +15,6 @@ import _ from 'lodash';
 import {
     AnnotatedDiscreteCNAMolecularData,
     AnnotatedMutation,
-    AnnotatedNumericGeneMolecularData,
     ExtendedAlteration,
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import './styles.scss';
