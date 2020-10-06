@@ -5,7 +5,6 @@ import RightPanel from './rightPanel/RightPanel';
 import StudySummary from './studySummary/StudySummary';
 import UserSelections from '../UserSelections';
 import * as _ from 'lodash';
-import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 
 export interface IStudyPageHeaderProps {
     store: StudyViewPageStore;
@@ -34,15 +33,6 @@ export default class StudyPageHeader extends React.Component<
                     </div>
                 )}
                 <div style={{ display: 'flex' }}>
-                    {(window as any).frontendConfig.serverConfig
-                        .skin_show_settings_menu && (
-                        <SettingsMenuButton
-                            store={this.props.store}
-                            disabled={
-                                !this.props.store.hasCustomDriverAnnotations
-                            }
-                        />
-                    )}
                     <StudySummary
                         hasRawDataForDownload={
                             this.props.store.hasRawDataForDownload.result

@@ -60,6 +60,8 @@ import ResourcesTab, { RESOURCES_TAB_NAME } from './resources/ResourcesTab';
 import { ResourceData } from 'cbioportal-ts-api-client';
 import $ from 'jquery';
 import { StudyViewComparisonGroup } from 'pages/groupComparison/GroupComparisonUtils';
+import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
+import SettingsMenu from 'shared/components/settings/SettingsMenu';
 
 export interface IStudyViewPageProps {
     routing: any;
@@ -111,6 +113,7 @@ export default class StudyViewPage extends React.Component<
     @observable private toolbarLeft: number = 0;
 
     @observable showCustomSelectTooltip = false;
+    @observable showAlterationFilterTooltip = false;
     @observable private showReturnToDefaultChartListModal: boolean = false;
 
     constructor(props: IStudyViewPageProps) {
@@ -851,6 +854,40 @@ export default class StudyViewPage extends React.Component<
                                                 </DefaultTooltip>
                                             </>
                                         )}
+                                        {(window as any).frontendConfig
+                                            .serverConfig
+                                            .skin_show_settings_menu &&
+                                            this.store
+                                                .hasCustomDriverAnnotations && (
+                                                <DefaultTooltip
+                                                    trigger={['click']}
+                                                    placement={'bottomLeft'}
+                                                    overlay={
+                                                        <SettingsMenu
+                                                            store={this.store}
+                                                        />
+                                                    }
+                                                    visible={
+                                                        this
+                                                            .showAlterationFilterTooltip
+                                                    }
+                                                    onVisibleChange={visible => {
+                                                        this.showAlterationFilterTooltip = !!visible;
+                                                    }}
+                                                >
+                                                    <button
+                                                        data-test="AlterationFilterButton"
+                                                        style={{
+                                                            marginLeft: '10px',
+                                                        }}
+                                                        className="btn btn-primary"
+                                                    >
+                                                        {getButtonNameWithDownPointer(
+                                                            'Alteration Filter'
+                                                        )}
+                                                    </button>
+                                                </DefaultTooltip>
+                                            )}
                                         {this.enableAddChartInTabs.includes(
                                             this.store.currentTab
                                         ) && (

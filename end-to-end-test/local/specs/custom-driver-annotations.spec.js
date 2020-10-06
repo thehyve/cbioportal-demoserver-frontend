@@ -36,7 +36,7 @@ describe('custom driver annotations feature', function() {
             beforeEach(() => {
                 goToUrlAndSetLocalStorage(oncoprintTabUrl);
                 waitForOncoprint(100000);
-                setSettingsMenuOpen(true);
+                setSettingsMenuOpen(true, 'GlobalSettingsButton');
             });
 
             it('shows custom driver annotation elements in config menu', () => {
@@ -188,16 +188,13 @@ describe('custom driver annotations feature', function() {
             });
         });
 
-        describe('study view', () => {
+        describe.only('study view', () => {
             describe('study without custom driver annotations', () => {
-                it('shows hint with instructions when hovering menu', () => {
+                it('not show the annotation filter button when no custom annotations', () => {
                     goToUrlAndSetLocalStorage(studyViewUrlGenPanels);
-                    $('[data-test=study-view-header]').waitForVisible(30000);
-                    assert($('[data-test=GlobalSettingsButton]').isVisible());
-                    browser.moveToObject('[data-test=GlobalSettingsButton]');
-                    $('[data-test=GlobalSettingsButtonHint]').waitForVisible();
+                    $('#comparisonGroupManagerContainer').waitForVisible();
                     assert(
-                        $('[data-test=GlobalSettingsButtonHint]').isVisible()
+                        $('[data-test=AlterationFilterButton]').isNotVisible()
                     );
                 });
             });
@@ -205,15 +202,15 @@ describe('custom driver annotations feature', function() {
             describe('study with custom driver annotations', () => {
                 beforeEach(() => {
                     goToUrlAndSetLocalStorage(studyViewUrlEs_0);
-                    $('[data-test=study-view-header]').waitForVisible();
-                    $('[data-test=mutations-table]').waitForVisible(100000);
+                    $('#comparisonGroupManagerContainer').waitForVisible();
+                    $('[data-test=mutations-table]').waitForVisible();
                     $$('[data-test=cancer-gene-filter]').forEach(f =>
                         f.click()
                     );
                     $('[data-test=mutations-table]').waitForVisible();
-                    $('[data-test=GlobalSettingsButton]').waitForVisible();
-                    browser.moveToObject('[data-test=GlobalSettingsButton]');
-                    setSettingsMenuOpen(true);
+                    $('[data-test=AlterationFilterButton]').waitForVisible();
+                    browser.moveToObject('[data-test=AlterationFilterButton]');
+                    setSettingsMenuOpen(true, 'AlterationFilterButton');
                 });
 
                 it('shows settings menu', () => {
