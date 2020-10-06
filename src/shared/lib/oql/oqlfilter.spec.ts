@@ -105,7 +105,6 @@ const THREE_GENE_TWO_SAMPLE_CNA_DATA = ([
             cytoband: '17q21.31',
             length: 8922,
         },
-        putativeDriver: true,
     },
     {
         __id: 8,
@@ -125,7 +124,6 @@ const THREE_GENE_TWO_SAMPLE_CNA_DATA = ([
             cytoband: '10q23.31',
             length: 11581,
         },
-        putativeDriver: true,
     },
     {
         __id: 9,
@@ -145,7 +143,6 @@ const THREE_GENE_TWO_SAMPLE_CNA_DATA = ([
             cytoband: '17p13.1',
             length: 4576,
         },
-        putativeDriver: true,
     },
 ] as any) as AnnotatedDiscreteCNAMolecularData[];
 // I believe these metadata to be all `new AccessorsForOqlFilter()` needs
