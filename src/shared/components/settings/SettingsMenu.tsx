@@ -36,6 +36,7 @@ function boldedTabList(tabs: string[]) {
 export interface IResultsPageSettings {
     store: IDriverSettingsProps & IExclusionSettings;
     resultsView?: boolean;
+    disabled?: boolean;
 }
 
 @observer
@@ -78,6 +79,20 @@ export default class SettingsMenu extends React.Component<
     }
 
     render() {
+        if (this.props.disabled) {
+            return (
+                <div data-test={'GlobalSettingsButtonHint'}>
+                    <div>
+                        Filtering based on annotations is not available for this
+                        study.
+                    </div>
+                    <div>
+                        Load custom driver annotations for the selected study to
+                        enable filtering.
+                    </div>
+                </div>
+            );
+        }
         return (
             <div
                 data-test="GlobalSettingsDropdown"

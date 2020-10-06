@@ -856,38 +856,40 @@ export default class StudyViewPage extends React.Component<
                                         )}
                                         {(window as any).frontendConfig
                                             .serverConfig
-                                            .skin_show_settings_menu &&
-                                            this.store
-                                                .hasCustomDriverAnnotations && (
-                                                <DefaultTooltip
-                                                    trigger={['click']}
-                                                    placement={'bottomLeft'}
-                                                    overlay={
-                                                        <SettingsMenu
-                                                            store={this.store}
-                                                        />
-                                                    }
-                                                    visible={
-                                                        this
-                                                            .showAlterationFilterTooltip
-                                                    }
-                                                    onVisibleChange={visible => {
-                                                        this.showAlterationFilterTooltip = !!visible;
+                                            .skin_show_settings_menu && (
+                                            <DefaultTooltip
+                                                trigger={['click']}
+                                                placement={'bottomLeft'}
+                                                overlay={
+                                                    <SettingsMenu
+                                                        store={this.store}
+                                                        disabled={
+                                                            !this.store
+                                                                .hasCustomDriverAnnotations
+                                                        }
+                                                    />
+                                                }
+                                                visible={
+                                                    this
+                                                        .showAlterationFilterTooltip
+                                                }
+                                                onVisibleChange={visible => {
+                                                    this.showAlterationFilterTooltip = !!visible;
+                                                }}
+                                            >
+                                                <button
+                                                    data-test="AlterationFilterButton"
+                                                    style={{
+                                                        marginLeft: '10px',
                                                     }}
+                                                    className="btn btn-primary"
                                                 >
-                                                    <button
-                                                        data-test="AlterationFilterButton"
-                                                        style={{
-                                                            marginLeft: '10px',
-                                                        }}
-                                                        className="btn btn-primary"
-                                                    >
-                                                        {getButtonNameWithDownPointer(
-                                                            'Alteration Filter'
-                                                        )}
-                                                    </button>
-                                                </DefaultTooltip>
-                                            )}
+                                                    {getButtonNameWithDownPointer(
+                                                        'Alteration Filter'
+                                                    )}
+                                                </button>
+                                            </DefaultTooltip>
+                                        )}
                                         {this.enableAddChartInTabs.includes(
                                             this.store.currentTab
                                         ) && (

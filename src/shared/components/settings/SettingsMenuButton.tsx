@@ -55,27 +55,13 @@ export default class SettingsMenuButton extends React.Component<
     }
 
     @computed get overlay() {
-        if (this.props.disabled) {
-            return (
-                <div data-test={'GlobalSettingsButtonHint'}>
-                    <div>
-                        Filtering based on annotations is not available for this
-                        study.
-                    </div>
-                    <div>
-                        Load custom driver annotations for the selected study to
-                        enable filtering.
-                    </div>
-                </div>
-            );
-        } else {
-            return (
-                <SettingsMenu
-                    store={this.props.store}
-                    resultsView={this.props.resultsView}
-                />
-            );
-        }
+        return (
+            <SettingsMenu
+                store={this.props.store}
+                resultsView={this.props.resultsView}
+                disabled={this.props.disabled}
+            />
+        );
     }
 
     @computed get trigger() {

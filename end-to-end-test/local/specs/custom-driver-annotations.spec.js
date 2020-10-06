@@ -188,14 +188,14 @@ describe('custom driver annotations feature', function() {
             });
         });
 
-        describe.only('study view', () => {
-            describe('study without custom driver annotations', () => {
+        describe('study view', () => {
+            describe('shows hint with instructions when hovering menu', () => {
                 it('not show the annotation filter button when no custom annotations', () => {
                     goToUrlAndSetLocalStorage(studyViewUrlGenPanels);
                     $('#comparisonGroupManagerContainer').waitForVisible();
-                    assert(
-                        $('[data-test=AlterationFilterButton]').isNotVisible()
-                    );
+                    assert($('[data-test=AlterationFilterButton]').isVisible());
+                    browser.moveToObject('[data-test=AlterationFilterButton]');
+                    $('[data-test=GlobalSettingsButtonHint]').waitForVisible();
                 });
             });
 
