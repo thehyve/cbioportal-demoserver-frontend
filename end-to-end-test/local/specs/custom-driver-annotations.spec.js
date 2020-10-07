@@ -194,7 +194,7 @@ describe('custom driver annotations feature', function() {
                     goToUrlAndSetLocalStorage(studyViewUrlGenPanels);
                     $('#comparisonGroupManagerContainer').waitForVisible();
                     assert($('[data-test=AlterationFilterButton]').isVisible());
-                    browser.moveToObject('[data-test=AlterationFilterButton]');
+                    $('[data-test=AlterationFilterButton]').click();
                     $('[data-test=GlobalSettingsButtonHint]').waitForVisible();
                 });
             });
