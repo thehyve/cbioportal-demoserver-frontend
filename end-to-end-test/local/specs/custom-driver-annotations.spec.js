@@ -209,7 +209,6 @@ describe('custom driver annotations feature', function() {
                     );
                     $('[data-test=mutations-table]').waitForVisible();
                     $('[data-test=AlterationFilterButton]').waitForVisible();
-                    browser.moveToObject('[data-test=AlterationFilterButton]');
                     setSettingsMenuOpen(true, 'AlterationFilterButton');
                 });
 
@@ -241,7 +240,7 @@ describe('custom driver annotations feature', function() {
                         '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
                     );
 
-                    assert.strictEqual(values.length, 15);
+                    assert.strictEqual(values.length, 13);
                     assert(!$(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
