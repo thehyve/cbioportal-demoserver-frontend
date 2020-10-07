@@ -49,8 +49,8 @@ function getTextInOncoprintLegend() {
     return browser.getText('#oncoprintDiv .oncoprint-legend-div svg');
 }
 
-function setSettingsMenuOpen(open) {
-    const button = 'button[data-test="GlobalSettingsButton"]';
+function setSettingsMenuOpen(open, buttonId = 'GlobalSettingsButton') {
+    const button = 'button[data-test="' + buttonId + '"]';
     const dropdown = 'div[data-test="GlobalSettingsDropdown"]';
     browser.waitForVisible(button);
     browser.waitUntil(
