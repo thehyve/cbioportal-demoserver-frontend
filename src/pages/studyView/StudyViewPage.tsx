@@ -882,7 +882,7 @@ export default class StudyViewPage extends React.Component<
                                                     style={{
                                                         marginLeft: '10px',
                                                     }}
-                                                    className="btn btn-primary"
+                                                    className="btn btn-primary btn-sm"
                                                 >
                                                     {getButtonNameWithDownPointer(
                                                         'Alteration Filter'
