@@ -53,6 +53,7 @@ import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescrip
 import {
     MultiSelectionTableColumnKey,
     MultiSelectionTable,
+    MultiSelectionTableColumn,
 } from 'pages/studyView/table/MultiSelectionTable';
 import { FreqColumnTypeEnum } from '../TableUtils';
 import { Dimensions } from 'react-virtualized';
@@ -426,132 +427,204 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                 );
             }
             case ChartTypeEnum.MUTATED_GENES_TABLE: {
-                return () => (
-                    <MultiSelectionTable
-                        tableType={FreqColumnTypeEnum.MUTATION}
-                        promise={this.props.promise}
-                        width={getWidthByDimension(
-                            this.props.dimension,
-                            this.borderWidth
-                        )}
-                        height={getTableHeightByDimension(
-                            this.props.dimension,
-                            this.chartHeaderHeight
-                        )}
-                        filters={this.props.filters}
-                        onUserSelection={this.handlers.onValueSelection}
-                        onGeneSelect={this.props.onGeneSelect}
-                        selectedGenes={this.props.selectedGenes}
-                        genePanelCache={this.props.genePanelCache}
-                        cancerGeneFilterEnabled={
-                            this.props.cancerGeneFilterEnabled
-                        }
-                        filterByCancerGenes={this.props.filterByCancerGenes!}
-                        onChangeCancerGeneFilter={
-                            this.props.onChangeCancerGeneFilter!
-                        }
-                        columns={[
-                            { columnKey: MultiSelectionTableColumnKey.GENE },
-                            {
-                                columnKey:
-                                    MultiSelectionTableColumnKey.NUMBER_MUTATIONS,
-                            },
-                            { columnKey: MultiSelectionTableColumnKey.NUMBER },
-                            { columnKey: MultiSelectionTableColumnKey.FREQ },
-                        ]}
-                        defaultSortBy={MultiSelectionTableColumnKey.FREQ}
-                    />
-                );
+                return () => {
+                    const geneColumn: MultiSelectionTableColumn = {
+                        columnKey: MultiSelectionTableColumnKey.GENE,
+                    };
+                    const alteredCasesHidden =
+                        this.props.store.totalMutationAlteredCases -
+                        this.props.store.filteredMutationAlteredCases;
+                    if (alteredCasesHidden > 0) {
+                        geneColumn.columnNote = '⚠️';
+                        geneColumn.columnTooltip = (
+                            <span data-test="hidden-mutation-alterations">
+                                {alteredCasesHidden} mutation
+                                {alteredCasesHidden > 1 ? 's do' : ' does'} not
+                                count as alterations for this analysis.
+                            </span>
+                        );
+                    }
+                    return (
+                        <MultiSelectionTable
+                            tableType={FreqColumnTypeEnum.MUTATION}
+                            promise={this.props.promise}
+                            width={getWidthByDimension(
+                                this.props.dimension,
+                                this.borderWidth
+                            )}
+                            height={getTableHeightByDimension(
+                                this.props.dimension,
+                                this.chartHeaderHeight
+                            )}
+                            filters={this.props.filters}
+                            onUserSelection={this.handlers.onValueSelection}
+                            onGeneSelect={this.props.onGeneSelect}
+                            selectedGenes={this.props.selectedGenes}
+                            genePanelCache={this.props.genePanelCache}
+                            cancerGeneFilterEnabled={
+                                this.props.cancerGeneFilterEnabled
+                            }
+                            filterByCancerGenes={
+                                this.props.filterByCancerGenes!
+                            }
+                            onChangeCancerGeneFilter={
+                                this.props.onChangeCancerGeneFilter!
+                            }
+                            columns={[
+                                geneColumn,
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.NUMBER_MUTATIONS,
+                                },
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.NUMBER,
+                                },
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.FREQ,
+                                },
+                            ]}
+                            defaultSortBy={MultiSelectionTableColumnKey.FREQ}
+                        />
+                    );
+                };
             }
             case ChartTypeEnum.FUSION_GENES_TABLE: {
-                return () => (
-                    <MultiSelectionTable
-                        tableType={FreqColumnTypeEnum.FUSION}
-                        promise={this.props.promise}
-                        width={getWidthByDimension(
-                            this.props.dimension,
-                            this.borderWidth
-                        )}
-                        height={getTableHeightByDimension(
-                            this.props.dimension,
-                            this.chartHeaderHeight
-                        )}
-                        filters={this.props.filters}
-                        onUserSelection={this.handlers.onValueSelection}
-                        onGeneSelect={this.props.onGeneSelect}
-                        selectedGenes={this.props.selectedGenes}
-                        genePanelCache={this.props.genePanelCache}
-                        cancerGeneFilterEnabled={
-                            this.props.cancerGeneFilterEnabled
-                        }
-                        filterByCancerGenes={this.props.filterByCancerGenes!}
-                        onChangeCancerGeneFilter={
-                            this.props.onChangeCancerGeneFilter!
-                        }
-                        columns={[
-                            { columnKey: MultiSelectionTableColumnKey.GENE },
-                            {
-                                columnKey:
-                                    MultiSelectionTableColumnKey.NUMBER_FUSIONS,
-                            },
-                            { columnKey: MultiSelectionTableColumnKey.NUMBER },
-                            { columnKey: MultiSelectionTableColumnKey.FREQ },
-                        ]}
-                        defaultSortBy={MultiSelectionTableColumnKey.FREQ}
-                    />
-                );
+                return () => {
+                    const geneColumn: MultiSelectionTableColumn = {
+                        columnKey: MultiSelectionTableColumnKey.GENE,
+                    };
+                    const alteredCasesHidden =
+                        this.props.store.totalFusionAlteredCases -
+                        this.props.store.filteredFusionAlteredCases;
+                    if (alteredCasesHidden > 0) {
+                        geneColumn.columnNote = '⚠️';
+                        geneColumn.columnTooltip = (
+                            <span data-test="hidden-fusion-alterations">
+                                {alteredCasesHidden} fusion
+                                {alteredCasesHidden > 1 ? 's do' : ' does'} not
+                                count as alterations for this analysis.
+                            </span>
+                        );
+                    }
+                    return (
+                        <MultiSelectionTable
+                            tableType={FreqColumnTypeEnum.FUSION}
+                            promise={this.props.promise}
+                            width={getWidthByDimension(
+                                this.props.dimension,
+                                this.borderWidth
+                            )}
+                            height={getTableHeightByDimension(
+                                this.props.dimension,
+                                this.chartHeaderHeight
+                            )}
+                            filters={this.props.filters}
+                            onUserSelection={this.handlers.onValueSelection}
+                            onGeneSelect={this.props.onGeneSelect}
+                            selectedGenes={this.props.selectedGenes}
+                            genePanelCache={this.props.genePanelCache}
+                            cancerGeneFilterEnabled={
+                                this.props.cancerGeneFilterEnabled
+                            }
+                            filterByCancerGenes={
+                                this.props.filterByCancerGenes!
+                            }
+                            onChangeCancerGeneFilter={
+                                this.props.onChangeCancerGeneFilter!
+                            }
+                            columns={[
+                                geneColumn,
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.NUMBER_FUSIONS,
+                                },
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.NUMBER,
+                                },
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.FREQ,
+                                },
+                            ]}
+                            defaultSortBy={MultiSelectionTableColumnKey.FREQ}
+                        />
+                    );
+                };
             }
             case ChartTypeEnum.CNA_GENES_TABLE: {
-                return () => (
-                    <MultiSelectionTable
-                        tableType={FreqColumnTypeEnum.CNA}
-                        promise={this.props.promise}
-                        width={getWidthByDimension(
-                            this.props.dimension,
-                            this.borderWidth
-                        )}
-                        height={getTableHeightByDimension(
-                            this.props.dimension,
-                            this.chartHeaderHeight
-                        )}
-                        filters={this.props.filters}
-                        onUserSelection={this.handlers.onValueSelection}
-                        onGeneSelect={this.props.onGeneSelect}
-                        selectedGenes={this.props.selectedGenes}
-                        genePanelCache={this.props.genePanelCache}
-                        cancerGeneFilterEnabled={
-                            this.props.cancerGeneFilterEnabled
-                        }
-                        filterByCancerGenes={this.props.filterByCancerGenes!}
-                        onChangeCancerGeneFilter={
-                            this.props.onChangeCancerGeneFilter!
-                        }
-                        columns={[
-                            {
-                                columnKey: MultiSelectionTableColumnKey.GENE,
-                                columnWidthRatio: 0.24,
-                            },
-                            {
-                                columnKey:
-                                    MultiSelectionTableColumnKey.CYTOBAND,
-                                columnWidthRatio: 0.24,
-                            },
-                            {
-                                columnKey: MultiSelectionTableColumnKey.CNA,
-                                columnWidthRatio: 0.18,
-                            },
-                            {
-                                columnKey: MultiSelectionTableColumnKey.NUMBER,
-                                columnWidthRatio: 0.17,
-                            },
-                            {
-                                columnKey: MultiSelectionTableColumnKey.FREQ,
-                                columnWidthRatio: 0.17,
-                            },
-                        ]}
-                        defaultSortBy={MultiSelectionTableColumnKey.FREQ}
-                    />
-                );
+                return () => {
+                    const geneColumn: MultiSelectionTableColumn = {
+                        columnKey: MultiSelectionTableColumnKey.GENE,
+                        columnWidthRatio: 0.24,
+                    };
+                    const alteredCasesHidden =
+                        this.props.store.totalCnaAlteredCases -
+                        this.props.store.filteredCnaAlteredCases;
+                    if (alteredCasesHidden > 0) {
+                        geneColumn.columnNote = '⚠️';
+                        geneColumn.columnTooltip = (
+                            <span data-test="hidden-cna-alterations">
+                                {alteredCasesHidden} copy number alteration
+                                {alteredCasesHidden > 1 ? 's do' : ' does'} not
+                                count as alterations for this analysis.
+                            </span>
+                        );
+                    }
+                    return (
+                        <MultiSelectionTable
+                            tableType={FreqColumnTypeEnum.CNA}
+                            promise={this.props.promise}
+                            width={getWidthByDimension(
+                                this.props.dimension,
+                                this.borderWidth
+                            )}
+                            height={getTableHeightByDimension(
+                                this.props.dimension,
+                                this.chartHeaderHeight
+                            )}
+                            filters={this.props.filters}
+                            onUserSelection={this.handlers.onValueSelection}
+                            onGeneSelect={this.props.onGeneSelect}
+                            selectedGenes={this.props.selectedGenes}
+                            genePanelCache={this.props.genePanelCache}
+                            cancerGeneFilterEnabled={
+                                this.props.cancerGeneFilterEnabled
+                            }
+                            filterByCancerGenes={
+                                this.props.filterByCancerGenes!
+                            }
+                            onChangeCancerGeneFilter={
+                                this.props.onChangeCancerGeneFilter!
+                            }
+                            columns={[
+                                geneColumn,
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.CYTOBAND,
+                                    columnWidthRatio: 0.24,
+                                },
+                                {
+                                    columnKey: MultiSelectionTableColumnKey.CNA,
+                                    columnWidthRatio: 0.18,
+                                },
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.NUMBER,
+                                    columnWidthRatio: 0.17,
+                                },
+                                {
+                                    columnKey:
+                                        MultiSelectionTableColumnKey.FREQ,
+                                    columnWidthRatio: 0.17,
+                                },
+                            ]}
+                            defaultSortBy={MultiSelectionTableColumnKey.FREQ}
+                        />
+                    );
+                };
             }
             case ChartTypeEnum.GENOMIC_PROFILES_TABLE: {
                 return () => (

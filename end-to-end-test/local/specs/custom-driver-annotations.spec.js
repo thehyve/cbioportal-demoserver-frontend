@@ -24,11 +24,9 @@ const studyViewUrlEs_0 = CBIOPORTAL_URL + '/study/summary?id=study_es_0';
 const studyViewUrlGenPanels =
     CBIOPORTAL_URL + '/study/summary?id=teststudy_genepanels';
 
-const HIDDEN_MUTTATION_ALTERATIONS_BAR =
-    "[data-test='hidden-muttation-alterations-bar']";
-const HIDDEN_FUSION_ALTERATIONS_BAR =
-    "[data-test='hidden-fussion-alterations-bar']";
-const HIDDEN_CNA_ALTERATIONS_BAR = "[data-test='hidden-cna-alterations-bar']";
+const HIDDEN_MUTTATION_ALTERATIONS = '[data-test=hidden-mutation-alterations]';
+const HIDDEN_FUSION_ALTERATIONS = '[data-test=hidden-fusion-alterations]';
+const HIDDEN_CNA_ALTERATIONS = '[data-test=hidden-cna-alterations]';
 
 describe('custom driver annotations feature', function() {
     if (useExternalFrontend) {
@@ -241,7 +239,13 @@ describe('custom driver annotations feature', function() {
                     );
 
                     assert.strictEqual(values.length, 13);
-                    assert(!$(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
+                    assert(
+                        !$(
+                            '[data-test=mutations-table] [data-test=gene-column-header]'
+                        )
+                            .getText()
+                            .includes('⚠️')
+                    );
 
                     $('input[data-test=HideVUS]').click();
 
@@ -250,9 +254,19 @@ describe('custom driver annotations feature', function() {
                         '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert.strictEqual(values.length, 2);
-                    assert($(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
                     assert(
-                        $(HIDDEN_MUTTATION_ALTERATIONS_BAR)
+                        $(
+                            '[data-test=mutations-table] [data-test=gene-column-header]'
+                        )
+                            .getText()
+                            .includes('⚠️')
+                    );
+                    browser.moveToObject(
+                        '[data-test=mutations-table] [data-test=gene-column-header]'
+                    );
+                    $(HIDDEN_MUTATION_ALTERATIONS).waitForVisible();
+                    assert(
+                        $(HIDDEN_MUTTATION_ALTERATIONS)
                             .getText()
                             .includes('17 mutation')
                     );
@@ -263,7 +277,13 @@ describe('custom driver annotations feature', function() {
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert.strictEqual(values.length, 14);
-                    assert(!$(HIDDEN_CNA_ALTERATIONS_BAR).isExisting());
+                    assert(
+                        !$(
+                            '[data-test="copy number alterations-table"] [data-test=gene-column-header]'
+                        )
+                            .getText()
+                            .includes('⚠️')
+                    );
 
                     $('input[data-test=HideVUS]').click();
                     $(
@@ -274,9 +294,19 @@ describe('custom driver annotations feature', function() {
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert.strictEqual(values.length, 3);
-                    assert($(HIDDEN_CNA_ALTERATIONS_BAR).isExisting());
                     assert(
-                        $(HIDDEN_CNA_ALTERATIONS_BAR)
+                        $(
+                            '[data-test="copy number alterations-table"] [data-test=gene-column-header]'
+                        )
+                            .getText()
+                            .includes('⚠️')
+                    );
+                    browser.moveToObject(
+                        '[data-test="copy number alterations-table"] [data-test=gene-column-header]'
+                    );
+                    $(HIDDEN_CNA_ALTERATIONS).waitForVisible();
+                    assert(
+                        $(HIDDEN_CNA_ALTERATIONS)
                             .getText()
                             .includes('7 copy number alteration')
                     );
@@ -287,18 +317,34 @@ describe('custom driver annotations feature', function() {
                         '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert.strictEqual(values.length, 3);
-                    assert(!$(HIDDEN_FUSION_ALTERATIONS_BAR).isExisting());
+                    assert(
+                        !$(
+                            '[data-test=mutations-table] [data-test=gene-column-header]'
+                        )
+                            .getText()
+                            .includes('⚠️')
+                    );
 
                     $('input[data-test=HideVUS]').click();
-                    $('[data-test=mutations-table]').waitForVisible();
+                    $('[data-test=fusions-table]').waitForVisible();
 
                     values = $$(
                         '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
                     );
                     assert.strictEqual(values.length, 0);
-                    assert($(HIDDEN_FUSION_ALTERATIONS_BAR).isExisting());
                     assert(
-                        $(HIDDEN_FUSION_ALTERATIONS_BAR)
+                        $(
+                            '[data-test=fusions-table] [data-test=gene-column-header]'
+                        )
+                            .getText()
+                            .includes('⚠️')
+                    );
+                    browser.moveToObject(
+                        '[data-test=fusions-table] [data-test=gene-column-header]'
+                    );
+                    $(HIDDEN_FUSION_ALTERATIONS).waitForVisible();
+                    assert(
+                        $(HIDDEN_FUSION_ALTERATIONS)
                             .getText()
                             .includes('3 fusion')
                     );
