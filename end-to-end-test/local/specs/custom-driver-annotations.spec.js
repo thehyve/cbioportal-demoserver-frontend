@@ -241,7 +241,7 @@ describe('custom driver annotations feature', function() {
                         '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
                     );
 
-                    assert(values.length === 15);
+                    assert.strictEqual(values.length, 15);
                     assert(!$(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
@@ -250,7 +250,7 @@ describe('custom driver annotations feature', function() {
                     values = $$(
                         '[data-test="mutations-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values.length === 2);
+                    assert.strictEqual(values.length, 2);
                     assert($(HIDDEN_MUTTATION_ALTERATIONS_BAR).isExisting());
                     assert(
                         $(HIDDEN_MUTTATION_ALTERATIONS_BAR)
@@ -263,7 +263,7 @@ describe('custom driver annotations feature', function() {
                     var values = $$(
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values.length === 14);
+                    assert.strictEqual(values.length, 14);
                     assert(!$(HIDDEN_CNA_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
@@ -274,7 +274,7 @@ describe('custom driver annotations feature', function() {
                     values = $$(
                         '[data-test="copy number alterations-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values.length === 3);
+                    assert.strictEqual(values.length, 3);
                     assert($(HIDDEN_CNA_ALTERATIONS_BAR).isExisting());
                     assert(
                         $(HIDDEN_CNA_ALTERATIONS_BAR)
@@ -287,7 +287,7 @@ describe('custom driver annotations feature', function() {
                     var values = $$(
                         '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values.length === 3);
+                    assert.strictEqual(values.length, 3);
                     assert(!$(HIDDEN_FUSION_ALTERATIONS_BAR).isExisting());
 
                     $('input[data-test=HideVUS]').click();
@@ -296,7 +296,7 @@ describe('custom driver annotations feature', function() {
                     values = $$(
                         '[data-test="fusions-table"] [data-test=numberOfAlteredCasesText]'
                     );
-                    assert(values.length === 0);
+                    assert.strictEqual(values.length, 0);
                     assert($(HIDDEN_FUSION_ALTERATIONS_BAR).isExisting());
                     assert(
                         $(HIDDEN_FUSION_ALTERATIONS_BAR)
