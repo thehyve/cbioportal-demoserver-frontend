@@ -431,16 +431,35 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                     const geneColumn: MultiSelectionTableColumn = {
                         columnKey: MultiSelectionTableColumnKey.GENE,
                     };
-                    const alteredCasesHidden =
-                        this.props.store.totalMutationAlteredCases -
-                        this.props.store.filteredMutationAlteredCases;
-                    if (alteredCasesHidden > 0) {
+                    const filteredOutMutationAlterations = this.props.store
+                        .filteredOutMutationAlterations;
+                    if (
+                        filteredOutMutationAlterations.notShownAlteredCases > 0
+                    ) {
                         geneColumn.columnNote = '⚠️';
                         geneColumn.columnTooltip = (
                             <span data-test="hidden-mutation-alterations">
-                                {alteredCasesHidden} mutation
-                                {alteredCasesHidden > 1 ? 's do' : ' does'} not
-                                count as alterations for this analysis.
+                                {
+                                    filteredOutMutationAlterations.notShownAlteredCases
+                                }{' '}
+                                mutation
+                                {filteredOutMutationAlterations.notShownAlteredCases >
+                                1
+                                    ? 's'
+                                    : ''}{' '}
+                                in{' '}
+                                {filteredOutMutationAlterations.affectedGenes}{' '}
+                                gene
+                                {filteredOutMutationAlterations.notShownAlteredCases >
+                                1
+                                    ? 's are'
+                                    : ' is'}{' '}
+                                not counted as alteration
+                                {filteredOutMutationAlterations.notShownAlteredCases >
+                                1
+                                    ? 's'
+                                    : ''}{' '}
+                                in this table.
                             </span>
                         );
                     }
@@ -495,16 +514,32 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                     const geneColumn: MultiSelectionTableColumn = {
                         columnKey: MultiSelectionTableColumnKey.GENE,
                     };
-                    const alteredCasesHidden =
-                        this.props.store.totalFusionAlteredCases -
-                        this.props.store.filteredFusionAlteredCases;
-                    if (alteredCasesHidden > 0) {
+                    const filteredOutFusionAlterations = this.props.store
+                        .filteredOutFusionAlterations;
+                    if (filteredOutFusionAlterations.notShownAlteredCases > 0) {
                         geneColumn.columnNote = '⚠️';
                         geneColumn.columnTooltip = (
                             <span data-test="hidden-fusion-alterations">
-                                {alteredCasesHidden} fusion
-                                {alteredCasesHidden > 1 ? 's do' : ' does'} not
-                                count as alterations for this analysis.
+                                {
+                                    filteredOutFusionAlterations.notShownAlteredCases
+                                }{' '}
+                                fusion
+                                {filteredOutFusionAlterations.notShownAlteredCases >
+                                1
+                                    ? 's'
+                                    : ''}{' '}
+                                in {filteredOutFusionAlterations.affectedGenes}{' '}
+                                gene
+                                {filteredOutFusionAlterations.notShownAlteredCases >
+                                1
+                                    ? 's are'
+                                    : ' is'}{' '}
+                                not counted as alteration
+                                {filteredOutFusionAlterations.notShownAlteredCases >
+                                1
+                                    ? 's'
+                                    : ''}{' '}
+                                in this table.
                             </span>
                         );
                     }
@@ -560,16 +595,30 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                         columnKey: MultiSelectionTableColumnKey.GENE,
                         columnWidthRatio: 0.24,
                     };
-                    const alteredCasesHidden =
-                        this.props.store.totalCnaAlteredCases -
-                        this.props.store.filteredCnaAlteredCases;
-                    if (alteredCasesHidden > 0) {
+                    const filteredOutCnaAlterations = this.props.store
+                        .filteredOutCnaAlterations;
+                    if (filteredOutCnaAlterations.notShownAlteredCases > 0) {
                         geneColumn.columnNote = '⚠️';
                         geneColumn.columnTooltip = (
                             <span data-test="hidden-cna-alterations">
-                                {alteredCasesHidden} copy number alteration
-                                {alteredCasesHidden > 1 ? 's do' : ' does'} not
-                                count as alterations for this analysis.
+                                {filteredOutCnaAlterations.notShownAlteredCases}{' '}
+                                copy number alteration
+                                {filteredOutCnaAlterations.notShownAlteredCases >
+                                1
+                                    ? 's'
+                                    : ''}{' '}
+                                in {filteredOutCnaAlterations.affectedGenes}{' '}
+                                gene
+                                {filteredOutCnaAlterations.notShownAlteredCases >
+                                1
+                                    ? 's are'
+                                    : ' is'}{' '}
+                                not counted as alteration
+                                {filteredOutCnaAlterations.notShownAlteredCases >
+                                1
+                                    ? 's'
+                                    : ''}{' '}
+                                in this table.
                             </span>
                         );
                     }

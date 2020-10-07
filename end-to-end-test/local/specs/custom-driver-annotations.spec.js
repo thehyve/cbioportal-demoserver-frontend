@@ -268,7 +268,7 @@ describe('custom driver annotations feature', function() {
                     assert(
                         $(HIDDEN_MUTTATION_ALTERATIONS)
                             .getText()
-                            .includes('17 mutation')
+                            .includes('17 mutations in 6 genes')
                     );
                 });
 
@@ -308,7 +308,7 @@ describe('custom driver annotations feature', function() {
                     assert(
                         $(HIDDEN_CNA_ALTERATIONS)
                             .getText()
-                            .includes('7 copy number alteration')
+                            .includes('7 copy number alterations in 1 gene')
                     );
                 });
 
@@ -346,7 +346,7 @@ describe('custom driver annotations feature', function() {
                     assert(
                         $(HIDDEN_FUSION_ALTERATIONS)
                             .getText()
-                            .includes('3 fusion')
+                            .includes('3 fusions in 2 genes')
                     );
                 });
             });
