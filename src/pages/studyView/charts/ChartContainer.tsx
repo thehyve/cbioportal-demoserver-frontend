@@ -450,10 +450,14 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                                 in{' '}
                                 {filteredOutMutationAlterations.affectedGenes}{' '}
                                 gene
+                                {filteredOutMutationAlterations.affectedGenes >
+                                1
+                                    ? 's'
+                                    : ''}
                                 {filteredOutMutationAlterations.notShownAlteredCases >
                                 1
-                                    ? 's are'
-                                    : ' is'}{' '}
+                                    ? ' are '
+                                    : ' is '}
                                 not counted as alteration
                                 {filteredOutMutationAlterations.notShownAlteredCases >
                                 1
@@ -530,10 +534,13 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                                     : ''}{' '}
                                 in {filteredOutFusionAlterations.affectedGenes}{' '}
                                 gene
+                                {filteredOutFusionAlterations.affectedGenes > 1
+                                    ? 's'
+                                    : ''}
                                 {filteredOutFusionAlterations.notShownAlteredCases >
                                 1
-                                    ? 's are'
-                                    : ' is'}{' '}
+                                    ? ' are '
+                                    : ' is '}
                                 not counted as alteration
                                 {filteredOutFusionAlterations.notShownAlteredCases >
                                 1
@@ -609,10 +616,13 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                                     : ''}{' '}
                                 in {filteredOutCnaAlterations.affectedGenes}{' '}
                                 gene
+                                {filteredOutCnaAlterations.affectedGenes > 1
+                                    ? 's'
+                                    : ''}
                                 {filteredOutCnaAlterations.notShownAlteredCases >
                                 1
-                                    ? 's are'
-                                    : ' is'}{' '}
+                                    ? ' are '
+                                    : ' is '}
                                 not counted as alteration
                                 {filteredOutCnaAlterations.notShownAlteredCases >
                                 1
