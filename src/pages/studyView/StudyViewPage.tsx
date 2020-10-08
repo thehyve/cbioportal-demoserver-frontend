@@ -60,7 +60,6 @@ import ResourcesTab, { RESOURCES_TAB_NAME } from './resources/ResourcesTab';
 import { ResourceData } from 'cbioportal-ts-api-client';
 import $ from 'jquery';
 import { StudyViewComparisonGroup } from 'pages/groupComparison/GroupComparisonUtils';
-import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
 import SettingsMenu from 'shared/components/settings/SettingsMenu';
 
 export interface IStudyViewPageProps {
@@ -536,110 +535,6 @@ export default class StudyViewPage extends React.Component<
                                             StudyViewPageTabDescriptions.SUMMARY
                                         }
                                     >
-                                        {this.store.mutatedGeneTableRowData
-                                            .isComplete &&
-                                            this.store
-                                                .filteredMutationAlteredCases <
-                                                this.store
-                                                    .totalMutationAlteredCases && (
-                                                <div
-                                                    className="alert alert-info"
-                                                    data-test="hidden-muttation-alterations-bar"
-                                                    style={{ marginBottom: 6 }}
-                                                >
-                                                    <img
-                                                        src={require('../../rootImages/funnel.svg')}
-                                                        style={{
-                                                            marginRight: 6,
-                                                            width: 15,
-                                                            marginTop: -2,
-                                                        }}
-                                                    />
-                                                    {this.store
-                                                        .totalMutationAlteredCases -
-                                                        this.store
-                                                            .filteredMutationAlteredCases}{' '}
-                                                    mutation
-                                                    {this.store
-                                                        .totalMutationAlteredCases -
-                                                        this.store
-                                                            .filteredMutationAlteredCases >
-                                                    1
-                                                        ? 's do'
-                                                        : ' does'}{' '}
-                                                    not count as alterations for
-                                                    this analysis.
-                                                </div>
-                                            )}
-                                        {this.store.fusionGeneTableRowData
-                                            .isComplete &&
-                                            this.store
-                                                .filteredFusionAlteredCases <
-                                                this.store
-                                                    .totalFusionAlteredCases && (
-                                                <div
-                                                    className="alert alert-info"
-                                                    data-test="hidden-fussion-alterations-bar"
-                                                    style={{ marginBottom: 6 }}
-                                                >
-                                                    <img
-                                                        src={require('../../rootImages/funnel.svg')}
-                                                        style={{
-                                                            marginRight: 6,
-                                                            width: 15,
-                                                            marginTop: -2,
-                                                        }}
-                                                    />
-                                                    {this.store
-                                                        .totalFusionAlteredCases -
-                                                        this.store
-                                                            .filteredFusionAlteredCases}{' '}
-                                                    fusion
-                                                    {this.store
-                                                        .totalFusionAlteredCases -
-                                                        this.store
-                                                            .filteredFusionAlteredCases >
-                                                    1
-                                                        ? 's do'
-                                                        : ' does'}{' '}
-                                                    not count as alterations for
-                                                    this analysis.
-                                                </div>
-                                            )}
-                                        {this.store.cnaGeneTableRowData
-                                            .isComplete &&
-                                            this.store.filteredCnaAlteredCases <
-                                                this.store
-                                                    .totalCnaAlteredCases && (
-                                                <div
-                                                    className="alert alert-info"
-                                                    data-test="hidden-cna-alterations-bar"
-                                                    style={{ marginBottom: 6 }}
-                                                >
-                                                    <img
-                                                        src={require('../../rootImages/funnel.svg')}
-                                                        style={{
-                                                            marginRight: 6,
-                                                            width: 15,
-                                                            marginTop: -2,
-                                                        }}
-                                                    />
-                                                    {this.store
-                                                        .totalCnaAlteredCases -
-                                                        this.store
-                                                            .filteredCnaAlteredCases}{' '}
-                                                    copy number alteration
-                                                    {this.store
-                                                        .totalCnaAlteredCases -
-                                                        this.store
-                                                            .filteredCnaAlteredCases >
-                                                    1
-                                                        ? 's do'
-                                                        : ' does'}{' '}
-                                                    not count as alterations for
-                                                    this analysis.
-                                                </div>
-                                            )}
                                         <StudySummaryTab
                                             store={this.store}
                                         ></StudySummaryTab>
