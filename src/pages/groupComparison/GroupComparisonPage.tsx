@@ -127,6 +127,7 @@ export default class GroupComparisonPage extends React.Component<
             this.store.survivalClinicalDataExists,
         ],
         render: () => {
+            const filteredOutAlterations = this.store.filteredOutAlterations;
             return (
                 <MSKTabs
                     unmountOnHide={false}
@@ -173,6 +174,41 @@ export default class GroupComparisonPage extends React.Component<
                                     : ''
                             }
                         >
+                            {filteredOutAlterations.notShownAlteredCases >
+                                0 && (
+                                <div
+                                    className="alert alert-info"
+                                    data-test="hidden-alterations-bar"
+                                    style={{ marginBottom: 6 }}
+                                >
+                                    <img
+                                        src={require('../../rootImages/funnel.svg')}
+                                        style={{
+                                            marginRight: 6,
+                                            width: 15,
+                                            marginTop: -2,
+                                        }}
+                                    />
+                                    {
+                                        filteredOutAlterations.notShownAlteredCases
+                                    }{' '}
+                                    alteration
+                                    {filteredOutAlterations.notShownAlteredCases >
+                                    1
+                                        ? 's'
+                                        : ''}{' '}
+                                    in {filteredOutAlterations.affectedGenes}{' '}
+                                    gene
+                                    {filteredOutAlterations.affectedGenes > 1
+                                        ? 's'
+                                        : ''}
+                                    {filteredOutAlterations.notShownAlteredCases >
+                                    1
+                                        ? ' are '
+                                        : ' is '}
+                                    not counted in this analysis.
+                                </div>
+                            )}
                             <AlterationEnrichmentTypeSelector
                                 handlers={
                                     this

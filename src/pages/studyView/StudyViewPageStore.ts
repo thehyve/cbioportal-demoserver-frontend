@@ -196,6 +196,11 @@ import {
     IDriverSettingsProps,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
 import { ISettingsMenuButtonVisible } from 'shared/components/settings/SettingsMenuButton';
+import {
+    subset,
+    computedFilteredOutAlterations,
+    FilteredOutAlterations,
+} from 'shared/lib/AlterationsUtils';
 
 export type ChartUserSetting = {
     id: string;
@@ -295,11 +300,6 @@ export type CustomChartIdentifierWithValue = CustomChartIdentifier & {
 export type StatusMessage = {
     status: 'success' | 'warning' | 'danger' | 'info';
     message: string;
-};
-
-export type FilteredOutAlterations = {
-    notShownAlteredCases: number;
-    affectedGenes: number;
 };
 
 export type OncokbCancerGene = {
@@ -405,7 +405,7 @@ export class StudyViewPageStore
                 () => this.computedMutationAlteredCasesPerGene,
                 computedMutationAlteredCases => {
                     this.filteredMutationAlteredCasesByGene = computedMutationAlteredCases;
-                    const gotMoreData = !this.subset(
+                    const gotMoreData = !subset(
                         this.totalMutationAlteredCasesByGene,
                         computedMutationAlteredCases
                     );
@@ -421,7 +421,7 @@ export class StudyViewPageStore
                 () => this.computedFusionAlteredCasesPerGene,
                 computedFusionAlteredCases => {
                     this.filteredFusionAlteredCasesByGene = computedFusionAlteredCases;
-                    const gotMoreData = !this.subset(
+                    const gotMoreData = !subset(
                         this.totalFusionAlteredCasesByGene,
                         computedFusionAlteredCases
                     );
@@ -437,7 +437,7 @@ export class StudyViewPageStore
                 () => this.computedCnaAlteredCasesPerGene,
                 computedCnaAlteredCases => {
                     this.filteredCnaAlteredCasesByGene = computedCnaAlteredCases;
-                    const gotMoreData = !this.subset(
+                    const gotMoreData = !subset(
                         this.totalCnaAlteredCasesByGene,
                         computedCnaAlteredCases
                     );
@@ -5976,71 +5976,25 @@ export class StudyViewPageStore
         return result;
     }
 
-    subset(
-        leftAlteredCasesPerGene: Map<string, number>,
-        rightAteredCasesPerGene: Map<string, number>
-    ): boolean {
-        const leftGenes = new Set(leftAlteredCasesPerGene.keys());
-        for (const rightGene of rightAteredCasesPerGene.keys()) {
-            if (!leftGenes.has(rightGene)) {
-                return false;
-            }
-            if (
-                leftAlteredCasesPerGene.get(rightGene)! <
-                rightAteredCasesPerGene.get(rightGene)!
-            ) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     @computed get filteredOutMutationAlterations(): FilteredOutAlterations {
-        return this.computedFilteredOutAlterations(
+        return computedFilteredOutAlterations(
             this.totalMutationAlteredCasesByGene,
             this.filteredMutationAlteredCasesByGene
         );
     }
 
     @computed get filteredOutFusionAlterations(): FilteredOutAlterations {
-        return this.computedFilteredOutAlterations(
+        return computedFilteredOutAlterations(
             this.totalFusionAlteredCasesByGene,
             this.filteredFusionAlteredCasesByGene
         );
     }
 
     @computed get filteredOutCnaAlterations(): FilteredOutAlterations {
-        return this.computedFilteredOutAlterations(
+        return computedFilteredOutAlterations(
             this.totalCnaAlteredCasesByGene,
             this.filteredCnaAlteredCasesByGene
         );
-    }
-
-    computedFilteredOutAlterations(
-        leftAlteredCasesPerGene: Map<string, number>,
-        rightAteredCasesPerGene: Map<string, number>
-    ): FilteredOutAlterations {
-        const result: FilteredOutAlterations = {
-            notShownAlteredCases: 0,
-            affectedGenes: 0,
-        };
-        for (const leftGene of leftAlteredCasesPerGene.keys()) {
-            if (!rightAteredCasesPerGene.has(leftGene)) {
-                result.notShownAlteredCases += leftAlteredCasesPerGene.get(
-                    leftGene
-                )!;
-                result.affectedGenes += 1;
-            } else if (
-                leftAlteredCasesPerGene.get(leftGene)! >
-                rightAteredCasesPerGene.get(leftGene)!
-            ) {
-                result.notShownAlteredCases +=
-                    leftAlteredCasesPerGene.get(leftGene)! -
-                    rightAteredCasesPerGene.get(leftGene)!;
-                result.affectedGenes += 1;
-            }
-        }
-        return result;
     }
 
     readonly molecularProfileSampleCountSet = remoteData({

@@ -24,7 +24,14 @@ import {
     ReferenceGenomeGene,
     Sample,
 } from 'cbioportal-ts-api-client';
-import { action, autorun, computed, IReactionDisposer, observable } from 'mobx';
+import {
+    action,
+    autorun,
+    computed,
+    IReactionDisposer,
+    observable,
+    reaction,
+} from 'mobx';
 import client from '../../api/cbioportalClientInstance';
 import comparisonClient from '../../api/comparisonGroupClientInstance';
 import _ from 'lodash';
@@ -75,6 +82,11 @@ import {
     buildDriverAnnotationSettings,
     DriverAnnotationSettings,
 } from 'shared/driverAnnotation/DriverAnnotationSettings';
+import {
+    subset,
+    computedFilteredOutAlterations,
+    FilteredOutAlterations,
+} from 'shared/lib/AlterationsUtils';
 
 export enum OverlapStrategy {
     INCLUDE = 'Include',
@@ -83,7 +95,8 @@ export enum OverlapStrategy {
 
 export default class ComparisonStore {
     private tabHasBeenShown = observable.map<boolean>();
-    private tabHasBeenShownReactionDisposer: IReactionDisposer;
+    private reactionDisposers: IReactionDisposer[] = [];
+
     @observable public newSessionPending = false;
     @observable.ref
     selectedCopyNumberEnrichmentEventTypes: CopyNumberEnrichmentEventType[] = [
@@ -145,48 +158,103 @@ export default class ComparisonStore {
 
     public driverAnnotationSettings: DriverAnnotationSettings;
     @observable excludeGermlineMutations = false;
+    @observable filteredAlteredCasesByGene = new Map<string, number>();
+    @observable totalAlteredCasesByGene = new Map<string, number>();
 
     constructor(
         protected appStore: AppStore,
         protected resultsViewStore?: ResultsViewPageStore
     ) {
         setTimeout(() => {
-            this.tabHasBeenShownReactionDisposer = autorun(() => {
-                this.tabHasBeenShown.set(
-                    GroupComparisonTab.SURVIVAL,
-                    !!this.tabHasBeenShown.get(GroupComparisonTab.SURVIVAL) ||
-                        this.showSurvivalTab
-                );
-                this.tabHasBeenShown.set(
-                    GroupComparisonTab.MRNA,
-                    !!this.tabHasBeenShown.get(GroupComparisonTab.MRNA) ||
-                        this.showMRNATab
-                );
-                this.tabHasBeenShown.set(
-                    GroupComparisonTab.PROTEIN,
-                    !!this.tabHasBeenShown.get(GroupComparisonTab.PROTEIN) ||
-                        this.showProteinTab
-                );
-                this.tabHasBeenShown.set(
-                    GroupComparisonTab.DNAMETHYLATION,
-                    !!this.tabHasBeenShown.get(
-                        GroupComparisonTab.DNAMETHYLATION
-                    ) || this.showMethylationTab
-                );
-            });
+            this.reactionDisposers.push(
+                autorun(() => {
+                    this.tabHasBeenShown.set(
+                        GroupComparisonTab.SURVIVAL,
+                        !!this.tabHasBeenShown.get(
+                            GroupComparisonTab.SURVIVAL
+                        ) || this.showSurvivalTab
+                    );
+                    this.tabHasBeenShown.set(
+                        GroupComparisonTab.MRNA,
+                        !!this.tabHasBeenShown.get(GroupComparisonTab.MRNA) ||
+                            this.showMRNATab
+                    );
+                    this.tabHasBeenShown.set(
+                        GroupComparisonTab.PROTEIN,
+                        !!this.tabHasBeenShown.get(
+                            GroupComparisonTab.PROTEIN
+                        ) || this.showProteinTab
+                    );
+                    this.tabHasBeenShown.set(
+                        GroupComparisonTab.DNAMETHYLATION,
+                        !!this.tabHasBeenShown.get(
+                            GroupComparisonTab.DNAMETHYLATION
+                        ) || this.showMethylationTab
+                    );
+                })
+            );
+            this.reactionDisposers.push(
+                reaction(
+                    () => this.computedAlteredCasesPerGene,
+                    computedAlteredCases => {
+                        this.filteredAlteredCasesByGene = computedAlteredCases;
+                        const gotMoreData = !subset(
+                            this.totalAlteredCasesByGene,
+                            computedAlteredCases
+                        );
+                        if (gotMoreData) {
+                            this.totalAlteredCasesByGene = computedAlteredCases;
+                        }
+                    }
+                )
+            );
         }); // do this after timeout so that all subclasses have time to construct
 
         // this.selectedCopyNumberEnrichmentEventTypes = observable();
 
         // this.selectedMutationEnrichmentEventTypes = observable();
+
         this.driverAnnotationSettings = buildDriverAnnotationSettings(
             () => false
         );
     }
 
+    @computed get computedAlteredCasesPerGene() {
+        return this.computeCasesCountsPerGene(
+            this.alterationsEnrichmentData.result!
+        );
+    }
+
+    computeCasesCountsPerGene(
+        enrichments: AlterationEnrichment[]
+    ): Map<string, number> {
+        const result: Map<string, number> = new Map();
+        if (enrichments && enrichments.length > 0) {
+            enrichments.forEach(enrichment => {
+                const gene = enrichment.hugoGeneSymbol;
+                result.set(
+                    enrichment.hugoGeneSymbol,
+                    enrichment.counts.reduce(
+                        (accu, count) => accu + count.alteredCount,
+                        0
+                    ) + (result.get(gene) || 0)
+                );
+            });
+        }
+        return result;
+    }
+
+    @computed get filteredOutAlterations(): FilteredOutAlterations {
+        return computedFilteredOutAlterations(
+            this.totalAlteredCasesByGene,
+            this.filteredAlteredCasesByGene
+        );
+    }
+
     public destroy() {
-        this.tabHasBeenShownReactionDisposer &&
-            this.tabHasBeenShownReactionDisposer();
+        for (const disposer of this.reactionDisposers) {
+            disposer();
+        }
     }
 
     // < To be implemented in subclasses: >
