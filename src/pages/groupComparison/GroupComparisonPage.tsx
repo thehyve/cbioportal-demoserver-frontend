@@ -43,6 +43,7 @@ import AlterationEnrichmentTypeSelector, {
 } from './AlterationEnrichmentTypeSelector';
 import { buildAlterationEnrichmentTypeSelectorHandlers } from 'pages/resultsView/comparison/ComparisonTabUtils';
 import SettingsMenuButton from 'shared/components/settings/SettingsMenuButton';
+import { filteredOutAlterationsMessage } from 'shared/lib/AlterationsUtils';
 
 export interface IGroupComparisonPageProps {
     routing: any;
@@ -189,24 +190,9 @@ export default class GroupComparisonPage extends React.Component<
                                             marginTop: -2,
                                         }}
                                     />
-                                    {
-                                        filteredOutAlterations.notShownAlteredCases
-                                    }{' '}
-                                    alteration
-                                    {filteredOutAlterations.notShownAlteredCases >
-                                    1
-                                        ? 's'
-                                        : ''}{' '}
-                                    in {filteredOutAlterations.affectedGenes}{' '}
-                                    gene
-                                    {filteredOutAlterations.affectedGenes > 1
-                                        ? 's'
-                                        : ''}
-                                    {filteredOutAlterations.notShownAlteredCases >
-                                    1
-                                        ? ' are '
-                                        : ' is '}
-                                    not counted in this analysis.
+                                    {filteredOutAlterationsMessage(
+                                        filteredOutAlterations
+                                    )}
                                 </div>
                             )}
                             <AlterationEnrichmentTypeSelector

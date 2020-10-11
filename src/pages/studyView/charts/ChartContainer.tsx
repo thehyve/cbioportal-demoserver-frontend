@@ -66,6 +66,7 @@ import {
     PatientTreatmentsTableColumnKey,
     PatientTreatmentsTable,
 } from '../table/treatments/PatientTreatmentsTable';
+import { filteredOutAlterationsMessage } from 'shared/lib/AlterationsUtils';
 
 export interface AbstractChart {
     toSVGDOMNode: () => Element;
@@ -439,31 +440,11 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                         geneColumn.columnNote = '⚠️';
                         geneColumn.columnTooltip = (
                             <span data-test="hidden-mutation-alterations">
-                                {
-                                    filteredOutMutationAlterations.notShownAlteredCases
-                                }{' '}
-                                mutation
-                                {filteredOutMutationAlterations.notShownAlteredCases >
-                                1
-                                    ? 's'
-                                    : ''}{' '}
-                                in{' '}
-                                {filteredOutMutationAlterations.affectedGenes}{' '}
-                                gene
-                                {filteredOutMutationAlterations.affectedGenes >
-                                1
-                                    ? 's'
-                                    : ''}
-                                {filteredOutMutationAlterations.notShownAlteredCases >
-                                1
-                                    ? ' are '
-                                    : ' is '}
-                                not counted as alteration
-                                {filteredOutMutationAlterations.notShownAlteredCases >
-                                1
-                                    ? 's'
-                                    : ''}{' '}
-                                in this table.
+                                {filteredOutAlterationsMessage(
+                                    filteredOutMutationAlterations,
+                                    'mutation',
+                                    'table'
+                                )}
                             </span>
                         );
                     }
@@ -524,29 +505,11 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                         geneColumn.columnNote = '⚠️';
                         geneColumn.columnTooltip = (
                             <span data-test="hidden-fusion-alterations">
-                                {
-                                    filteredOutFusionAlterations.notShownAlteredCases
-                                }{' '}
-                                fusion
-                                {filteredOutFusionAlterations.notShownAlteredCases >
-                                1
-                                    ? 's'
-                                    : ''}{' '}
-                                in {filteredOutFusionAlterations.affectedGenes}{' '}
-                                gene
-                                {filteredOutFusionAlterations.affectedGenes > 1
-                                    ? 's'
-                                    : ''}
-                                {filteredOutFusionAlterations.notShownAlteredCases >
-                                1
-                                    ? ' are '
-                                    : ' is '}
-                                not counted as alteration
-                                {filteredOutFusionAlterations.notShownAlteredCases >
-                                1
-                                    ? 's'
-                                    : ''}{' '}
-                                in this table.
+                                {filteredOutAlterationsMessage(
+                                    filteredOutFusionAlterations,
+                                    'fusion',
+                                    'table'
+                                )}
                             </span>
                         );
                     }
@@ -608,27 +571,11 @@ export class ChartContainer extends React.Component<IChartContainerProps, {}> {
                         geneColumn.columnNote = '⚠️';
                         geneColumn.columnTooltip = (
                             <span data-test="hidden-cna-alterations">
-                                {filteredOutCnaAlterations.notShownAlteredCases}{' '}
-                                copy number alteration
-                                {filteredOutCnaAlterations.notShownAlteredCases >
-                                1
-                                    ? 's'
-                                    : ''}{' '}
-                                in {filteredOutCnaAlterations.affectedGenes}{' '}
-                                gene
-                                {filteredOutCnaAlterations.affectedGenes > 1
-                                    ? 's'
-                                    : ''}
-                                {filteredOutCnaAlterations.notShownAlteredCases >
-                                1
-                                    ? ' are '
-                                    : ' is '}
-                                not counted as alteration
-                                {filteredOutCnaAlterations.notShownAlteredCases >
-                                1
-                                    ? 's'
-                                    : ''}{' '}
-                                in this table.
+                                {filteredOutAlterationsMessage(
+                                    filteredOutCnaAlterations,
+                                    'copy number alteration',
+                                    'table'
+                                )}
                             </span>
                         );
                     }

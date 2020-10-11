@@ -64,3 +64,15 @@ export function computedFilteredOutAlterations(
     }
     return result;
 }
+
+export function filteredOutAlterationsMessage(
+    info: FilteredOutAlterations,
+    what: string = 'alteration',
+    where: string = 'analysis'
+) {
+    return `${info.notShownAlteredCases} ${what}${
+        info.notShownAlteredCases > 1 ? 's' : ''
+    } in ${info.affectedGenes} gene${info.affectedGenes > 1 ? 's' : ''} ${
+        info.notShownAlteredCases > 1 ? 'are' : 'is'
+    } not counted in this ${where}.`;
+}
