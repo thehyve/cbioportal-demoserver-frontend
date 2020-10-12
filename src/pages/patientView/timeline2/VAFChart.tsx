@@ -185,12 +185,6 @@ const VAFPointConnector: React.FunctionComponent<{
 
 @observer
 export default class VAFChart extends React.Component<IVAFChartProps, {}> {
-    @computed get sampleEvents() {
-        return this.props.store.allItems.filter(
-            event => event.event!.eventType === 'SPECIMEN'
-        );
-    }
-
     @computed get headerHeight() {
         return 20;
     }
@@ -326,10 +320,10 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
         if (this.props.wrapperStore.showSequentialMode) {
             sequentialDistance =
                 (this.props.store.pixelWidth - sequentialPadding * 2) /
-                (this.sampleEvents.length - 1);
+                (this.props.store.sampleEvents.length - 1);
         }
 
-        this.sampleEvents.forEach((sample, i) => {
+        this.props.store.sampleEvents.forEach((sample, i) => {
             sample.event.attributes.forEach((attribute: any, i: number) => {
                 if (attribute.key === 'SAMPLE_ID') {
                     positionList[attribute.value] = this.props.wrapperStore
@@ -356,7 +350,7 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
 
     @computed get sampleGroups() {
         let sampleGroups: { [groupIndex: number]: string[] } = {};
-        this.sampleEvents.forEach((sample, i) => {
+        this.props.store.sampleEvents.forEach((sample, i) => {
             sample.event.attributes.forEach((attribute: any, i: number) => {
                 if (attribute.key === 'SAMPLE_ID') {
                     // check the group value of this sample id
@@ -463,7 +457,7 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
         let yStart = -5.5;
         let yPositions: { [sampleId: string]: number } = {};
         let xCount: number[] = [];
-        this.sampleEvents.map((event: TimelineEvent, i: number) => {
+        this.props.store.sampleEvents.map((event: TimelineEvent, i: number) => {
             const sampleId = event.event!.attributes.find(
                 (att: any) => att.key === 'SAMPLE_ID'
             );
@@ -745,12 +739,14 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
     sampleIcons() {
         const svg = (
             <g transform={`translate(0,${this.props.wrapperStore.dataHeight})`}>
-                {this.sampleEvents.map((event: TimelineEvent, i: number) => {
-                    const sampleId = event.event!.attributes.find(
-                        (att: any) => att.key === 'SAMPLE_ID'
-                    );
-                    return this.sampleIcon(sampleId.value);
-                })}
+                {this.props.store.sampleEvents.map(
+                    (event: TimelineEvent, i: number) => {
+                        const sampleId = event.event!.attributes.find(
+                            (att: any) => att.key === 'SAMPLE_ID'
+                        );
+                        return this.sampleIcon(sampleId.value);
+                    }
+                )}
             </g>
         );
         return svg;
