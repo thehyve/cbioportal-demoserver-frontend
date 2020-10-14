@@ -37,10 +37,7 @@ interface IVAFChartProps {
         getMouseOverMutation: () => Mutation | null;
         selectedMutations: Readonly<Mutation[]>;
     };
-    sampleTimelineEventStore: {
-        sampleEvents: TimelineEvent[];
-        pixelWidth: number;
-    };
+    sampleEvents: TimelineEvent[];
     store: {
         onlyShowSelectedInVAFChart: boolean | undefined;
         groupingByIsSelected: boolean;
@@ -55,6 +52,7 @@ interface IVAFChartProps {
     sampleIcon: (sampleId: string) => JSX.Element;
 
     height: number;
+    width: number;
 }
 
 const HIGHLIGHT_LINE_STROKE_WIDTH = 6;
@@ -368,10 +366,7 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
 
     render() {
         return (
-            <svg
-                width={this.props.sampleTimelineEventStore.pixelWidth}
-                height={this.props.height}
-            >
+            <svg width={this.props.width} height={this.props.height}>
                 {this.props.lineData.map((data: IPoint[], index: number) => {
                     return data.map((d: IPoint, i: number) => {
                         let x1 = this.props.xPosition[d.sampleId],
@@ -455,7 +450,7 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
     sampleIcons() {
         const svg = (
             <g transform={`translate(0,${this.props.height - 20})`}>
-                {this.props.sampleTimelineEventStore.sampleEvents.map(
+                {this.props.sampleEvents.map(
                     (event: TimelineEvent, i: number) => {
                         const sampleId = event.event!.attributes.find(
                             (att: any) => att.key === 'SAMPLE_ID'
