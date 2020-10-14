@@ -1,11 +1,10 @@
 import React from 'react';
 import { Observer, observer } from 'mobx-react';
-import { action, computed } from 'mobx';
+import { action, computed, observable } from 'mobx';
 import autobind from 'autobind-decorator';
-import { TimelineEvent, TimelineStore } from 'cbioportal-clinical-timeline';
+import { TimelineEvent } from 'cbioportal-clinical-timeline';
 import { Mutation } from 'cbioportal-ts-api-client';
 import { IPoint } from './VAFChartUtils';
-import PatientViewMutationsDataStore from '../mutation/PatientViewMutationsDataStore';
 import _ from 'lodash';
 import { Popover } from 'react-bootstrap';
 import ComplexKeyMap from '../../../shared/lib/complexKeyDataStructures/ComplexKeyMap';
@@ -18,12 +17,36 @@ import {
     mutationTooltip,
 } from '../mutation/PatientViewMutationsTabUtils';
 
-import TimelineWrapperStore from './TimelineWrapperStore';
+type Datum = {
+    mutationStatus: MutationStatus | null;
+    sampleId: string;
+    vaf: number;
+};
+
+type TooltipModel = {
+    datum: Datum | null;
+    mutation: Mutation | null;
+    mouseEvent: React.MouseEvent<any> | null;
+    tooltipOnPoint: boolean;
+};
 
 interface IVAFChartProps {
-    dataStore: PatientViewMutationsDataStore;
-    store: TimelineStore;
-    wrapperStore: TimelineWrapperStore;
+    dataStore: {
+        setMouseOverMutation: (mutation: Mutation | null) => void;
+        toggleSelectedMutation: (mutation: Mutation) => void;
+        getMouseOverMutation: () => Mutation | null;
+        selectedMutations: Readonly<Mutation[]>;
+    };
+    store: {
+        sampleEvents: TimelineEvent[];
+        pixelWidth: number;
+    };
+    wrapperStore: {
+        dataHeight: number;
+        setVafChartHeight: (n: number) => void;
+        onlyShowSelectedInVAFChart: boolean | undefined;
+        groupingByIsSelected: boolean;
+    };
 
     xPosition: { [sampleId: string]: number };
     yPosition: { [value: number]: number };
@@ -42,41 +65,39 @@ const VAFPoint: React.FunctionComponent<{
     x: number;
     y: number;
     color: string;
-    tooltipDatum: {
-        sampleId: string;
-        vaf: number;
-        mutationStatus: MutationStatus;
-    } | null;
+    datum: Datum | null;
     mutation: Mutation;
-    dataStore: PatientViewMutationsDataStore;
-    wrapperStore: TimelineWrapperStore;
+    toggleSelectedMutation: (mutation: Mutation) => void;
+    setTooltipModel(tooltipModel: TooltipModel): void;
 }> = function({
     x,
     y,
     color,
-    tooltipDatum,
+    datum,
     mutation,
-    dataStore,
-    wrapperStore,
+    toggleSelectedMutation,
+    setTooltipModel,
 }) {
     const onMouseOverEvent = (mouseEvent: any) => {
-        wrapperStore.setTooltipModel(tooltipDatum, mutation, mouseEvent, true);
-        dataStore.setMouseOverMutation(mutation);
+        setTooltipModel({ datum, mutation, mouseEvent, tooltipOnPoint: true });
     };
 
     const onMouseOutEvent = (mouseEvent: any) => {
-        wrapperStore.setTooltipModel(null, null, mouseEvent, true);
-        dataStore.setMouseOverMutation(null);
+        setTooltipModel({
+            datum: null,
+            mutation: null,
+            mouseEvent,
+            tooltipOnPoint: true,
+        });
     };
 
     const onMouseClickEvent = (mouseEvent: any) => {
-        dataStore.toggleSelectedMutation(mutation);
+        toggleSelectedMutation(mutation);
     };
 
     const onMouseMoveEvent = (mouseEvent: any) => {
         mouseEvent.persist();
-        wrapperStore.setTooltipModel(tooltipDatum, mutation, mouseEvent, true);
-        dataStore.setMouseOverMutation(mutation);
+        setTooltipModel({ datum, mutation, mouseEvent, tooltipOnPoint: true });
     };
 
     return (
@@ -109,43 +130,41 @@ const VAFPointConnector: React.FunctionComponent<{
     x2: number;
     y2: number;
     color: string;
-    tooltipDatum: {
-        sampleId: string;
-        vaf: number;
-        mutationStatus: MutationStatus;
-    } | null;
+    datum: Datum | null;
     mutation: Mutation;
-    dataStore: PatientViewMutationsDataStore;
-    wrapperStore: TimelineWrapperStore;
+    toggleSelectedMutation: (mutation: Mutation) => void;
+    setTooltipModel(tooltipModel: TooltipModel): void;
 }> = function({
     x1,
     y1,
     x2,
     y2,
     color,
-    tooltipDatum,
+    datum,
     mutation,
-    dataStore,
-    wrapperStore,
+    toggleSelectedMutation,
+    setTooltipModel,
 }) {
     const onMouseOverEvent = (mouseEvent: any) => {
-        wrapperStore.setTooltipModel(tooltipDatum, mutation, mouseEvent, false);
-        dataStore.setMouseOverMutation(mutation);
+        setTooltipModel({ datum, mutation, mouseEvent, tooltipOnPoint: true });
     };
 
     const onMouseOutEvent = (mouseEvent: any) => {
-        wrapperStore.setTooltipModel(null, null, mouseEvent, false);
-        dataStore.setMouseOverMutation(null);
+        setTooltipModel({
+            datum: null,
+            mutation: null,
+            mouseEvent,
+            tooltipOnPoint: false,
+        });
     };
 
     const onMouseClickEvent = (mouseEvent: any) => {
-        dataStore.toggleSelectedMutation(mutation);
+        toggleSelectedMutation(mutation);
     };
 
     const onMouseMoveEvent = (mouseEvent: any) => {
         mouseEvent.persist();
-        wrapperStore.setTooltipModel(tooltipDatum, mutation, mouseEvent, false);
-        dataStore.setMouseOverMutation(mutation);
+        setTooltipModel({ datum, mutation, mouseEvent, tooltipOnPoint: true });
     };
 
     return (
@@ -172,6 +191,8 @@ const VAFPointConnector: React.FunctionComponent<{
 
 @observer
 export default class VAFChart extends React.Component<IVAFChartProps, {}> {
+    @observable.ref private tooltipModel: TooltipModel;
+
     @computed get headerHeight() {
         return 20;
     }
@@ -321,7 +342,7 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
 
     @autobind
     private getTooltipComponent() {
-        let mutationTooltip = this.props.wrapperStore.tooltipModel;
+        let mutationTooltip = this.tooltipModel;
         if (
             !mutationTooltip ||
             mutationTooltip.mouseEvent == null ||
@@ -402,20 +423,38 @@ export default class VAFChart extends React.Component<IVAFChartProps, {}> {
                                         x2={x2}
                                         y2={y2}
                                         color={color}
-                                        tooltipDatum={tooltipDatum}
+                                        datum={tooltipDatum}
                                         mutation={d.mutation}
-                                        dataStore={this.props.dataStore}
-                                        wrapperStore={this.props.wrapperStore}
+                                        toggleSelectedMutation={mutation =>
+                                            this.props.dataStore.toggleSelectedMutation(
+                                                mutation
+                                            )
+                                        }
+                                        setTooltipModel={model => {
+                                            this.tooltipModel = model;
+                                            this.props.dataStore.setMouseOverMutation(
+                                                model.mutation
+                                            );
+                                        }}
                                     />
                                 )}
                                 <VAFPoint
                                     x={x1}
                                     y={y1}
                                     color={color}
-                                    tooltipDatum={tooltipDatum}
+                                    datum={tooltipDatum}
                                     mutation={d.mutation}
-                                    dataStore={this.props.dataStore}
-                                    wrapperStore={this.props.wrapperStore}
+                                    toggleSelectedMutation={mutation =>
+                                        this.props.dataStore.toggleSelectedMutation(
+                                            mutation
+                                        )
+                                    }
+                                    setTooltipModel={model => {
+                                        this.tooltipModel = model;
+                                        this.props.dataStore.setMouseOverMutation(
+                                            model.mutation
+                                        );
+                                    }}
                                 />
                             </g>
                         );
