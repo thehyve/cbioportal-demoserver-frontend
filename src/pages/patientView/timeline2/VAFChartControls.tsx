@@ -99,7 +99,7 @@ const VAFChartControls: React.FunctionComponent<IVAFChartControlsProps> = observ
                             )
                         }
                         labelProps={{ style: { marginRight: 10 } }}
-                        inputProps={{ 'data-test': 'TableShowOnlyHighlighted' }}
+                        inputProps={{ 'data-test': 'VAFOnlyHighlighted' }}
                     >
                         <span style={{ marginTop: -3 }}>
                             Show only selected mutations
