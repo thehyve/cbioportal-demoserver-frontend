@@ -66,7 +66,10 @@ export function computeRenderData(
 
     for (const mergedMutation of mutations) {
         // determine data points in line for this mutation
-
+        const group =
+            groupByOption && groupByOption != GROUP_BY_NONE
+                ? sampleIdToClinicalValue[mergedMutation[0].sampleId]
+                : '';
         // first add data points for each mutation
         let thisLineData: Partial<IPoint>[] = [];
         // keep track of which samples have mutations
@@ -117,7 +120,11 @@ export function computeRenderData(
         const mutation = mergedMutation[0];
         // add data points for samples without mutations
         for (const sample of samples) {
-            if (!(sample.uniqueSampleKey in samplesWithData)) {
+            if (
+                !(sample.uniqueSampleKey in samplesWithData) &&
+                group.length > 0 &&
+                sampleIdToClinicalValue[sample.sampleId] == group
+            ) {
                 if (
                     !isSampleProfiled(
                         sample.uniqueSampleKey,
