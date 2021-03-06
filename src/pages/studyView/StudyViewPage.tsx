@@ -65,6 +65,7 @@ import $ from 'jquery';
 import { StudyViewComparisonGroup } from 'pages/groupComparison/GroupComparisonUtils';
 import { CustomChart } from 'shared/api/sessionServiceAPI';
 import { parse } from 'query-string';
+import { RocheExtractButton } from './studyPageHeader/RocheExtractButton';
 
 export interface IStudyViewPageProps {
     routing: any;
@@ -680,6 +681,11 @@ export default class StudyViewPage extends React.Component<
                                                         <Then>
                                                             {summary}
                                                             {buttons}
+                                                            <RocheExtractButton
+                                                                studyViewStore={
+                                                                    this.store
+                                                                }
+                                                            />
                                                         </Then>
                                                         <Else>
                                                             <LoadingIndicator

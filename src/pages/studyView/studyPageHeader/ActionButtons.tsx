@@ -185,33 +185,6 @@ export default class ActionButtons extends React.Component<
                         </button>
                     </DefaultTooltip>
                 </DefaultTooltip>
-
-                <DefaultTooltip
-                    trigger={['hover']}
-                    placement={'top'}
-                    overlay={<span>{this.downloadButtonTooltip}</span>}
-                >
-                    <button
-                        className="btn btn-default btn-sm"
-                        disabled={!this.props.loadingComplete}
-                        onClick={this.initiateDownload}
-                        data-event={serializeEvent({
-                            category: 'studyPage',
-                            action: 'dataDownload',
-                            label: this.props.store.queriedPhysicalStudyIds
-                                .result,
-                        })}
-                    >
-                        <If condition={this.downloadingData}>
-                            <Then>
-                                <i className="fa fa-spinner fa-spin"></i>
-                            </Then>
-                            <Else>
-                                <i className="fa fa-download"></i>
-                            </Else>
-                        </If>
-                    </button>
-                </DefaultTooltip>
             </div>
         );
     }
