@@ -32,9 +32,25 @@ export type AlterationEnrichment = {
 export type AlterationEventTypeFilter = {
     'copyNumberAlterationEventTypes': {}
 
-    'mutationEventTypes': {}
+    'includeDriver': boolean
 
-    'structuralVariants': boolean
+        'includeGermline': boolean
+
+        'includeSomatic': boolean
+
+        'includeUnknownOncogenicity': boolean
+
+        'includeUnknownStatus': boolean
+
+        'includeUnknownTier': boolean
+
+        'includeVUS': boolean
+
+        'mutationEventTypes': {}
+
+        'structuralVariants': boolean
+
+        'tiersBooleanMap': {}
 
 };
 export type AndedPatientTreatmentFilters = {
@@ -245,6 +261,12 @@ export type CountSummary = {
         'profiledCount': number
 
 };
+export type CustomDriverAnnotationReport = {
+    'hasBinary': boolean
+
+        'tiers': Array < string >
+
+};
 export type DataAccessToken = {
     'creation': string
 
@@ -280,10 +302,34 @@ export type DensityPlotBin = {
 
 };
 export type GeneFilter = {
-    'geneQueries': Array < Array < string >
+    'geneQueries': Array < Array < GeneFilterQuery >
         >
 
         'molecularProfileIds': Array < string >
+
+};
+export type GeneFilterQuery = {
+    'alterations': Array < "AMP" | "GAIN" | "DIPLOID" | "HETLOSS" | "HOMDEL" >
+
+        'entrezGeneId': number
+
+        'hugoGeneSymbol': string
+
+        'includeDriver': boolean
+
+        'includeGermline': boolean
+
+        'includeSomatic': boolean
+
+        'includeUnknownOncogenicity': boolean
+
+        'includeUnknownStatus': boolean
+
+        'includeUnknownTier': boolean
+
+        'includeVUS': boolean
+
+        'tiersBooleanMap': {}
 
 };
 export type GenericAssayDataBin = {
@@ -545,7 +591,7 @@ export type MolecularProfileCaseIdentifier = {
 
 };
 export type MolecularProfileCasesGroupAndAlterationTypeFilter = {
-    'alterationEventTypes': AlterationEventTypeFilter
+    'alterationEventTypes': AlterationFilter
 
         'molecularProfileCasesGroupFilter': Array < MolecularProfileCasesGroupFilter >
 
@@ -743,7 +789,9 @@ export type ServerStatusMessage = {
 
 };
 export type StudyViewFilter = {
-    'caseLists': Array < Array < string >
+    'alterationFilter': AlterationFilter
+
+        'caseLists': Array < Array < string >
         >
 
         'clinicalDataFilters': Array < ClinicalDataFilter >
@@ -1777,6 +1825,85 @@ export default class CBioPortalAPIInternal {
                 return response.body;
             });
         };
+    fetchAlterationDriverAnnotationReportUsingPOSTURL(parameters: {
+        'molecularProfileIds': Array < string > ,
+        $queryParameters ? : any
+    }): string {
+        let queryParameters: any = {};
+        let path = '/custom-driver-annotation-report/fetch';
+        if (parameters['molecularProfileIds'] !== undefined) {
+            queryParameters['molecularProfileIds'] = parameters['molecularProfileIds'];
+        }
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                var parameter = parameters.$queryParameters[parameterName];
+                queryParameters[parameterName] = parameter;
+            });
+        }
+        let keys = Object.keys(queryParameters);
+        return this.domain + path + (keys.length > 0 ? '?' + (keys.map(key => key + '=' + encodeURIComponent(queryParameters[key])).join('&')) : '');
+    };
+
+    /**
+     * Return availability of custom driver annotations for molecular profiles
+     * @method
+     * @name CBioPortalAPIInternal#fetchAlterationDriverAnnotationReportUsingPOST
+     * @param {array} molecularProfileIds - molecularProfileIds
+     */
+    fetchAlterationDriverAnnotationReportUsingPOSTWithHttpInfo(parameters: {
+        'molecularProfileIds': Array < string > ,
+        $queryParameters ? : any,
+        $domain ? : string
+    }): Promise < request.Response > {
+        const domain = parameters.$domain ? parameters.$domain : this.domain;
+        const errorHandlers = this.errorHandlers;
+        const request = this.request;
+        let path = '/custom-driver-annotation-report/fetch';
+        let body: any;
+        let queryParameters: any = {};
+        let headers: any = {};
+        let form: any = {};
+        return new Promise(function(resolve, reject) {
+            headers['Accept'] = 'application/json';
+            headers['Content-Type'] = 'application/json';
+
+            if (parameters['molecularProfileIds'] !== undefined) {
+                queryParameters['molecularProfileIds'] = parameters['molecularProfileIds'];
+            }
+
+            if (parameters['molecularProfileIds'] === undefined) {
+                reject(new Error('Missing required  parameter: molecularProfileIds'));
+                return;
+            }
+
+            if (parameters.$queryParameters) {
+                Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                    var parameter = parameters.$queryParameters[parameterName];
+                    queryParameters[parameterName] = parameter;
+                });
+            }
+
+            request('POST', domain + path, body, headers, queryParameters, form, reject, resolve, errorHandlers);
+
+        });
+    };
+
+    /**
+     * Return availability of custom driver annotations for molecular profiles
+     * @method
+     * @name CBioPortalAPIInternal#fetchAlterationDriverAnnotationReportUsingPOST
+     * @param {array} molecularProfileIds - molecularProfileIds
+     */
+    fetchAlterationDriverAnnotationReportUsingPOST(parameters: {
+        'molecularProfileIds': Array < string > ,
+        $queryParameters ? : any,
+        $domain ? : string
+    }): Promise < CustomDriverAnnotationReport > {
+        return this.fetchAlterationDriverAnnotationReportUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
+            return response.body;
+        });
+    };
     downloadDataAccessTokenUsingGETURL(parameters: {
         'authenticated' ? : boolean,
         'authorities0Authority' ? : string,
