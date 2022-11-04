@@ -93,7 +93,6 @@ import {
     getCategoricalFilterValues,
     getChartMetaDataType,
     getChartSettingsMap,
-    getClinicalDataBySamples,
     getClinicalDataCountWithColorByClinicalDataCount,
     getClinicalEqualityFilterValuesByString,
     getCNAByAlteration,
@@ -139,8 +138,9 @@ import {
     StudyWithSamples,
     submitToPage,
     updateCustomIntervalFilter,
+    getAllClinicalDataByStudyViewFilter,
 } from './StudyViewUtils';
-import MobxPromise from 'mobxpromise';
+import MobxPromise, { MobxPromiseUnionTypeWithDefault } from 'mobxpromise';
 import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import autobind from 'autobind-decorator';
 import {
@@ -8347,31 +8347,37 @@ export class StudyViewPageStore
         default: {},
     });
 
-    readonly getDataForClinicalDataTab = remoteData({
-        await: () => [this.clinicalAttributes, this.selectedSamples],
+    readonly getDataForClinicalDataTab: MobxPromiseUnionTypeWithDefault<
+        { [attr: string]: string }[]
+    > = remoteData({
+        await: () => [
+            this.clinicalAttributes,
+            this.selectedSamples,
+            this.sampleSetByKey,
+        ],
         onError: () => {},
         invoke: async () => {
             if (this.selectedSamples.result.length === 0) {
                 return Promise.resolve([]);
             }
             let sampleClinicalDataMap: {
-                [attributeId: string]: { [attributeId: string]: string };
-            } = await getClinicalDataBySamples(this.selectedSamples.result);
-            return _.reduce(
-                this.selectedSamples.result,
-                (acc, next) => {
-                    let sampleData: { [attributeId: string]: string } = {
-                        studyId: next.studyId,
-                        patientId: next.patientId,
-                        sampleId: next.sampleId,
-                        ...(sampleClinicalDataMap[next.uniqueSampleKey] || {}),
-                    };
+                [sampleId: string]: { [attributeId: string]: string };
+            } = await getAllClinicalDataByStudyViewFilter(this.filters);
 
-                    acc.push(sampleData);
-                    return acc;
-                },
-                [] as { [id: string]: string }[]
+            const sampleClinicalDataArray = _.mapValues(
+                sampleClinicalDataMap,
+                (attrs, uniqueSampleId) => {
+                    const sample = this.sampleSetByKey.result![uniqueSampleId];
+                    return {
+                        studyId: sample.studyId,
+                        patientId: sample.patientId,
+                        sampleId: sample.sampleId,
+                        ...attrs,
+                    };
+                }
             );
+
+            return _.values(sampleClinicalDataArray);
         },
         default: [],
     });
@@ -8866,9 +8872,12 @@ export class StudyViewPageStore
 
     @autobind
     public async getDownloadDataPromise(): Promise<string> {
-        let sampleClinicalDataMap = await getClinicalDataBySamples(
-            this.selectedSamples.result
-        );
+        if (this.selectedSamples.result.length === 0) {
+            return Promise.resolve('');
+        }
+        let sampleClinicalDataMap: {
+            [sampleId: string]: { [attributeId: string]: string };
+        } = await getAllClinicalDataByStudyViewFilter(this.filters);
 
         let clinicalAttributesNameSet = _.reduce(
             this.clinicalAttributes.result,
