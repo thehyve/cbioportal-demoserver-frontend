@@ -55,6 +55,7 @@ import {
     isLogScaleByValues,
     isOccupied,
     makePatientToClinicalAnalysisGroup,
+    mergeClinicalDataCollection,
     needAdditionShiftForLogScaleBarChart,
     pickClinicalDataColors,
     shouldShowChart,
@@ -69,6 +70,7 @@ import {
 import {
     CancerStudy,
     ClinicalAttribute,
+    ClinicalData,
     DataFilterValue,
     MolecularProfile,
     Sample,
@@ -95,6 +97,7 @@ import { remoteData, toPromise } from 'cbioportal-frontend-commons';
 import { autorun, observable, runInAction } from 'mobx';
 
 import { AlterationTypeConstants, DataTypeConstants } from 'shared/constants';
+import { ClinicalDataCollection } from 'cbioportal-ts-api-client/src/generated/CBioPortalAPIInternal';
 
 describe('StudyViewUtils', () => {
     const emptyStudyViewFilter: StudyViewFilter = {
@@ -2650,6 +2653,81 @@ describe('StudyViewUtils', () => {
                     end: undefined,
                 },
             ]);
+        });
+    });
+
+    describe('mergeClinicalDataCollection', () => {
+        it.each([
+            [
+                ({
+                    sampleClinicalData: [
+                        {
+                            sampleId: 's1',
+                            patientId: 'p1',
+                            studyId: 'study1',
+                            uniqueSampleKey: 's1key',
+                            uniquePatientKey: 'p1key',
+                            clinicalAttributeId: 'attr1',
+                            value: 'value1',
+                        },
+                    ],
+                    patientClinicalData: [
+                        {
+                            sampleId: undefined,
+                            patientId: 'p1',
+                            studyId: 'study1',
+                            uniqueSampleKey: undefined,
+                            uniquePatientKey: 'p1key',
+                            clinicalAttributeId: 'attr2',
+                            value: 'value2',
+                        },
+                    ],
+                } as unknown) as ClinicalDataCollection,
+                {
+                    s1key: {
+                        attr1: 'value1',
+                        attr2: 'value2',
+                    },
+                },
+            ],
+            [
+                ({
+                    sampleClinicalData: [
+                        {
+                            sampleId: 's1',
+                            patientId: 'p1',
+                            studyId: 'study1',
+                            uniqueSampleKey: 's1key',
+                            uniquePatientKey: 'p1key',
+                            clinicalAttributeId: 'attr1',
+                            value: 'value1',
+                        },
+                    ],
+                    patientClinicalData: [
+                        {
+                            sampleId: undefined,
+                            patientId: 'p2',
+                            studyId: 'study1',
+                            uniqueSampleKey: undefined,
+                            uniquePatientKey: 'p1key',
+                            clinicalAttributeId: 'attr2',
+                            value: 'value2',
+                        },
+                    ],
+                } as unknown) as ClinicalDataCollection,
+                {
+                    s1key: {
+                        attr1: 'value1',
+                    },
+                },
+            ],
+        ])('Convert %b to %b', (input, expected) => {
+            assert.deepEqual(
+                expected,
+                mergeClinicalDataCollection(
+                    (input as unknown) as ClinicalDataCollection
+                )
+            );
         });
     });
 
