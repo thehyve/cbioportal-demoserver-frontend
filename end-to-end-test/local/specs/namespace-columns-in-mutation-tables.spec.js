@@ -2,6 +2,10 @@ const assert = require('assert');
 const {
     goToUrlAndSetLocalStorageWithProperty,
 } = require('../../shared/specUtils');
+const {
+    namespaceColumnsAreNotDisplayed,
+    namespaceColumnsAreDisplayed,
+} = require('./namespace-columns-utils');
 
 const CBIOPORTAL_URL = process.env.CBIOPORTAL_URL.replace(/\/$/, '');
 const resultsViewUrl = `${CBIOPORTAL_URL}/results/mutations?cancer_study_list=study_es_0&Z_SCORE_THRESHOLD=2.0&RPPA_SCORE_THRESHOLD=2.0&profileFilter=mutations%2Cfusion%2Cgistic&case_set_id=study_es_0_all&gene_list=BRCA1&geneset_list=%20&tab_index=tab_visualize&Action=Submit`;
@@ -106,20 +110,6 @@ waitForMutationTable = () => {
 
 waitForPatientViewMutationTable = () => {
     $('[data-test=patientview-mutation-table]').waitForDisplayed();
-};
-
-namespaceColumnsAreDisplayed = () => {
-    return (
-        $("//span[text() = 'Zygosity Code']").isDisplayed() &&
-        $("//span[text() = 'Zygosity Name']").isDisplayed()
-    );
-};
-
-namespaceColumnsAreNotDisplayed = () => {
-    return !(
-        $("//span[text() = 'Zygosity Code']").isDisplayed() &&
-        $("//span[text() = 'Zygosity Name']").isDisplayed()
-    );
 };
 
 filterIconOfHeader = selector => {
