@@ -704,6 +704,36 @@ export type ServerStatusMessage = {
     'status': string
 
 };
+export type StructVarFilterQuery = {
+    'gene1Query': StructuralVariantGeneSubQuery
+
+        'gene2Query': StructuralVariantGeneSubQuery
+
+        'includeDriver': boolean
+
+        'includeGermline': boolean
+
+        'includeSomatic': boolean
+
+        'includeUnknownOncogenicity': boolean
+
+        'includeUnknownStatus': boolean
+
+        'includeUnknownTier': boolean
+
+        'includeVUS': boolean
+
+        'tiersBooleanMap': {}
+
+};
+export type StructuralVariantGeneSubQuery = {
+    'entrezId': number
+
+        'hugoSymbol': string
+
+        'specialValue': "ANY_GENE" | "NO_GENE"
+
+};
 export type StudyViewFilter = {
     'alterationFilter': AlterationFilter
 
@@ -737,7 +767,16 @@ export type StudyViewFilter = {
 
         'sampleTreatmentTargetFilters': AndedSampleTreatmentFilters
 
+        'structuralVariantFilters': Array < StudyViewStructuralVariantFilter >
+
         'studyIds': Array < string >
+
+};
+export type StudyViewStructuralVariantFilter = {
+    'molecularProfileIds': Array < string >
+
+        'structVarQueries': Array < Array < StructVarFilterQuery >
+        >
 
 };
 export type TypeOfCancer = {

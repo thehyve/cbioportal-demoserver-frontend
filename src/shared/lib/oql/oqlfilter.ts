@@ -7,20 +7,29 @@ import oql_parser, {
     CNACommand,
     EXPCommand,
     FUSIONCommand,
+    FUSIONCommandDownstream,
+    FUSIONCommandOrientationBase,
+    FUSIONCommandUpstream,
+    MergedGeneQuery,
     MutationModifier,
     MUTCommand,
     PROTCommand,
+    SingleGeneQuery,
+    StructVarSpecialValue,
 } from './oql-parser';
 import { annotateAlterationTypes } from './annotateAlterationTypes';
-import { SingleGeneQuery, MergedGeneQuery } from './oql-parser';
 import {
     AnnotatedMutation,
-    ExtendedAlteration,
     AnnotatedStructuralVariant,
+    ExtendedAlteration,
 } from '../../../pages/resultsView/ResultsViewPageStore';
-import { NumericGeneMolecularData, Mutation } from 'cbioportal-ts-api-client';
-
-import { StructuralVariant } from 'cbioportal-ts-api-client';
+import {
+    Gene,
+    Mutation,
+    NumericGeneMolecularData,
+    StructuralVariant,
+    StructuralVariantGeneSubQuery,
+} from 'cbioportal-ts-api-client';
 
 import { Alteration } from 'shared/lib/oql/oql-parser';
 import AccessorsForOqlFilter, {
@@ -28,6 +37,7 @@ import AccessorsForOqlFilter, {
     SimplifiedMutationType,
 } from './AccessorsForOqlFilter';
 import ifNotDefined from '../ifNotDefined';
+import { StructuralVariantQuery } from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
 
 export interface IAccessorsForOqlFilter<T> {
     // a null return for an attribute means that attribute
@@ -355,10 +365,45 @@ export function parsedOQLAlterationToSourceOQL(alteration: Alteration): string {
                     })
                     .join('')
             );
+        case 'downstream_fusion':
+            const downstreamGene =
+                alteration.gene === undefined
+                    ? '-'
+                    : // TODO replace by STRUCTVARAnyGeneStr
+                    alteration.gene === '*'
+                    ? ''
+                    : alteration.gene;
+            return (
+                'FUSION::' +
+                downstreamGene +
+                alteration.modifiers
+                    .map(function(modifier) {
+                        return '_' + modifier.type;
+                    })
+                    .join('')
+            );
+        case 'upstream_fusion':
+            const upstreamGene =
+                alteration.gene === undefined
+                    ? '-'
+                    : // TODO replace by STRUCTVARAnyGeneStr
+                    alteration.gene === '*'
+                    ? ''
+                    : alteration.gene;
+            return (
+                upstreamGene +
+                '::FUSION' +
+                alteration.modifiers
+                    .map(function(modifier) {
+                        return '_' + modifier.type;
+                    })
+                    .join('')
+            );
         case 'any':
             return alteration.modifiers.map(m => m.type).join('_');
     }
 }
+
 export function unparseOQLQueryLine(parsed_oql_line: SingleGeneQuery): string {
     let ret = parsed_oql_line.gene;
     const alterations = parsed_oql_line.alterations;
@@ -367,6 +412,95 @@ export function unparseOQLQueryLine(parsed_oql_line: SingleGeneQuery): string {
         ret += ';';
     }
     return ret;
+}
+
+// TODO improve implementation
+// TODO add tests !!!!!!!!!!!!
+export function convertToGeneAGeneBRepresentation(
+    parsed_oql_line: SingleGeneQuery
+): string[] {
+    const representativeGene = parsed_oql_line.gene;
+    if (!queryContainsStructVarAlteration(parsed_oql_line)) {
+        return [representativeGene];
+    }
+    return _(parsed_oql_line.alterations || [])
+        .filter(alteration => alterationIsStructVar(alteration))
+        .map((alteration: FUSIONCommandDownstream | FUSIONCommandUpstream) => {
+            const otherGene =
+                alteration.gene == undefined
+                    ? '-'
+                    : alteration.gene === '*'
+                    ? ''
+                    : alteration.gene;
+            return alteration.alteration_type === 'upstream_fusion'
+                ? otherGene + '::' + representativeGene
+                : representativeGene + '::' + otherGene;
+        })
+        .value();
+}
+
+// Convert 'GeneA::GeneB' notation to OQL SingleGeneQuery.
+export function convertGene1Gene2RepresentationToOQL(
+    gene1Gene2Representation: string
+): SingleGeneQuery {
+    if (!gene1Gene2Representation.match('::')) {
+        throw new Error(
+            "Stuct var representation is not of format 'GeneA::GeneB'. Passed value: " +
+                gene1Gene2Representation
+        );
+    }
+    const [
+        gene1HugoSymbol,
+        gene2HugoSymbol,
+    ]: string[] = gene1Gene2Representation.split('::');
+    if (!gene1HugoSymbol && !gene2HugoSymbol) {
+        throw new Error(
+            'Both Gene1 and Gene2 are falsy. Passed value: ' +
+                gene1Gene2Representation
+        );
+    }
+    const representativeGene = gene1HugoSymbol || gene2HugoSymbol;
+    if (representativeGene === gene1HugoSymbol) {
+        return {
+            gene: gene1HugoSymbol,
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: gene2HugoSymbol,
+                },
+            ],
+        } as SingleGeneQuery;
+    } else {
+        return {
+            gene: gene2HugoSymbol,
+            alterations: [
+                {
+                    alteration_type: 'upstream_fusion',
+                    gene: gene1HugoSymbol,
+                },
+            ],
+        } as SingleGeneQuery;
+    }
+}
+
+// TODO add tests !!!!!!!!!!!!
+export function queryContainsStructVarAlteration(
+    parsed_oql_line: SingleGeneQuery
+): boolean {
+    if (!parsed_oql_line.alterations) {
+        return false;
+    }
+    return !!_.find(parsed_oql_line.alterations, alteration =>
+        alterationIsStructVar(alteration)
+    );
+}
+
+// TODO add tests !!!!!!!!!!!!
+export function alterationIsStructVar(alteration: Alteration): boolean {
+    return (
+        alteration.alteration_type === 'upstream_fusion' ||
+        alteration.alteration_type === 'downstream_fusion'
+    );
 }
 
 function isDatumWantedByOQL<T>(
@@ -427,7 +561,8 @@ function isDatumWantedByOQLLine<T>(
                 return isDatumWantedByOQLAlterationCommand(
                     alteration_cmd,
                     datum,
-                    accessors
+                    accessors,
+                    query_line
                 );
             })
             .reduce(function(acc, next) {
@@ -453,7 +588,8 @@ function isDatumWantedByOQLLine<T>(
 function isDatumWantedByOQLAlterationCommand<T>(
     alt_cmd: Alteration,
     datum: T,
-    accessors: IAccessorsForOqlFilter<T>
+    accessors: IAccessorsForOqlFilter<T>,
+    query_line: SingleGeneQuery
 ): number {
     /*
      *  Out: 1 if the datum is addressed by this command and wanted,
@@ -474,6 +610,20 @@ function isDatumWantedByOQLAlterationCommand<T>(
             );
         case 'fusion':
             return isDatumWantedByFUSIONCommand(alt_cmd, datum, accessors);
+        case 'upstream_fusion':
+            return isDatumWantedByFUSIONCommandUpstream(
+                alt_cmd,
+                datum,
+                accessors,
+                query_line.gene
+            );
+        case 'downstream_fusion':
+            return isDatumWantedByFUSIONCommandDownstream(
+                alt_cmd,
+                datum,
+                accessors,
+                query_line.gene
+            );
         case 'any':
             return isDatumWantedByAnyTypeWithModifiersCommand(
                 alt_cmd,
@@ -528,12 +678,17 @@ function isDatumWantedByAnyTypeWithModifiersCommand<T>(
     }
 }
 
+export type FUSIONCommandUpDownAny =
+    | FUSIONCommandUpstream
+    | FUSIONCommandDownstream
+    | FUSIONCommand;
+
 // this command can ONLY return null or TRUE
 function isDatumWantedByFUSIONCommand<T>(
     alt_cmd: FUSIONCommand,
     datum: T,
     accessors: IAccessorsForOqlFilter<T>
-) {
+): number {
     /* Helper method for isDatumWantedByOQLAlterationCommand
      * In/Out: See isDatumWantedByOQLAlterationCommand
      */
@@ -541,21 +696,119 @@ function isDatumWantedByFUSIONCommand<T>(
     if (d_fusion === null) {
         // If no fusion data, it's not addressed
         return 0;
-    } else {
-        var match = true;
-        // now filter by modifiers with AND logic
-        for (var i = 0; i < alt_cmd.modifiers.length; i++) {
-            const datumWanted = isDatumWantedByOQLAlterationModifier(
-                alt_cmd.modifiers[i],
-                datum,
-                accessors
-            );
-            if (datumWanted !== null) {
-                match = match && datumWanted;
-            }
-        }
-        return 2 * +match - 1; // map 0,1 to -1,1
     }
+    return matchByModifiers(alt_cmd, datum, accessors);
+}
+
+/**
+ * Upstream {@param alt_cmd}.gene must match gene 1 in datum
+ * Downstream {@param gene} must match gene 2 in datum
+ * This command can ONLY return null or TRUE
+ */
+function isDatumWantedByFUSIONCommandUpstream<T>(
+    alt_cmd: FUSIONCommandUpstream,
+    datum: T,
+    accessors: IAccessorsForOqlFilter<T>,
+    gene: string
+): number {
+    var d_fusion = accessors.structuralVariant(datum); // null || true
+    if (d_fusion === null) {
+        // If no fusion data, it's not addressed
+        return 0;
+    }
+    const structuralVariant = (datum as unknown) as StructuralVariant;
+    if (
+        !matchGeneByHygoSymbolOrSpecialValues(
+            gene,
+            structuralVariant.site2HugoSymbol
+        )
+    ) {
+        return 0;
+    }
+    if (
+        !matchGeneByHygoSymbolOrSpecialValues(
+            alt_cmd.gene,
+            structuralVariant.site1HugoSymbol
+        )
+    ) {
+        return 0;
+    }
+
+    return matchByModifiers(alt_cmd, datum, accessors);
+}
+
+/**
+ * Downstream {@param alt_cmd}.gene must match gene 2 in datum
+ * Upstream {@param gene} must match gene 1 in datum
+ * This command can ONLY return null or TRUE
+ */
+function isDatumWantedByFUSIONCommandDownstream<T>(
+    alt_cmd: FUSIONCommandDownstream,
+    datum: T,
+    accessors: IAccessorsForOqlFilter<T>,
+    gene: string
+): number {
+    var d_fusion = accessors.structuralVariant(datum); // null || true
+    if (d_fusion === null) {
+        // If no fusion data, it's not addressed
+        return 0;
+    }
+    const structuralVariant = (datum as unknown) as StructuralVariant;
+    if (
+        !matchGeneByHygoSymbolOrSpecialValues(
+            gene,
+            structuralVariant.site1HugoSymbol
+        )
+    ) {
+        return 0;
+    }
+    if (
+        !matchGeneByHygoSymbolOrSpecialValues(
+            alt_cmd.gene,
+            structuralVariant.site2HugoSymbol
+        )
+    ) {
+        return 0;
+    }
+
+    return matchByModifiers(alt_cmd, datum, accessors);
+}
+
+function matchGeneByHygoSymbolOrSpecialValues(
+    gene: OQLGene,
+    hugoSymbol: string
+): boolean {
+    if (gene === undefined) {
+        // Hugo symbol must be missing:
+        if (hugoSymbol) {
+            return false;
+        }
+    } else if (_.isString(gene) && gene !== '*') {
+        // Hugo symbol must match:
+        if (hugoSymbol !== gene) {
+            return false;
+        }
+    }
+    return true;
+}
+function matchByModifiers<T>(
+    alt_cmd: FUSIONCommandUpDownAny,
+    datum: T,
+    accessors: IAccessorsForOqlFilter<T>
+) {
+    var match = true;
+    // now filter by modifiers with AND logic
+    for (var i = 0; i < alt_cmd.modifiers.length; i++) {
+        const datumWanted = isDatumWantedByOQLAlterationModifier(
+            alt_cmd.modifiers[i],
+            datum,
+            accessors
+        );
+        if (datumWanted !== null) {
+            match = match && datumWanted;
+        }
+    }
+    return 2 * +match - 1; // map 0,1 to -1,1
 }
 
 function isDatumWantedByOQLCNACommand<T>(
@@ -978,9 +1231,14 @@ export function filterCBioPortalWebServiceDataByUnflattenedOQLLine(
     return filterData(oql_query, data, accessors, default_oql, 'mergedtrack');
 }
 
+/**
+ * See also: {@link StructVarSpecialValue}
+ */
+export const structVarOQLSpecialValues = [undefined, '*'];
+
 export function uniqueGenesInOQLQuery(oql_query: string): string[] {
-    var parse_result = parseOQLQuery(oql_query);
-    var genes = parse_result
+    const parse_result = parseOQLQuery(oql_query);
+    const genes = parse_result
         .filter(function(q_line) {
             return q_line.gene.toLowerCase() !== 'datatypes';
         })
@@ -991,5 +1249,98 @@ export function uniqueGenesInOQLQuery(oql_query: string): string[] {
     for (var i = 0; i < genes.length; i++) {
         unique_genes_set[genes[i]] = true;
     }
-    return Object.keys(unique_genes_set);
+
+    const hugoGeneSymbols = Object.keys(unique_genes_set);
+    hugoGeneSymbols.push(
+        ...(parse_result
+            .filter(isUpOrDownstreamFusion)
+            .map(getSecondGene) as string[])
+    );
+    return hugoGeneSymbols;
 }
+
+type OQLGene = '*' | string | undefined;
+
+export function createStructuralVariantQuery(
+    fusionQuery: SingleGeneQuery,
+    genes: Gene[]
+): StructuralVariantQuery {
+    const gene1 = createStructuralVariantGeneSubQuery(
+        getFirstGene(fusionQuery),
+        genes
+    );
+    const gene2 = createStructuralVariantGeneSubQuery(
+        getSecondGene(fusionQuery),
+        genes
+    );
+    return { gene1, gene2 };
+}
+
+function createStructuralVariantGeneSubQuery(
+    oqlGene: OQLGene,
+    genes: Gene[]
+): StructuralVariantGeneSubQuery {
+    const geneSubquery = {} as StructuralVariantGeneSubQuery;
+    if (oqlGene === undefined) {
+        geneSubquery.specialValue = 'NO_GENE';
+    } else if (oqlGene === '*') {
+        geneSubquery.specialValue = 'ANY_GENE';
+    } else if (_.isString(oqlGene) && oqlGene !== '*') {
+        const found = genes.find(g => g.hugoGeneSymbol === oqlGene);
+        geneSubquery.entrezId = found!.entrezGeneId;
+    }
+    return geneSubquery;
+}
+
+const getFirstGene = (query: SingleGeneQuery) => {
+    if (isDownstream(query)) {
+        return query.gene;
+    } else {
+        return getGeneFromAlterations(query);
+    }
+};
+
+const getSecondGene = (query: SingleGeneQuery) => {
+    if (isDownstream(query)) {
+        return getGeneFromAlterations(query);
+    } else {
+        return query.gene;
+    }
+};
+
+function isDownstream(q: SingleGeneQuery) {
+    return (
+        (q.alterations as FUSIONCommandUpDownAny[])[0].alteration_type ===
+        'downstream_fusion'
+    );
+}
+
+const getGeneFromAlterations = (q: SingleGeneQuery) => {
+    return (q.alterations as FUSIONCommandOrientationBase[])[0].gene;
+};
+
+export function fusionsInOQLQuery(oql_query: string): SingleGeneQuery[] {
+    const parse_result = parseOQLQuery(oql_query);
+    return parse_result.filter(isUpOrDownstreamFusion);
+}
+
+export function nonFusionsInOQLQuery(oql_query: string): string[] {
+    const parse_result = parseOQLQuery(oql_query);
+    const singleGeneQueries = parse_result.filter(isNonFusionQuery);
+    return _(singleGeneQueries)
+        .map(q_line => q_line.gene)
+        .filter((gene: string) => gene.toLowerCase() !== 'datatypes')
+        .map((gene: string) => gene.toUpperCase())
+        .value();
+}
+
+const isNonFusionQuery = (q: SingleGeneQuery) => !isUpOrDownstreamFusion(q);
+
+// Legacy 'fusion' command only contains a single gene:
+const upDownFusionCommands = ['downstream_fusion', 'upstream_fusion'];
+const isUpOrDownstreamFusion = (q: SingleGeneQuery): boolean => {
+    return (
+        q.alterations &&
+        upDownFusionCommands.includes(q.alterations[0]?.alteration_type)
+    );
+};

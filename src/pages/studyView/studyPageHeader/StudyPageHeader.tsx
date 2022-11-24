@@ -90,6 +90,9 @@ export default class StudyPageHeader extends React.Component<
                             this.props.store.setCustomChartFilters
                         }
                         removeGeneFilter={this.props.store.removeGeneFilter}
+                        removeStructVarFilter={
+                            this.props.store.removeStructVarFilter
+                        }
                         removeCustomSelectionFilter={
                             this.props.store.removeCustomSelectFilter
                         }

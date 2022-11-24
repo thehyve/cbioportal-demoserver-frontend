@@ -4,7 +4,11 @@ type CallbackHandler = (err: any, res ? : request.Response) => void;
 export type AlterationCountByGene = {
     'entrezGeneId': number
 
+        'entrezGeneIds': Array < number >
+
         'hugoGeneSymbol': string
+
+        'hugoGeneSymbols': Array < string >
 
         'matchingGenePanelIds': Array < string >
 
@@ -15,6 +19,32 @@ export type AlterationCountByGene = {
         'qValue': number
 
         'totalCount': number
+
+        'uniqueEventKey': string
+
+};
+export type AlterationCountByStructuralVariant = {
+    'entrezGeneIds': Array < number >
+
+        'gene1EntrezGeneId': number
+
+        'gene1HugoGeneSymbol': string
+
+        'gene2EntrezGeneId': number
+
+        'gene2HugoGeneSymbol': string
+
+        'hugoGeneSymbols': Array < string >
+
+        'matchingGenePanelIds': Array < string >
+
+        'numberOfAlteredCases': number
+
+        'numberOfProfiledCases': number
+
+        'totalCount': number
+
+        'uniqueEventKey': string
 
 };
 export type AlterationEnrichment = {
@@ -298,7 +328,11 @@ export type CopyNumberCountByGene = {
 
         'entrezGeneId': number
 
+        'entrezGeneIds': Array < number >
+
         'hugoGeneSymbol': string
+
+        'hugoGeneSymbols': Array < string >
 
         'matchingGenePanelIds': Array < string >
 
@@ -309,6 +343,8 @@ export type CopyNumberCountByGene = {
         'qValue': number
 
         'totalCount': number
+
+        'uniqueEventKey': string
 
 };
 export type CopyNumberCountIdentifier = {
@@ -868,6 +904,28 @@ export type SampleTreatmentFilter = {
         'treatment': string
 
 };
+export type StructVarFilterQuery = {
+    'gene1Query': StructuralVariantGeneSubQuery
+
+        'gene2Query': StructuralVariantGeneSubQuery
+
+        'includeDriver': boolean
+
+        'includeGermline': boolean
+
+        'includeSomatic': boolean
+
+        'includeUnknownOncogenicity': boolean
+
+        'includeUnknownStatus': boolean
+
+        'includeUnknownTier': boolean
+
+        'includeVUS': boolean
+
+        'tiersBooleanMap': {}
+
+};
 export type StructuralVariant = {
     'annotation': string
 
@@ -975,6 +1033,22 @@ export type StructuralVariantFilter = {
 
         'sampleMolecularIdentifiers': Array < SampleMolecularIdentifier >
 
+        'structuralVariantQueries': Array < StructuralVariantQuery >
+
+};
+export type StructuralVariantGeneSubQuery = {
+    'entrezId': number
+
+        'hugoSymbol': string
+
+        'specialValue': "ANY_GENE" | "NO_GENE"
+
+};
+export type StructuralVariantQuery = {
+    'gene1': StructuralVariantGeneSubQuery
+
+        'gene2': StructuralVariantGeneSubQuery
+
 };
 export type StudyViewFilter = {
     'alterationFilter': AlterationFilter
@@ -1009,7 +1083,16 @@ export type StudyViewFilter = {
 
         'sampleTreatmentTargetFilters': AndedSampleTreatmentFilters
 
+        'structuralVariantFilters': Array < StudyViewStructuralVariantFilter >
+
         'studyIds': Array < string >
+
+};
+export type StudyViewStructuralVariantFilter = {
+    'molecularProfileIds': Array < string >
+
+        'structVarQueries': Array < Array < StructVarFilterQuery >
+        >
 
 };
 export type VariantCount = {
@@ -5537,6 +5620,14 @@ export default class CBioPortalAPIInternal {
             'sampleMolecularIdentifiers0MolecularProfileId' ? : string,
             'sampleMolecularIdentifiers0SampleId' ? : string,
             'structuralVariantFilter': StructuralVariantFilter,
+            'structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue' ? : boolean,
+            'structuralVariantQueries0Gene1EntrezId' ? : number,
+            'structuralVariantQueries0Gene1HugoSymbol' ? : string,
+            'structuralVariantQueries0Gene1SpecialValue' ? : "ANY_GENE" | "NO_GENE",
+            'structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue' ? : boolean,
+            'structuralVariantQueries0Gene2EntrezId' ? : number,
+            'structuralVariantQueries0Gene2HugoSymbol' ? : string,
+            'structuralVariantQueries0Gene2SpecialValue' ? : "ANY_GENE" | "NO_GENE",
             $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
@@ -5555,6 +5646,38 @@ export default class CBioPortalAPIInternal {
 
         if (parameters['sampleMolecularIdentifiers0SampleId'] !== undefined) {
             queryParameters['sampleMolecularIdentifiers[0].sampleId'] = parameters['sampleMolecularIdentifiers0SampleId'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene1.containingOnlyOneIdentifierOrSpecialValue'] = parameters['structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene1EntrezId'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene1.entrezId'] = parameters['structuralVariantQueries0Gene1EntrezId'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene1HugoSymbol'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene1.hugoSymbol'] = parameters['structuralVariantQueries0Gene1HugoSymbol'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene1SpecialValue'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene1.specialValue'] = parameters['structuralVariantQueries0Gene1SpecialValue'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene2.containingOnlyOneIdentifierOrSpecialValue'] = parameters['structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene2EntrezId'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene2.entrezId'] = parameters['structuralVariantQueries0Gene2EntrezId'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene2HugoSymbol'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene2.hugoSymbol'] = parameters['structuralVariantQueries0Gene2HugoSymbol'];
+        }
+
+        if (parameters['structuralVariantQueries0Gene2SpecialValue'] !== undefined) {
+            queryParameters['structuralVariantQueries[0].gene2.specialValue'] = parameters['structuralVariantQueries0Gene2SpecialValue'];
         }
 
         if (parameters.$queryParameters) {
@@ -5576,6 +5699,14 @@ export default class CBioPortalAPIInternal {
      * @param {string} sampleMolecularIdentifiers0MolecularProfileId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
      * @param {string} sampleMolecularIdentifiers0SampleId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
      * @param {} structuralVariantFilter - List of entrezGeneIds and molecularProfileIds or sampleMolecularIdentifiers
+     * @param {boolean} structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {integer} structuralVariantQueries0Gene1EntrezId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene1HugoSymbol - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene1SpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {boolean} structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {integer} structuralVariantQueries0Gene2EntrezId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene2HugoSymbol - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene2SpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
      */
     fetchStructuralVariantsUsingPOSTWithHttpInfo(parameters: {
         'entrezGeneIds' ? : Array < number > ,
@@ -5583,6 +5714,14 @@ export default class CBioPortalAPIInternal {
             'sampleMolecularIdentifiers0MolecularProfileId' ? : string,
             'sampleMolecularIdentifiers0SampleId' ? : string,
             'structuralVariantFilter': StructuralVariantFilter,
+            'structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue' ? : boolean,
+            'structuralVariantQueries0Gene1EntrezId' ? : number,
+            'structuralVariantQueries0Gene1HugoSymbol' ? : string,
+            'structuralVariantQueries0Gene1SpecialValue' ? : "ANY_GENE" | "NO_GENE",
+            'structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue' ? : boolean,
+            'structuralVariantQueries0Gene2EntrezId' ? : number,
+            'structuralVariantQueries0Gene2HugoSymbol' ? : string,
+            'structuralVariantQueries0Gene2SpecialValue' ? : "ANY_GENE" | "NO_GENE",
             $queryParameters ? : any,
             $domain ? : string
     }): Promise < request.Response > {
@@ -5623,6 +5762,38 @@ export default class CBioPortalAPIInternal {
                 return;
             }
 
+            if (parameters['structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene1.containingOnlyOneIdentifierOrSpecialValue'] = parameters['structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene1EntrezId'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene1.entrezId'] = parameters['structuralVariantQueries0Gene1EntrezId'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene1HugoSymbol'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene1.hugoSymbol'] = parameters['structuralVariantQueries0Gene1HugoSymbol'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene1SpecialValue'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene1.specialValue'] = parameters['structuralVariantQueries0Gene1SpecialValue'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene2.containingOnlyOneIdentifierOrSpecialValue'] = parameters['structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene2EntrezId'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene2.entrezId'] = parameters['structuralVariantQueries0Gene2EntrezId'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene2HugoSymbol'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene2.hugoSymbol'] = parameters['structuralVariantQueries0Gene2HugoSymbol'];
+            }
+
+            if (parameters['structuralVariantQueries0Gene2SpecialValue'] !== undefined) {
+                queryParameters['structuralVariantQueries[0].gene2.specialValue'] = parameters['structuralVariantQueries0Gene2SpecialValue'];
+            }
+
             if (parameters.$queryParameters) {
                 Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
                     var parameter = parameters.$queryParameters[parameterName];
@@ -5644,6 +5815,14 @@ export default class CBioPortalAPIInternal {
      * @param {string} sampleMolecularIdentifiers0MolecularProfileId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
      * @param {string} sampleMolecularIdentifiers0SampleId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
      * @param {} structuralVariantFilter - List of entrezGeneIds and molecularProfileIds or sampleMolecularIdentifiers
+     * @param {boolean} structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {integer} structuralVariantQueries0Gene1EntrezId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene1HugoSymbol - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene1SpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {boolean} structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {integer} structuralVariantQueries0Gene2EntrezId - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene2HugoSymbol - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
+     * @param {string} structuralVariantQueries0Gene2SpecialValue - A web service for supplying JSON formatted data to cBioPortal clients. Please note that interal API is currently in beta and subject to change.
      */
     fetchStructuralVariantsUsingPOST(parameters: {
             'entrezGeneIds' ? : Array < number > ,
@@ -5651,11 +5830,96 @@ export default class CBioPortalAPIInternal {
                 'sampleMolecularIdentifiers0MolecularProfileId' ? : string,
                 'sampleMolecularIdentifiers0SampleId' ? : string,
                 'structuralVariantFilter': StructuralVariantFilter,
+                'structuralVariantQueries0Gene1ContainingOnlyOneIdentifierOrSpecialValue' ? : boolean,
+                'structuralVariantQueries0Gene1EntrezId' ? : number,
+                'structuralVariantQueries0Gene1HugoSymbol' ? : string,
+                'structuralVariantQueries0Gene1SpecialValue' ? : "ANY_GENE" | "NO_GENE",
+                'structuralVariantQueries0Gene2ContainingOnlyOneIdentifierOrSpecialValue' ? : boolean,
+                'structuralVariantQueries0Gene2EntrezId' ? : number,
+                'structuralVariantQueries0Gene2HugoSymbol' ? : string,
+                'structuralVariantQueries0Gene2SpecialValue' ? : "ANY_GENE" | "NO_GENE",
                 $queryParameters ? : any,
                 $domain ? : string
         }): Promise < Array < StructuralVariant >
         > {
             return this.fetchStructuralVariantsUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
+                return response.body;
+            });
+        };
+    fetchStructuralVariantCountsUsingPOSTURL(parameters: {
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any
+    }): string {
+        let queryParameters: any = {};
+        let path = '/structuralvariant-counts/fetch';
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                var parameter = parameters.$queryParameters[parameterName];
+                queryParameters[parameterName] = parameter;
+            });
+        }
+        let keys = Object.keys(queryParameters);
+        return this.domain + path + (keys.length > 0 ? '?' + (keys.map(key => key + '=' + encodeURIComponent(queryParameters[key])).join('&')) : '');
+    };
+
+    /**
+     * Fetch structural variant genes by study view filter
+     * @method
+     * @name CBioPortalAPIInternal#fetchStructuralVariantCountsUsingPOST
+     * @param {} studyViewFilter - Study view filter
+     */
+    fetchStructuralVariantCountsUsingPOSTWithHttpInfo(parameters: {
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any,
+        $domain ? : string
+    }): Promise < request.Response > {
+        const domain = parameters.$domain ? parameters.$domain : this.domain;
+        const errorHandlers = this.errorHandlers;
+        const request = this.request;
+        let path = '/structuralvariant-counts/fetch';
+        let body: any;
+        let queryParameters: any = {};
+        let headers: any = {};
+        let form: any = {};
+        return new Promise(function(resolve, reject) {
+            headers['Accept'] = 'application/json';
+            headers['Content-Type'] = 'application/json';
+
+            if (parameters['studyViewFilter'] !== undefined) {
+                body = parameters['studyViewFilter'];
+            }
+
+            if (parameters['studyViewFilter'] === undefined) {
+                reject(new Error('Missing required  parameter: studyViewFilter'));
+                return;
+            }
+
+            if (parameters.$queryParameters) {
+                Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                    var parameter = parameters.$queryParameters[parameterName];
+                    queryParameters[parameterName] = parameter;
+                });
+            }
+
+            request('POST', domain + path, body, headers, queryParameters, form, reject, resolve, errorHandlers);
+
+        });
+    };
+
+    /**
+     * Fetch structural variant genes by study view filter
+     * @method
+     * @name CBioPortalAPIInternal#fetchStructuralVariantCountsUsingPOST
+     * @param {} studyViewFilter - Study view filter
+     */
+    fetchStructuralVariantCountsUsingPOST(parameters: {
+            'studyViewFilter': StudyViewFilter,
+            $queryParameters ? : any,
+            $domain ? : string
+        }): Promise < Array < AlterationCountByStructuralVariant >
+        > {
+            return this.fetchStructuralVariantCountsUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
                 return response.body;
             });
         };
