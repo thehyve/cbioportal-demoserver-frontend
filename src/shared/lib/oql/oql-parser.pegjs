@@ -8,6 +8,7 @@ Number = "-" number: Number { return "-"+number;}
         / "." decimal_part:NaturalNumber { return "."+decimal_part;}
         / whole_part:NaturalNumber {return whole_part;}
 String = word:[-_.@/a-zA-Z0-9*]+ { return word.join("") }
+AlphaNumeric = word:[a-zA-Z0-9]+ { return word.join("") }
 MutationProteinChangeCodeChar = char:[-_./a-zA-Z0-9*] { return char; }
 AminoAcid = letter:[GPAVLIMCFYWHKRQNEDST] { return letter; }
 // any character, except " :
@@ -80,7 +81,9 @@ Alteration
 	/ cmd:CNACommand { return cmd; }
 	/ cmd:EXPCommand { return cmd; }
 	/ cmd:PROTCommand { return cmd; }
-        / cmd:FUSIONCommand { return cmd; }
+    / cmd:FUSIONCommandDownstream { return cmd; }
+    / cmd:FUSIONCommandUpstream { return cmd; }
+    / cmd:FUSIONCommand { return cmd; }
 // MUT has to go at the end because it matches an arbitrary string at the end as a type of mutation
 	/ cmd:MUTCommand { return cmd; }
 
@@ -119,6 +122,28 @@ FUSIONCommand
         = "FUSION"i "_" mod:FusionModifier { return {"alteration_type":"fusion", modifiers: [mod] }; }
         / mod:FusionModifier "_FUSION"i { return {"alteration_type":"fusion", modifiers: [mod] }; }
         / "FUSION"i { return {"alteration_type":"fusion", modifiers:[]}; }
+
+FUSIONCommandDownstream
+        = "FUSION::_"i mod:FusionModifier { return {"alteration_type":"downstream_fusion", gene:'*', modifiers: [mod] }; }
+        / "FUSION::"i geneName:AlphaNumeric "_" mod:FusionModifier { return {"alteration_type":"downstream_fusion", gene:geneName, modifiers: [mod] }; }
+        / "FUSION::"i geneName:AlphaNumeric { return {"alteration_type":"downstream_fusion", gene:geneName, modifiers: [] }; }
+        / "FUSION::-_"i mod:FusionModifier { return {"alteration_type":"downstream_fusion", gene:undefined, modifiers: [mod] }; }
+        / "FUSION::-"i { return {"alteration_type":"downstream_fusion", gene:undefined, modifiers: [] }; }
+        / "FUSION::"i { return {"alteration_type":"downstream_fusion", gene:'*', modifiers: [] }; }
+        / mod:FusionModifier "_FUSION::"i geneName:AlphaNumeric { return {"alteration_type":"downstream_fusion", gene:geneName, modifiers: [mod] }; }
+        / mod:FusionModifier "_FUSION::-"i { return {"alteration_type":"downstream_fusion", gene:undefined, modifiers: [mod] }; }
+        / mod:FusionModifier "_FUSION::"i { return {"alteration_type":"downstream_fusion", gene:'*', modifiers: [mod] }; }
+
+FUSIONCommandUpstream
+        = "::FUSION_"i mod:FusionModifier { return {"alteration_type":"upstream_fusion", gene:'*', modifiers: [mod] }; }
+        / geneName:AlphaNumeric "::FUSION_"i mod:FusionModifier { return {"alteration_type":"upstream_fusion", gene:geneName, modifiers: [mod] }; }
+        / geneName:AlphaNumeric "::FUSION"i { return {"alteration_type":"upstream_fusion", gene:geneName, modifiers: [] }; }
+        / "-::FUSION_"i mod:FusionModifier { return {"alteration_type":"upstream_fusion", gene:undefined, modifiers: [mod] }; }
+        / "-::FUSION"i { return {"alteration_type":"upstream_fusion", gene:undefined, modifiers: [] }; }
+        / "::FUSION"i { return {"alteration_type":"upstream_fusion", gene:'*', modifiers: [] }; }
+        / mod:FusionModifier "_" geneName:AlphaNumeric "::" "FUSION"i { return {"alteration_type":"upstream_fusion", gene:geneName, modifiers: [mod] }; }
+        / mod:FusionModifier "_-::FUSION"i { return {"alteration_type":"upstream_fusion", gene:undefined, modifiers: [mod] }; }
+        / mod:FusionModifier "_::FUSION"i { return {"alteration_type":"upstream_fusion", gene:'*', modifiers: [mod] }; }
 
 PROTCommand
 	= "PROT" msp op:ComparisonOp msp constrval:Number { return {"alteration_type":"prot", "constr_rel":op, "constr_val":parseFloat(constrval)}; }
@@ -176,7 +201,9 @@ CNAModifier
 FusionModifier
     // NOTE: if you ever want to add more modifiers, then to be able to specify in any order with FUSION need to do
     //  same thing as in MutationWithModifiers
-    = d:DriverModifier { return d; }
+    = "GERMLINE"i { return { type: "GERMLINE" };}
+    / "SOMATIC"i { return { type: "SOMATIC" };}
+    / mod:DriverModifier { return mod; }
 
 DriverModifier
     = "DRIVER"i { return { type:"DRIVER" };}
