@@ -175,21 +175,23 @@ export declare type EXPCommand = {
 //
 // FUSIONCommand
 //         = "FUSION" { return {"alteration_type":"fusion"}; }
+
 export declare type FUSIONCommand = {
     alteration_type: 'fusion';
     modifiers: FusionModifier[];
 };
 
-export declare type FUSIONCommandDownstream = {
-    alteration_type: 'downstream_fusion';
+export declare type FUSIONCommandOrientationBase = {
     gene: string | undefined;
     modifiers: FusionModifier[];
 };
 
-export declare type FUSIONCommandUpstream = {
+export declare type FUSIONCommandDownstream = FUSIONCommandOrientationBase & {
+    alteration_type: 'downstream_fusion';
+};
+
+export declare type FUSIONCommandUpstream = FUSIONCommandOrientationBase & {
     alteration_type: 'upstream_fusion';
-    gene: string | undefined;
-    modifiers: FusionModifier[];
 };
 
 //

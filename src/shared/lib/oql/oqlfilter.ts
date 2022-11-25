@@ -355,6 +355,38 @@ export function parsedOQLAlterationToSourceOQL(alteration: Alteration): string {
                     })
                     .join('')
             );
+        case 'downstream_fusion':
+            const downstreamGene =
+                alteration.gene === undefined
+                    ? '-'
+                    : alteration.gene === '*'
+                    ? ''
+                    : alteration.gene;
+            return (
+                'FUSION::' +
+                downstreamGene +
+                alteration.modifiers
+                    .map(function(modifier) {
+                        return '_' + modifier.type;
+                    })
+                    .join('')
+            );
+        case 'upstream_fusion':
+            const upstreamGene =
+                alteration.gene === undefined
+                    ? '-'
+                    : alteration.gene === '*'
+                    ? ''
+                    : alteration.gene;
+            return (
+                upstreamGene +
+                '::FUSION' +
+                alteration.modifiers
+                    .map(function(modifier) {
+                        return '_' + modifier.type;
+                    })
+                    .join('')
+            );
         case 'any':
             return alteration.modifiers.map(m => m.type).join('_');
     }

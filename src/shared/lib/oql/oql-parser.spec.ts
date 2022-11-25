@@ -1249,6 +1249,42 @@ describe('OQL parser', () => {
             ],
         },
     ]);
+    doTest('KIF5B: SOMATIC_FUSION::RET_DRIVER', [
+        {
+            gene: 'KIF5B',
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: 'RET',
+                    modifiers: [{ type: 'SOMATIC' }, { type: 'DRIVER' }],
+                },
+            ],
+        },
+    ]);
+    doTest('KIF5B: FUSION::RET_DRIVER_SOMATIC', [
+        {
+            gene: 'KIF5B',
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: 'RET',
+                    modifiers: [{ type: 'DRIVER' }, { type: 'SOMATIC' }],
+                },
+            ],
+        },
+    ]);
+    doTest('KIF5B: DRIVER_FUSION::RET_SOMATIC', [
+        {
+            gene: 'KIF5B',
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: 'RET',
+                    modifiers: [{ type: 'DRIVER' }, { type: 'SOMATIC' }],
+                },
+            ],
+        },
+    ]);
     doTest('KIF5B: FUSION::-_GERMLINE', [
         {
             gene: 'KIF5B',
@@ -1269,6 +1305,42 @@ describe('OQL parser', () => {
                     alteration_type: 'downstream_fusion',
                     gene: undefined,
                     modifiers: [{ type: 'GERMLINE' }],
+                },
+            ],
+        },
+    ]);
+    doTest('KIF5B: GERMLINE_FUSION::-_DRIVER', [
+        {
+            gene: 'KIF5B',
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: undefined,
+                    modifiers: [{ type: 'GERMLINE' }, { type: 'DRIVER' }],
+                },
+            ],
+        },
+    ]);
+    doTest('KIF5B: DRIVER_GERMLINE_FUSION::-', [
+        {
+            gene: 'KIF5B',
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: undefined,
+                    modifiers: [{ type: 'DRIVER' }, { type: 'GERMLINE' }],
+                },
+            ],
+        },
+    ]);
+    doTest('KIF5B: FUSION::-_DRIVER_GERMLINE', [
+        {
+            gene: 'KIF5B',
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: undefined,
+                    modifiers: [{ type: 'DRIVER' }, { type: 'GERMLINE' }],
                 },
             ],
         },
@@ -1297,6 +1369,42 @@ describe('OQL parser', () => {
             ],
         },
     ]);
+    doTest('RET: DRIVER_GERMLINE_-::FUSION', [
+        {
+            gene: 'RET',
+            alterations: [
+                {
+                    alteration_type: 'upstream_fusion',
+                    gene: undefined,
+                    modifiers: [{ type: 'DRIVER' }, { type: 'GERMLINE' }],
+                },
+            ],
+        },
+    ]);
+    doTest('RET: -::FUSION_DRIVER_GERMLINE', [
+        {
+            gene: 'RET',
+            alterations: [
+                {
+                    alteration_type: 'upstream_fusion',
+                    gene: undefined,
+                    modifiers: [{ type: 'DRIVER' }, { type: 'GERMLINE' }],
+                },
+            ],
+        },
+    ]);
+    doTest('RET: DRIVER_-::FUSION_GERMLINE', [
+        {
+            gene: 'RET',
+            alterations: [
+                {
+                    alteration_type: 'upstream_fusion',
+                    gene: undefined,
+                    modifiers: [{ type: 'DRIVER' }, { type: 'GERMLINE' }],
+                },
+            ],
+        },
+    ]);
     doTest('RET: -::FUSION;KIF5B: FUSION', [
         {
             gene: 'RET',
@@ -1318,7 +1426,6 @@ describe('OQL parser', () => {
             ],
         },
     ]);
-
     doTest('["Test_struct_var_set #1" RET: -::FUSION;KIF5B: FUSION]', [
         {
             label: 'Test_struct_var_set #1',

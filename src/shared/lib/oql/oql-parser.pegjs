@@ -1,6 +1,6 @@
 start
-	= Query
-	/ sp { return false; }
+    = Query
+    / sp { return false; }
 
 NaturalNumber = number:[0-9]+ { return number.join("");}
 Number = "-" number: Number { return "-"+number;}
@@ -21,8 +21,8 @@ zmbs = zero_or_more_breaks_and_spaces:[,; \t\r\n]*
 ombs = one_or_more_breaks_and_spaces:[,; \t\r\n]+
 
 StartMergedGenes
-	= "[" zmbs "\"" label:StringExceptQuotes "\"" {return {"label": label, "list":[]};}
-	/ "[" zmbs {return {"label": undefined, "list":[]};}
+    = "[" zmbs "\"" label:StringExceptQuotes "\"" {return {"label": label, "list":[]};}
+    / "[" zmbs {return {"label": undefined, "list":[]};}
 
 // Case-insensitive keywords
 AMP = "AMP"i
@@ -55,37 +55,36 @@ PROT = "PROT"i
 //
 
 Query
-	= mqr:MergedQuery ombs sqr:Query {return mqr.concat(sqr);}
-	/ qr:StandardQuery ombs sqr:Query {return qr.concat(sqr);}
-	/ mqr:MergedQuery zmbs {return mqr;}
-	/ qr:StandardQuery zmbs {return qr; }
+    = mqr:MergedQuery ombs sqr:Query {return mqr.concat(sqr);}
+    / qr:StandardQuery ombs sqr:Query {return qr.concat(sqr);}
+    / mqr:MergedQuery zmbs {return mqr;}
+    / qr:StandardQuery zmbs {return qr; }
 
 MergedQuery
-	= zmbs mergedGenes:StartMergedGenes qr:StandardQuery zmbs "]" zmbs mqr:MergedQuery { mergedGenes.list = qr; return [mergedGenes].concat(mqr);; }
-	/ zmbs mergedGenes:StartMergedGenes qr:StandardQuery zmbs "]" { mergedGenes.list = qr; return [mergedGenes]; }
+    = zmbs mergedGenes:StartMergedGenes qr:StandardQuery zmbs "]" zmbs mqr:MergedQuery { mergedGenes.list = qr; return [mergedGenes].concat(mqr);; }
+    / zmbs mergedGenes:StartMergedGenes qr:StandardQuery zmbs "]" { mergedGenes.list = qr; return [mergedGenes]; }
 
 StandardQuery
-	= zmbs first:SingleGeneQuery ombs rest:StandardQuery  { return [first].concat(rest); }
-	/ zmbs first:SingleGeneQuery { return [first]; }
+    = zmbs first:SingleGeneQuery ombs rest:StandardQuery  { return [first].concat(rest); }
+    / zmbs first:SingleGeneQuery { return [first]; }
 
 SingleGeneQuery 
-	= geneName:String msp ":" msp alts:Alterations { return {"gene": geneName, "alterations": alts}; }
-	/ geneName:String { return {"gene": geneName, "alterations":false}; }
+    = geneName:String msp ":" msp alts:Alterations { return {"gene": geneName, "alterations": alts}; }
+    / geneName:String { return {"gene": geneName, "alterations":false}; }
 
 Alterations
-	= a1:Alteration sp a2:Alterations { return [a1].concat(a2);}
-	/ a1:Alteration { return [a1]; }
+    = a1:Alteration sp a2:Alterations { return [a1].concat(a2);}
+    / a1:Alteration { return [a1]; }
 
 Alteration
-	= cmd:AnyTypeWithModifiersCommand { return cmd; }
-	/ cmd:CNACommand { return cmd; }
-	/ cmd:EXPCommand { return cmd; }
-	/ cmd:PROTCommand { return cmd; }
-    / cmd:FUSIONCommandDownstream { return cmd; }
-    / cmd:FUSIONCommandUpstream { return cmd; }
+    = cmd:AnyTypeWithModifiersCommand { return cmd; }
+    / cmd:CNACommand { return cmd; }
+    / cmd:EXPCommand { return cmd; }
+    / cmd:PROTCommand { return cmd; }
+    / cmd:FUSIONCommandStructVar { return cmd; }
     / cmd:FUSIONCommand { return cmd; }
 // MUT has to go at the end because it matches an arbitrary string at the end as a type of mutation
-	/ cmd:MUTCommand { return cmd; }
+    / cmd:MUTCommand { return cmd; }
 
 AnyTypeWithModifiersCommand
     = d:DriverModifier !"_" { return {"alteration_type":"any", modifiers:[d]}; }
@@ -97,62 +96,63 @@ CNAType
         / "HETLOSS"i { return "HETLOSS"; }
 
 CNACommand
-	= "CNA"i msp op:ComparisonOp msp constrval:CNAType { return {"alteration_type":"cna", "constr_rel":op, "constr_val":constrval, modifiers:[]}; }
-	/ "CNA_" mod:CNAModifier { return {"alteration_type":"cna", modifiers:[mod]}; }
-	/ constrval:CNAType "_" mod:CNAModifier { return {"alteration_type":"cna", "constr_rel":"=", "constr_val":constrval, modifiers:[mod]}; }
-	/ mod:CNAModifier "_CNA" { return {"alteration_type":"cna", modifiers:[mod]}; }
-	/ mod:CNAModifier "_" constrval:CNAType { return {"alteration_type":"cna", "constr_rel":"=", "constr_val":constrval, modifiers:[mod]}; }
+    = "CNA"i msp op:ComparisonOp msp constrval:CNAType { return {"alteration_type":"cna", "constr_rel":op, "constr_val":constrval, modifiers:[]}; }
+    / "CNA_" mod:CNAModifier { return {"alteration_type":"cna", modifiers:[mod]}; }
+    / constrval:CNAType "_" mod:CNAModifier { return {"alteration_type":"cna", "constr_rel":"=", "constr_val":constrval, modifiers:[mod]}; }
+    / mod:CNAModifier "_CNA" { return {"alteration_type":"cna", modifiers:[mod]}; }
+    / mod:CNAModifier "_" constrval:CNAType { return {"alteration_type":"cna", "constr_rel":"=", "constr_val":constrval, modifiers:[mod]}; }
     / constrval:CNAType { return {"alteration_type":"cna", "constr_rel":"=", "constr_val":constrval, modifiers:[]}; }
 
 MUTCommand
-	= "MUT" msp "=" msp mutation:MutationWithModifiers { return {"alteration_type":"mut", "constr_rel": "=", "constr_type":mutation.type, "constr_val":mutation.value, "info":mutation.info, modifiers: mutation.modifiers}; }
-	/ "MUT" msp "!=" msp mutation:MutationWithModifiers { return {"alteration_type":"mut", "constr_rel": "!=", "constr_type":mutation.type, "constr_val":mutation.value, "info":mutation.info, modifiers: mutation.modifiers}; }
-	/ mutation:MutationWithModifiers {
-	        if (mutation.type) {
-	            return {"alteration_type":"mut", "constr_rel": "=", "constr_type":mutation.type, "constr_val":mutation.value, "info":mutation.info, modifiers: mutation.modifiers};
+    = "MUT" msp "=" msp mutation:MutationWithModifiers { return {"alteration_type":"mut", "constr_rel": "=", "constr_type":mutation.type, "constr_val":mutation.value, "info":mutation.info, modifiers: mutation.modifiers}; }
+    / "MUT" msp "!=" msp mutation:MutationWithModifiers { return {"alteration_type":"mut", "constr_rel": "!=", "constr_type":mutation.type, "constr_val":mutation.value, "info":mutation.info, modifiers: mutation.modifiers}; }
+    / mutation:MutationWithModifiers {
+            if (mutation.type) {
+                return {"alteration_type":"mut", "constr_rel": "=", "constr_type":mutation.type, "constr_val":mutation.value, "info":mutation.info, modifiers: mutation.modifiers};
             } else {
                 return {"alteration_type":"mut", "info":{}, "modifiers": mutation.modifiers};
             }
         }
 
 EXPCommand
-	= "EXP" msp op:ComparisonOp msp constrval:Number { return {"alteration_type":"exp", "constr_rel":op, "constr_val":parseFloat(constrval)}; }
+        = "EXP" msp op:ComparisonOp msp constrval:Number { return {"alteration_type":"exp", "constr_rel":op, "constr_val":parseFloat(constrval)}; }
 
 FUSIONCommand
         = "FUSION"i "_" mod:FusionModifier { return {"alteration_type":"fusion", modifiers: [mod] }; }
         / mod:FusionModifier "_FUSION"i { return {"alteration_type":"fusion", modifiers: [mod] }; }
         / "FUSION"i { return {"alteration_type":"fusion", modifiers:[]}; }
 
-FUSIONCommandDownstream
-        = "FUSION::_"i mod:FusionModifier { return {"alteration_type":"downstream_fusion", gene:'*', modifiers: [mod] }; }
-        / "FUSION::"i geneName:AlphaNumeric "_" mod:FusionModifier { return {"alteration_type":"downstream_fusion", gene:geneName, modifiers: [mod] }; }
-        / "FUSION::"i geneName:AlphaNumeric { return {"alteration_type":"downstream_fusion", gene:geneName, modifiers: [] }; }
-        / "FUSION::-_"i mod:FusionModifier { return {"alteration_type":"downstream_fusion", gene:undefined, modifiers: [mod] }; }
-        / "FUSION::-"i { return {"alteration_type":"downstream_fusion", gene:undefined, modifiers: [] }; }
-        / "FUSION::"i { return {"alteration_type":"downstream_fusion", gene:'*', modifiers: [] }; }
-        / mod:FusionModifier "_FUSION::"i geneName:AlphaNumeric { return {"alteration_type":"downstream_fusion", gene:geneName, modifiers: [mod] }; }
-        / mod:FusionModifier "_FUSION::-"i { return {"alteration_type":"downstream_fusion", gene:undefined, modifiers: [mod] }; }
-        / mod:FusionModifier "_FUSION::"i { return {"alteration_type":"downstream_fusion", gene:'*', modifiers: [mod] }; }
+FUSIONCommandStructVar
+        = alt:STRUCTVAR "_" mods:FusionModifiers { return {alteration_type:alt.type, gene:alt.gene, modifiers:mods }; }
+        / alt:STRUCTVAR { return {alteration_type:alt.type, gene:alt.gene, modifiers:[] }; }
+        / mods1:FusionModifiers "_" alt:STRUCTVAR "_" mods2:FusionModifiers { return {alteration_type:alt.type, gene:alt.gene, modifiers:mods1.concat(mods2) }; }
+        / mods:FusionModifiers "_" alt:STRUCTVAR { return {alteration_type:alt.type, gene:alt.gene, modifiers:mods }; }
 
-FUSIONCommandUpstream
-        = "::FUSION_"i mod:FusionModifier { return {"alteration_type":"upstream_fusion", gene:'*', modifiers: [mod] }; }
-        / geneName:AlphaNumeric "::FUSION_"i mod:FusionModifier { return {"alteration_type":"upstream_fusion", gene:geneName, modifiers: [mod] }; }
-        / geneName:AlphaNumeric "::FUSION"i { return {"alteration_type":"upstream_fusion", gene:geneName, modifiers: [] }; }
-        / "-::FUSION_"i mod:FusionModifier { return {"alteration_type":"upstream_fusion", gene:undefined, modifiers: [mod] }; }
-        / "-::FUSION"i { return {"alteration_type":"upstream_fusion", gene:undefined, modifiers: [] }; }
-        / "::FUSION"i { return {"alteration_type":"upstream_fusion", gene:'*', modifiers: [] }; }
-        / mod:FusionModifier "_" geneName:AlphaNumeric "::" "FUSION"i { return {"alteration_type":"upstream_fusion", gene:geneName, modifiers: [mod] }; }
-        / mod:FusionModifier "_-::FUSION"i { return {"alteration_type":"upstream_fusion", gene:undefined, modifiers: [mod] }; }
-        / mod:FusionModifier "_::FUSION"i { return {"alteration_type":"upstream_fusion", gene:'*', modifiers: [mod] }; }
+STRUCTVAR
+        = sv:FUSIONWithGene {return sv}
+        / sv:FUSIONWithUndefinedGene {return sv}
+        / sv:FUSIONWithAnyGene {return sv}
+
+FUSIONWithGene
+        = geneName:AlphaNumeric "::FUSION"i { return {gene: geneName, type: 'upstream_fusion'}; }
+        / "FUSION::"i geneName:AlphaNumeric { return {gene: geneName, type: 'downstream_fusion'}; }
+
+FUSIONWithUndefinedGene
+        = "-::FUSION"i {return {gene: undefined, type: 'upstream_fusion'}; }
+        / "FUSION::-"i {return {gene: undefined, type: 'downstream_fusion'}; }
+
+FUSIONWithAnyGene
+        = "::FUSION"i {return {gene: '*', type: 'upstream_fusion'}; }
+        / "FUSION::"i {return {gene: '*', type: 'downstream_fusion'}; }
 
 PROTCommand
-	= "PROT" msp op:ComparisonOp msp constrval:Number { return {"alteration_type":"prot", "constr_rel":op, "constr_val":parseFloat(constrval)}; }
+        = "PROT" msp op:ComparisonOp msp constrval:Number { return {"alteration_type":"prot", "constr_rel":op, "constr_val":parseFloat(constrval)}; }
 
 ComparisonOp
-	= ">=" { return ">="; }
-	/ "<=" { return "<="; }
-	/ ">" { return ">"; }
-	/ "<" { return "<"; }
+    = ">=" { return ">="; }
+    / "<=" { return "<="; }
+    / ">" { return ">"; }
+    / "<" { return "<"; }
 
 MutationWithModifiers
     // modifier has to come first because mutation matches every string as protein change code
@@ -166,19 +166,19 @@ MutationModifiers
     / modifier:MutationModifier { return [modifier]; }
 
 Mutation
-	= "MUT"i { return {"info":{}}; }
-	/ "MISSENSE"i { return {"type":"class", "value":"MISSENSE", "info":{}}; }
-	/ "NONSENSE"i { return {"type":"class", "value":"NONSENSE", "info":{}}; }
-	/ "NONSTART"i { return {"type":"class", "value":"NONSTART", "info":{}}; }
-	/ "NONSTOP"i { return {"type":"class", "value":"NONSTOP", "info":{}}; }
-	/ "FRAMESHIFT"i { return {"type":"class", "value":"FRAMESHIFT", "info":{}}; }
-	/ "INFRAME"i { return {"type":"class", "value":"INFRAME", "info":{}}; }
-	/ "SPLICE"i { return {"type":"class", "value":"SPLICE", "info":{}}; }
-	/ "TRUNC"i { return {"type":"class", "value":"TRUNC", "info":{}}; }
+    = "MUT"i { return {"info":{}}; }
+    / "MISSENSE"i { return {"type":"class", "value":"MISSENSE", "info":{}}; }
+    / "NONSENSE"i { return {"type":"class", "value":"NONSENSE", "info":{}}; }
+    / "NONSTART"i { return {"type":"class", "value":"NONSTART", "info":{}}; }
+    / "NONSTOP"i { return {"type":"class", "value":"NONSTOP", "info":{}}; }
+    / "FRAMESHIFT"i { return {"type":"class", "value":"FRAMESHIFT", "info":{}}; }
+    / "INFRAME"i { return {"type":"class", "value":"INFRAME", "info":{}}; }
+    / "SPLICE"i { return {"type":"class", "value":"SPLICE", "info":{}}; }
+    / "TRUNC"i { return {"type":"class", "value":"TRUNC", "info":{}}; }
     / "PROMOTER"i { return {"type":"class", "value":"PROMOTER", "info":{}}; }
     / letter:AminoAcid position:NaturalNumber string:MutationProteinChangeCode { return {"type":"name" , "value":(letter+position+string), "info":{}};}
     / letter:AminoAcid position:NaturalNumber { return {"type":"position", "value":parseInt(position), "info":{"amino_acid":letter.toUpperCase()}}; }
-	/ mutation_name:MutationProteinChangeCode { return {"type":"name", "value":mutation_name, "info":{"unrecognized":true}}; }
+    / mutation_name:MutationProteinChangeCode { return {"type":"name", "value":mutation_name, "info":{"unrecognized":true}}; }
 
 MutationProteinChangeCode // the purpose of this is to disambiguate modifiers from parts of protein change codes, since both can look like this "_SOMETHING"
     = !TrailingMutationModifier firstChar:MutationProteinChangeCodeChar !TrailingMutationModifier rest:MutationProteinChangeCode { return firstChar + rest; } // dont start with "_MUTATIONMODIFIER" and dont look like "x_MUTATIONMODIFIER"
@@ -204,6 +204,11 @@ FusionModifier
     = "GERMLINE"i { return { type: "GERMLINE" };}
     / "SOMATIC"i { return { type: "SOMATIC" };}
     / mod:DriverModifier { return mod; }
+
+
+FusionModifiers
+    = modifier:FusionModifier "_" more:FusionModifier { return [modifier].concat(more); }
+    / modifier:FusionModifier { return [modifier]; }
 
 DriverModifier
     = "DRIVER"i { return { type:"DRIVER" };}
