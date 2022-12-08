@@ -323,7 +323,7 @@ export default class PatientViewMutationsTab extends React.Component<
                     civicVariants={
                         this.props.patientViewPageStore.civicVariants
                     }
-                    userEmailAddress={ServerConfigHelpers.getUserEmailAddress()}
+                    userDisplayName={ServerConfigHelpers.getUserDisplayName()}
                     enableOncoKb={getServerConfig().show_oncokb}
                     enableFunctionalImpact={getServerConfig().show_genomenexus}
                     enableHotspot={getServerConfig().show_hotspot}

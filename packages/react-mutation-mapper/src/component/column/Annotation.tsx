@@ -52,7 +52,7 @@ export type AnnotationProps = {
     myCancerGenomeData?: IMyCancerGenomeData;
     civicGenes?: RemoteData<ICivicGeneIndex | undefined>;
     civicVariants?: RemoteData<ICivicVariantIndex | undefined>;
-    userEmailAddress?: string;
+    userDisplayName?: string;
 };
 
 export type GenericAnnotationProps = {
@@ -64,7 +64,7 @@ export type GenericAnnotationProps = {
     mergeOncoKbIcons?: boolean;
     oncoKbContentPadding?: number;
     pubMedCache?: MobxCache;
-    userEmailAddress?: string;
+    userDisplayName?: string;
 };
 
 export interface IAnnotation {
@@ -303,7 +303,7 @@ export function GenericAnnotation(props: GenericAnnotationProps): JSX.Element {
         enableMyCancerGenome,
         enableOncoKb,
         pubMedCache,
-        userEmailAddress,
+        userDisplayName,
         mergeOncoKbIcons,
         oncoKbContentPadding,
     } = props;
@@ -323,7 +323,7 @@ export function GenericAnnotation(props: GenericAnnotationProps): JSX.Element {
                     availableDataTypes={annotation.oncoKbAvailableDataTypes}
                     mergeAnnotationIcons={mergeOncoKbIcons}
                     pubMedCache={pubMedCache}
-                    userEmailAddress={userEmailAddress}
+                    userDisplayName={userDisplayName}
                     contentPadding={oncoKbContentPadding}
                 />
             )}
