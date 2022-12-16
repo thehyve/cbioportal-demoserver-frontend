@@ -1334,6 +1334,26 @@ const getGeneFromAlterations = (q: SingleGeneQuery) => {
     return (q.alterations as FUSIONCommandOrientationBase[])[0].gene;
 };
 
+export const getGenesFromSingleGeneQuery = (q: SingleGeneQuery) => {
+    const genes = [q.gene];
+    if (!!q.alterations) {
+        // @ts-ignore
+        const structVarGenes: string[] = _(q.alterations)
+            .filter(
+                a =>
+                    alterationIsStructVar(a) &&
+                    !structVarOQLSpecialValues.includes(
+                        (a as FUSIONCommandOrientationBase).gene
+                    )
+            )
+            .map((a: FUSIONCommandOrientationBase) => a.gene)
+            .compact()
+            .value();
+        genes.push(...structVarGenes);
+    }
+    return genes;
+};
+
 export function fusionsInOQLQuery(oql_query: string): SingleGeneQuery[] {
     const parse_result = parseOQLQuery(oql_query);
     return parse_result.filter(isUpOrDownstreamFusion);
