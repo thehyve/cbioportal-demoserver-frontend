@@ -1237,7 +1237,7 @@ export function filterCBioPortalWebServiceDataByUnflattenedOQLLine(
 export const structVarOQLSpecialValues = [undefined, '*'];
 
 export function uniqueGenesInOQLQuery(oql_query: string): string[] {
-    const parse_result = parseOQLQuery(oql_query);
+    const parse_result: SingleGeneQuery[] = parseOQLQuery(oql_query);
     const genes = parse_result
         .filter(function(q_line) {
             return q_line.gene.toLowerCase() !== 'datatypes';
@@ -1251,48 +1251,63 @@ export function uniqueGenesInOQLQuery(oql_query: string): string[] {
     }
 
     const hugoGeneSymbols = Object.keys(unique_genes_set);
-    hugoGeneSymbols.push(
-        ...(parse_result
-            .filter(isUpOrDownstreamFusion)
-            .map(getSecondGene) as string[])
-    );
-    return hugoGeneSymbols;
+    const structVarHugoGeneSymbols: string[] = _(parse_result)
+        .filter(isUpOrDownstreamFusion)
+        .flatMap(singleGeneQuery => [
+            getFirstGene(singleGeneQuery),
+            getSecondGene(singleGeneQuery),
+        ])
+        .compact()
+        .uniq()
+        .value();
+
+    hugoGeneSymbols.push(...structVarHugoGeneSymbols);
+    return _.uniq(hugoGeneSymbols);
 }
 
 type OQLGene = '*' | string | undefined;
 
 export function createStructuralVariantQuery(
     fusionQuery: SingleGeneQuery,
-    genes: Gene[]
+    genes: Gene[],
+    structVarGenes: Gene[]
 ): StructuralVariantQuery {
     const gene1 = createStructuralVariantGeneSubQuery(
         getFirstGene(fusionQuery),
-        genes
+        genes,
+        structVarGenes
     );
     const gene2 = createStructuralVariantGeneSubQuery(
         getSecondGene(fusionQuery),
-        genes
+        genes,
+        structVarGenes
     );
     return { gene1, gene2 };
 }
 
 function createStructuralVariantGeneSubQuery(
     oqlGene: OQLGene,
-    genes: Gene[]
+    genes: Gene[],
+    structVarGenes: Gene[]
 ): StructuralVariantGeneSubQuery {
     const geneSubquery = {} as StructuralVariantGeneSubQuery;
     if (oqlGene === undefined) {
         geneSubquery.specialValue = 'NO_GENE';
     } else if (oqlGene === '*') {
         geneSubquery.specialValue = 'ANY_GENE';
-    } else if (_.isString(oqlGene) && oqlGene !== '*') {
-        const found = genes.find(g => g.hugoGeneSymbol === oqlGene);
+    } else if (_.isString(oqlGene)) {
+        // TODO review with Bas; I think that this line should be removed
+        let found = genes.find(g => g.hugoGeneSymbol === oqlGene);
+        found = found || structVarGenes.find(g => g.hugoGeneSymbol === oqlGene);
+        if (!found) {
+            throw new Error('Could not find Entrez gene id for ' + oqlGene);
+        }
         geneSubquery.entrezId = found!.entrezGeneId;
     }
     return geneSubquery;
 }
 
-const getFirstGene = (query: SingleGeneQuery) => {
+export const getFirstGene = (query: SingleGeneQuery) => {
     if (isDownstream(query)) {
         return query.gene;
     } else {
@@ -1300,7 +1315,7 @@ const getFirstGene = (query: SingleGeneQuery) => {
     }
 };
 
-const getSecondGene = (query: SingleGeneQuery) => {
+export const getSecondGene = (query: SingleGeneQuery) => {
     if (isDownstream(query)) {
         return getGeneFromAlterations(query);
     } else {
