@@ -1257,6 +1257,7 @@ export function uniqueGenesInOQLQuery(oql_query: string): string[] {
             getFirstGene(singleGeneQuery),
             getSecondGene(singleGeneQuery),
         ])
+        .filter(h => !structVarOQLSpecialValues.includes(h))
         .compact()
         .uniq()
         .value();

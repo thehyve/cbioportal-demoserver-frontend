@@ -766,7 +766,10 @@ export class ResultsViewPageStore
             this.urlWrapper.query.gene_list &&
             this.urlWrapper.query.gene_list.length > 0
         ) {
-            return uniqueGenesInOQLQuery(this.urlWrapper.query.gene_list);
+            var strings = uniqueGenesInOQLQuery(
+                this.urlWrapper.query.gene_list
+            );
+            return strings;
         } else {
             return [];
         }
@@ -777,7 +780,8 @@ export class ResultsViewPageStore
             this.urlWrapper.query.gene_list &&
             this.urlWrapper.query.gene_list.length > 0
         ) {
-            return nonFusionsInOQLQuery(this.urlWrapper.query.gene_list);
+            var strings = nonFusionsInOQLQuery(this.urlWrapper.query.gene_list);
+            return strings;
         } else {
             return [];
         }
@@ -788,21 +792,26 @@ export class ResultsViewPageStore
             this.urlWrapper.query.gene_list &&
             this.urlWrapper.query.gene_list.length > 0
         ) {
-            return fusionsInOQLQuery(this.urlWrapper.query.gene_list);
+            var singleGeneQueries = fusionsInOQLQuery(
+                this.urlWrapper.query.gene_list
+            );
+            return singleGeneQueries;
         } else {
             return [];
         }
     }
 
     @computed get structVarHugoGeneSymbols(): string[] {
-        return _(this.structVarQueries)
+        var value = _(this.structVarQueries)
             .flatMap(singleGeneQuery => [
                 getFirstGene(singleGeneQuery),
                 getSecondGene(singleGeneQuery),
             ])
+            .filter(h => !structVarOQLSpecialValues.includes(h))
             .compact()
             .uniq()
             .value();
+        return value;
     }
 
     @computed get structuralVariantIdentifiers() {
@@ -810,7 +819,10 @@ export class ResultsViewPageStore
             this.urlWrapper.query.gene_list &&
             this.urlWrapper.query.gene_list.length > 0
         ) {
-            return fusionsInOQLQuery(this.urlWrapper.query.gene_list);
+            var singleGeneQueries = fusionsInOQLQuery(
+                this.urlWrapper.query.gene_list
+            );
+            return singleGeneQueries;
         } else {
             return [];
         }
@@ -4722,29 +4734,26 @@ export class ResultsViewPageStore
             if (this.structVarHugoGeneSymbols.length === 0) {
                 return [];
             }
-            const genes = await fetchGenes(this.structVarHugoGeneSymbols);
-
-            // Check that the same genes are in the OQL query as in the API response (order doesnt matter).
-            // This ensures that all the genes in OQL are valid. If not, we throw an error.
-            const svGenes = _.uniq(
-                this.hugoGeneSymbols
-                    .filter(h => !structVarOQLSpecialValues.includes(h))
+            const apiResponseStructVarGenes = await fetchGenes(
+                this.structVarHugoGeneSymbols
+            );
+            const apiResponseGeneSymbols = _.uniq(
+                apiResponseStructVarGenes
+                    .map(gene => gene.hugoGeneSymbol)
                     .sort()
             );
-            const otherGenes = _.uniq(
-                genes.map(gene => gene.hugoGeneSymbol).sort()
+
+            const urlParamGeneSymbols = _.uniq(
+                this.structVarHugoGeneSymbols.sort()
             );
+
+            // Check that the same apiResponseStructVarGenes are in the OQL query as in the API response (order doesnt matter).
+            // This ensures that all the apiResponseStructVarGenes in OQL are valid. If not, we throw an error.
             if (
-                _.isEqual(
-                    _.uniq(
-                        this.hugoGeneSymbols
-                            .filter(h => !structVarOQLSpecialValues.includes(h))
-                            .sort()
-                    ),
-                    _.uniq(genes.map(gene => gene.hugoGeneSymbol).sort())
-                )
+                _.difference(urlParamGeneSymbols, apiResponseGeneSymbols)
+                    .length === 0
             ) {
-                return genes;
+                return apiResponseStructVarGenes;
             } else {
                 throw new Error(ErrorMessages.InvalidGenes);
             }
