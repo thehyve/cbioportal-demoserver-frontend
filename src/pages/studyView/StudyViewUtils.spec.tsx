@@ -70,9 +70,7 @@ import {
 import {
     CancerStudy,
     ClinicalAttribute,
-    ClinicalData,
     DataFilterValue,
-    MolecularProfile,
     Sample,
     StudyViewFilter,
 } from 'cbioportal-ts-api-client';
