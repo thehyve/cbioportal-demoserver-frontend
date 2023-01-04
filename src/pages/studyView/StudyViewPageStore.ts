@@ -8347,9 +8347,7 @@ export class StudyViewPageStore
         default: {},
     });
 
-    readonly getDataForClinicalDataTab: MobxPromiseUnionTypeWithDefault<
-        { [attr: string]: string }[]
-    > = remoteData({
+    readonly getDataForClinicalDataTab = remoteData({
         await: () => [
             this.clinicalAttributes,
             this.selectedSamples,
