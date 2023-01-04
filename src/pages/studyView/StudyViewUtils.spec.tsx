@@ -2655,71 +2655,76 @@ describe('StudyViewUtils', () => {
     });
 
     describe('mergeClinicalDataCollection', () => {
-        it.each([
-            [
-                ({
-                    sampleClinicalData: [
-                        {
-                            sampleId: 's1',
-                            patientId: 'p1',
-                            studyId: 'study1',
-                            uniqueSampleKey: 's1key',
-                            uniquePatientKey: 'p1key',
-                            clinicalAttributeId: 'attr1',
-                            value: 'value1',
-                        },
-                    ],
-                    patientClinicalData: [
-                        {
-                            sampleId: undefined,
-                            patientId: 'p1',
-                            studyId: 'study1',
-                            uniqueSampleKey: undefined,
-                            uniquePatientKey: 'p1key',
-                            clinicalAttributeId: 'attr2',
-                            value: 'value2',
-                        },
-                    ],
-                } as unknown) as ClinicalDataCollection,
-                {
-                    s1key: {
-                        attr1: 'value1',
-                        attr2: 'value2',
+        it('handles merge when patient key defined in sample data', () => {
+            const input = ({
+                sampleClinicalData: [
+                    {
+                        sampleId: 's1',
+                        patientId: 'p1',
+                        studyId: 'study1',
+                        uniqueSampleKey: 's1key',
+                        uniquePatientKey: 'p1key',
+                        clinicalAttributeId: 'attr1',
+                        value: 'value1',
                     },
-                },
-            ],
-            [
-                ({
-                    sampleClinicalData: [
-                        {
-                            sampleId: 's1',
-                            patientId: 'p1',
-                            studyId: 'study1',
-                            uniqueSampleKey: 's1key',
-                            uniquePatientKey: 'p1key',
-                            clinicalAttributeId: 'attr1',
-                            value: 'value1',
-                        },
-                    ],
-                    patientClinicalData: [
-                        {
-                            sampleId: undefined,
-                            patientId: 'p2',
-                            studyId: 'study1',
-                            uniqueSampleKey: undefined,
-                            uniquePatientKey: 'p1key',
-                            clinicalAttributeId: 'attr2',
-                            value: 'value2',
-                        },
-                    ],
-                } as unknown) as ClinicalDataCollection,
-                {
-                    s1key: {
-                        attr1: 'value1',
+                ],
+                patientClinicalData: [
+                    {
+                        sampleId: undefined,
+                        patientId: 'p1',
+                        studyId: 'study1',
+                        uniqueSampleKey: undefined,
+                        uniquePatientKey: 'p1key',
+                        clinicalAttributeId: 'attr2',
+                        value: 'value2',
                     },
+                ],
+            } as unknown) as ClinicalDataCollection;
+            const expected = {
+                s1key: {
+                    attr1: 'value1',
+                    attr2: 'value2',
                 },
-            ],
-        ])('Convert %b to %b', (input, expected) => {
+            };
+            assert.deepEqual(
+                expected,
+                mergeClinicalDataCollection(
+                    (input as unknown) as ClinicalDataCollection
+                )
+            );
+        });
+
+        it('handles merge when patient key absent in sample data', () => {
+            const input = ({
+                sampleClinicalData: [
+                    {
+                        sampleId: 's1',
+                        patientId: 'p1',
+                        studyId: 'study1',
+                        uniqueSampleKey: 's1key',
+                        uniquePatientKey: 'p1key',
+                        clinicalAttributeId: 'attr1',
+                        value: 'value1',
+                    },
+                ],
+                patientClinicalData: [
+                    {
+                        sampleId: undefined,
+                        patientId: 'p2',
+                        studyId: 'study1',
+                        uniqueSampleKey: undefined,
+                        // note the patient key that does not line-up with the sample
+                        uniquePatientKey: 'p2key',
+                        clinicalAttributeId: 'attr2',
+                        value: 'value2',
+                    },
+                ],
+            } as unknown) as ClinicalDataCollection;
+            const expected = {
+                s1key: {
+                    attr1: 'value1',
+                },
+            };
             assert.deepEqual(
                 expected,
                 mergeClinicalDataCollection(
