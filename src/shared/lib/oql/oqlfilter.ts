@@ -1188,26 +1188,22 @@ type OQLGene = '*' | string | undefined;
 
 export function createStructuralVariantQuery(
     fusionQuery: SingleGeneQuery,
-    genes: Gene[],
-    structVarGenes: Gene[]
+    genes: Gene[]
 ): StructuralVariantQuery {
     const gene1 = createStructuralVariantGeneSubQuery(
         getFirstGene(fusionQuery),
-        genes,
-        structVarGenes
+        genes
     );
     const gene2 = createStructuralVariantGeneSubQuery(
         getSecondGene(fusionQuery),
-        genes,
-        structVarGenes
+        genes
     );
     return { gene1, gene2 };
 }
 
 function createStructuralVariantGeneSubQuery(
     oqlGene: OQLGene,
-    genes: Gene[],
-    structVarGenes: Gene[]
+    genes: Gene[]
 ): StructuralVariantGeneSubQuery {
     const geneSubquery = {} as StructuralVariantGeneSubQuery;
     if (oqlGene === undefined) {
@@ -1215,9 +1211,7 @@ function createStructuralVariantGeneSubQuery(
     } else if (oqlGene === '*') {
         geneSubquery.specialValue = 'ANY_GENE';
     } else if (_.isString(oqlGene)) {
-        // TODO review with Bas; I think that this line should be removed
         let found = genes.find(g => g.hugoGeneSymbol === oqlGene);
-        found = found || structVarGenes.find(g => g.hugoGeneSymbol === oqlGene);
         if (!found) {
             throw new Error('Could not find Entrez gene id for ' + oqlGene);
         }
