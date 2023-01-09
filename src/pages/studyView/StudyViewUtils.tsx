@@ -1,5 +1,9 @@
 import _ from 'lodash';
-import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
+import {
+    FUSIONCommandDownstream,
+    FUSIONCommandUpstream,
+    SingleGeneQuery,
+} from 'shared/lib/oql/oql-parser';
 import {
     CancerStudy,
     ClinicalAttribute,
@@ -22,18 +26,20 @@ import {
     PatientIdentifier,
     Sample,
     SampleIdentifier,
+    StructuralVariantGeneSubQuery,
+    StructVarFilterQuery,
     StudyViewFilter,
 } from 'cbioportal-ts-api-client';
 import * as React from 'react';
 import { buildCBioPortalPageUrl } from '../../shared/api/urls';
 import { BarDatum } from './charts/barChart/BarChart';
 import {
+    BinMethodOption,
     GenericAssayChart,
     GenomicChart,
-    XvsYScatterChart,
     XvsYChartSettings,
+    XvsYScatterChart,
     XvsYViolinChart,
-    BinMethodOption,
 } from './StudyViewPageStore';
 import { StudyViewPageTabKeyEnum } from 'pages/studyView/StudyViewPageTabs';
 import { Layout } from 'react-grid-layout';
@@ -69,9 +75,9 @@ import {
     StructuralVariantProfilesEnum,
 } from 'shared/components/query/QueryStoreUtils';
 import {
+    BinsGeneratorConfig,
     ClinicalDataBin,
     GenericAssayDataBin,
-    BinsGeneratorConfig,
 } from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
 import { ChartOption } from './addChartButton/AddChartButton';
 import { observer } from 'mobx-react';
@@ -83,6 +89,7 @@ import {
 import { getServerConfig } from 'config/config';
 import joinJsx from 'shared/lib/joinJsx';
 import { BoundType, NumberRange } from 'range-ts';
+import { queryContainsStructVarAlteration } from 'shared/lib/oql/oqlfilter';
 
 // Cannot use ClinicalDataTypeEnum here for the strong type. The model in the type is not strongly typed
 export enum ClinicalDataTypeEnum {
@@ -104,6 +111,8 @@ export enum DataType {
 export type ClinicalDataType = 'SAMPLE' | 'PATIENT';
 
 export type ChartType = keyof typeof ChartTypeEnum;
+
+const STRUCT_VAR_TABLE_KEY_SUFFIX = '_STRUCT_VARS';
 
 export enum SpecialChartsUniqueKeyEnum {
     CUSTOM_SELECT = 'CUSTOM_SELECT',
@@ -511,18 +520,85 @@ export function getDescriptionOverlay(
     );
 }
 
+// This function acts as a toggle. If present in 'geneQueries',
+// the query is removed. If absent a query is added.
 export function updateGeneQuery(
     geneQueries: SingleGeneQuery[],
     selectedGene: string
 ): SingleGeneQuery[] {
+    // Remove any query that is already known for this gene.
     let updatedQueries = _.filter(
         geneQueries,
-        query => query.gene !== selectedGene
+        query =>
+            query.gene !== selectedGene ||
+            queryContainsStructVarAlteration(query)
     );
     if (updatedQueries.length === geneQueries.length) {
         updatedQueries.push({
             gene: selectedGene,
             alterations: false,
+        });
+    }
+    return updatedQueries;
+}
+
+// This function acts as a toggle. If present in 'geneQueries', the query
+// is removed. If absent, a gene1/gene2 query is added.
+export function updateStructuralVariantQuery(
+    geneQueries: SingleGeneQuery[],
+    selectedGene1: string | undefined,
+    selectedGene2: string | undefined
+): SingleGeneQuery[] {
+    if (!selectedGene1 && !selectedGene2) {
+        return geneQueries;
+    }
+
+    // TODO replace with STRUCTVARAnyGeneStr (does not work somehow...)
+    const gene1 = selectedGene1 || '*';
+    const gene2 = selectedGene2 || '*';
+
+    // Remove any SV alteration with the same genes
+    // (both upstream and downstream fusions are evaluated).
+    const updatedQueries = _.filter(geneQueries, (query: SingleGeneQuery) => {
+        const isStructVar = queryContainsStructVarAlteration(query);
+        const isUpstreamMatch =
+            query.gene === gene1 &&
+            query.alterations &&
+            !!_.find(
+                query.alterations,
+                (alt: FUSIONCommandUpstream | FUSIONCommandDownstream) =>
+                    alt.alteration_type === 'downstream_fusion' &&
+                    alt.gene === gene2
+            );
+        const isDownstreamMatch =
+            query.gene === gene2 &&
+            query.alterations &&
+            !!_.find(
+                query.alterations,
+                (alt: FUSIONCommandUpstream | FUSIONCommandDownstream) =>
+                    alt.alteration_type === 'upstream_fusion' &&
+                    alt.gene === gene1
+            );
+        return !isStructVar || (!isDownstreamMatch && !isUpstreamMatch);
+    });
+
+    const representativeGene = selectedGene1 ? selectedGene1 : selectedGene2;
+    const otherGene = representativeGene === selectedGene1 ? gene2 : gene1;
+    const alterationType =
+        representativeGene === selectedGene1
+            ? 'downstream_fusion'
+            : 'upstream_fusion';
+
+    if (updatedQueries.length === geneQueries.length) {
+        updatedQueries.push({
+            gene: representativeGene!,
+            alterations: [
+                {
+                    alteration_type: alterationType,
+                    gene: otherGene,
+                    modifiers: [],
+                },
+            ],
         });
     }
     return updatedQueries;
@@ -775,13 +851,27 @@ export function getGenericAssayChartUniqueKey(
 const UNIQUE_KEY_SEPARATOR = ':';
 
 export function getUniqueKeyFromMolecularProfileIds(
-    molecularProfileIds: string[]
+    molecularProfileIds: string[],
+    chartType?: ChartTypeEnum
 ) {
-    return _.sortBy(molecularProfileIds).join(UNIQUE_KEY_SEPARATOR);
+    let ids = _.sortBy(molecularProfileIds);
+    if (chartType === ChartTypeEnum.STRUCTURAL_VARIANTS_TABLE) {
+        ids = _.map(ids, id => id + STRUCT_VAR_TABLE_KEY_SUFFIX);
+    }
+    return ids.join(UNIQUE_KEY_SEPARATOR);
 }
 
-export function getMolecularProfileIdsFromUniqueKey(uniqueKey: string) {
-    return uniqueKey.split(UNIQUE_KEY_SEPARATOR);
+export function getMolecularProfileIdsFromUniqueKey(
+    uniqueKey: string,
+    chartType?: ChartTypeEnum
+) {
+    let molecularProfileIds = uniqueKey.split(UNIQUE_KEY_SEPARATOR);
+    if (chartType === ChartTypeEnum.STRUCTURAL_VARIANTS_TABLE) {
+        molecularProfileIds = _.map(molecularProfileIds, molecularProfileId =>
+            molecularProfileId.replace(STRUCT_VAR_TABLE_KEY_SUFFIX, '')
+        );
+    }
+    return molecularProfileIds;
 }
 
 export function getCurrentDate() {
@@ -957,6 +1047,7 @@ export function isFiltered(
         _.isEmpty(filter) ||
         (_.isEmpty(filter.clinicalDataFilters) &&
             _.isEmpty(filter.geneFilters) &&
+            _.isEmpty(filter.structuralVariantFilters) &&
             _.isEmpty(filter.genomicProfiles) &&
             _.isEmpty(filter.genomicDataFilters) &&
             _.isEmpty(filter.genericAssayDataFilters) &&
@@ -2332,6 +2423,7 @@ export function getSamplesByExcludingFiltersOnChart(
     let updatedFilter: StudyViewFilter = {
         clinicalDataFilters: filter.clinicalDataFilters,
         geneFilters: filter.geneFilters,
+        structuralVariantFilters: filter.structuralVariantFilters,
     } as any;
 
     let _sampleIdentifiers = _.reduce(
@@ -3256,6 +3348,12 @@ export function geneFilterQueryToOql(query: GeneFilterQuery): string {
         : query.hugoGeneSymbol;
 }
 
+export function structVarFilterQueryToOql(query: StructVarFilterQuery): string {
+    const gene1 = query.gene1Query.hugoSymbol || '';
+    const gene2 = query.gene2Query.hugoSymbol || '';
+    return gene1 ? `${gene1}: FUSION::${gene2}` : `${gene2}: ${gene1}::FUSION`;
+}
+
 export function geneFilterQueryFromOql(
     oql: string,
     includeDriver?: boolean,
@@ -3297,6 +3395,76 @@ export function geneFilterQueryFromOql(
         includeUnknownStatus:
             includeUnknownStatus === undefined ? true : includeUnknownStatus,
     };
+}
+
+export function structVarFilterQueryFromOql(
+    gene1Gene2Representation: string,
+    includeDriver?: boolean,
+    includeVUS?: boolean,
+    includeUnknownOncogenicity?: boolean,
+    selectedDriverTiers?: { [tier: string]: boolean },
+    includeUnknownDriverTier?: boolean,
+    includeGermline?: boolean,
+    includeSomatic?: boolean,
+    includeUnknownStatus?: boolean
+): StructVarFilterQuery {
+    if (!gene1Gene2Representation.match('::')) {
+        throw new Error(
+            "Stuct var representation is not of format 'GeneA::GeneB'. Passed value: " +
+                gene1Gene2Representation
+        );
+    }
+    const [
+        gene1HugoSymbol,
+        gene2HugoSymbol,
+    ]: string[] = gene1Gene2Representation.split('::');
+    if (!gene1HugoSymbol && !gene2HugoSymbol) {
+        throw new Error(
+            'Both Gene1 and Gene2 are falsy. Passed value: ' +
+                gene1Gene2Representation
+        );
+    }
+
+    return {
+        gene1Query: createStructVarGeneSubQuery(gene1HugoSymbol),
+        gene2Query: createStructVarGeneSubQuery(gene2HugoSymbol),
+        includeDriver: includeDriver === undefined ? true : includeDriver,
+        includeVUS: includeVUS === undefined ? true : includeVUS,
+        includeUnknownOncogenicity:
+            includeUnknownOncogenicity === undefined
+                ? true
+                : includeUnknownOncogenicity,
+        tiersBooleanMap:
+            selectedDriverTiers || ({} as { [tier: string]: boolean }),
+        includeUnknownTier:
+            includeUnknownDriverTier === undefined
+                ? true
+                : includeUnknownDriverTier,
+        includeGermline: includeGermline === undefined ? true : includeGermline,
+        includeSomatic: includeSomatic === undefined ? true : includeSomatic,
+        includeUnknownStatus:
+            includeUnknownStatus === undefined ? true : includeUnknownStatus,
+    };
+}
+
+function createStructVarGeneSubQuery(
+    hugoGeneSybol: string | undefined
+): StructuralVariantGeneSubQuery {
+    let stringStructuralVariantGeneSubQuery;
+    if (hugoGeneSybol === undefined) {
+        stringStructuralVariantGeneSubQuery = {
+            specialValue: 'NO_GENE',
+        };
+    } else if (hugoGeneSybol === '*') {
+        stringStructuralVariantGeneSubQuery = {
+            specialValue: 'ANY_GENE',
+        };
+    } else {
+        stringStructuralVariantGeneSubQuery = {
+            hugoSymbol: hugoGeneSybol,
+        };
+    }
+    return (stringStructuralVariantGeneSubQuery as unknown) as StructuralVariantGeneSubQuery;
 }
 
 export function ensureBackwardCompatibilityOfFilters(
@@ -3352,25 +3520,26 @@ export function buildSelectedDriverTiersMap(
 
 export const FilterIconMessage: React.FunctionComponent<{
     chartType: ChartType;
-    geneFilterQuery: GeneFilterQuery;
-}> = observer(({ chartType, geneFilterQuery }) => {
+    annotatedFilterQuery: GeneFilterQuery | StructVarFilterQuery;
+}> = observer(({ chartType, annotatedFilterQuery }) => {
     const annotationFilterIsActive = annotationFilterActive(
-        geneFilterQuery.includeDriver,
-        geneFilterQuery.includeVUS,
-        geneFilterQuery.includeUnknownOncogenicity
+        annotatedFilterQuery.includeDriver,
+        annotatedFilterQuery.includeVUS,
+        annotatedFilterQuery.includeUnknownOncogenicity
     );
     const tierFilterIsActive = driverTierFilterActive(
-        geneFilterQuery.tiersBooleanMap,
-        geneFilterQuery.includeUnknownTier
+        annotatedFilterQuery.tiersBooleanMap,
+        annotatedFilterQuery.includeUnknownTier
     );
     const statusFilterIsActive = statusFilterActive(
-        geneFilterQuery.includeGermline,
-        geneFilterQuery.includeSomatic,
-        geneFilterQuery.includeUnknownStatus
+        annotatedFilterQuery.includeGermline,
+        annotatedFilterQuery.includeSomatic,
+        annotatedFilterQuery.includeUnknownStatus
     );
     const isMutationType =
         chartType === ChartTypeEnum.MUTATED_GENES_TABLE ||
-        chartType === ChartTypeEnum.STRUCTURAL_VARIANT_GENES_TABLE;
+        chartType === ChartTypeEnum.STRUCTURAL_VARIANT_GENES_TABLE ||
+        chartType === ChartTypeEnum.STRUCTURAL_VARIANTS_TABLE;
     if (
         !annotationFilterIsActive &&
         !tierFilterIsActive &&
@@ -3380,31 +3549,31 @@ export const FilterIconMessage: React.FunctionComponent<{
 
     const driverFilterTextElements: string[] = [];
     if (annotationFilterIsActive) {
-        geneFilterQuery.includeDriver &&
+        annotatedFilterQuery.includeDriver &&
             driverFilterTextElements.push('driver');
-        geneFilterQuery.includeVUS &&
+        annotatedFilterQuery.includeVUS &&
             driverFilterTextElements.push('passenger');
-        geneFilterQuery.includeUnknownOncogenicity &&
+        annotatedFilterQuery.includeUnknownOncogenicity &&
             driverFilterTextElements.push('unknown');
     }
 
     const statusFilterTextElements: string[] = [];
     if (statusFilterIsActive && isMutationType) {
-        geneFilterQuery.includeGermline &&
+        annotatedFilterQuery.includeGermline &&
             statusFilterTextElements.push('germline');
-        geneFilterQuery.includeSomatic &&
+        annotatedFilterQuery.includeSomatic &&
             statusFilterTextElements.push('somatic');
-        geneFilterQuery.includeUnknownStatus &&
+        annotatedFilterQuery.includeUnknownStatus &&
             statusFilterTextElements.push('unknown');
     }
 
     const tierNames = tierFilterIsActive
-        ? _(geneFilterQuery.tiersBooleanMap)
+        ? _(annotatedFilterQuery.tiersBooleanMap)
               .pickBy()
               .keys()
               .value()
         : [];
-    if (tierFilterIsActive && geneFilterQuery.includeUnknownTier)
+    if (tierFilterIsActive && annotatedFilterQuery.includeUnknownTier)
         tierNames.push('unknown');
 
     let driverFilterText = '';
@@ -3793,3 +3962,32 @@ export const FGA_VS_MUTATION_COUNT_KEY = makeXvsYUniqueKey(
 
 export const FGA_PLOT_DOMAIN = { min: 0, max: 1 };
 export const MUTATION_COUNT_PLOT_DOMAIN = { min: 0 };
+
+export type StructVarGene1Gene2 = {
+    gene1: string | undefined;
+    gene2: string | undefined;
+};
+
+export function oqlQueryToGene1Gene2Representation(
+    query: SingleGeneQuery
+): StructVarGene1Gene2[] | undefined {
+    if (!queryContainsStructVarAlteration) {
+        return undefined;
+    }
+    const representativeGene = query.gene;
+    const alterations = query.alterations as (
+        | FUSIONCommandUpstream
+        | FUSIONCommandDownstream
+    )[];
+    return _.map(alterations, alt => {
+        const otherGene =
+            alt.gene == undefined
+                ? 'null'
+                : alt.gene === '*'
+                ? undefined
+                : alt.gene;
+        return alt.alteration_type === 'downstream_fusion'
+            ? { gene1: representativeGene, gene2: otherGene }
+            : { gene1: otherGene, gene2: representativeGene };
+    });
+}

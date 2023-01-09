@@ -1,0 +1,3 @@
+export enum FeatureFlagEnum {
+    STUDY_VIEW_STRUCT_VAR_TABLE = 'STUDY_VIEW_STRUCT_VAR_TABLE',
+}

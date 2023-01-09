@@ -415,6 +415,88 @@ export function unparseOQLQueryLine(parsed_oql_line: SingleGeneQuery): string {
     return ret;
 }
 
+// TODO improve implementation
+// TODO add tests !!!!!!!!!!!!
+export function convertToGeneAGeneBRepresentation(
+    parsed_oql_line: SingleGeneQuery
+): string[] {
+    const representativeGene = parsed_oql_line.gene;
+    if (!queryContainsStructVarAlteration(parsed_oql_line)) {
+        return [representativeGene];
+    }
+    return _(parsed_oql_line.alterations || [])
+        .filter(alteration => alterationIsStructVar(alteration))
+        .map((alteration: FUSIONCommandDownstream | FUSIONCommandUpstream) => {
+            const otherGene =
+                alteration.gene == undefined
+                    ? '-'
+                    : alteration.gene === '*'
+                    ? ''
+                    : alteration.gene;
+            return alteration.alteration_type === 'upstream_fusion'
+                ? otherGene + '::' + representativeGene
+                : representativeGene + '::' + otherGene;
+        })
+        .value();
+}
+
+// Convert 'GeneA::GeneB' notation to OQL SingleGeneQuery.
+export function convertGene1Gene2RepresentationToOQL(
+    gene1Gene2Representation: string
+): SingleGeneQuery {
+    if (!gene1Gene2Representation.match('::')) {
+        throw new Error(
+            "Stuct var representation is not of format 'GeneA::GeneB'. Passed value: " +
+                gene1Gene2Representation
+        );
+    }
+    const [
+        gene1HugoSymbol,
+        gene2HugoSymbol,
+    ]: string[] = gene1Gene2Representation.split('::');
+    if (!gene1HugoSymbol && !gene2HugoSymbol) {
+        throw new Error(
+            'Both Gene1 and Gene2 are falsy. Passed value: ' +
+                gene1Gene2Representation
+        );
+    }
+    const representativeGene = gene1HugoSymbol || gene2HugoSymbol;
+    if (representativeGene === gene1HugoSymbol) {
+        return {
+            gene: gene1HugoSymbol,
+            alterations: [
+                {
+                    alteration_type: 'downstream_fusion',
+                    gene: gene2HugoSymbol,
+                },
+            ],
+        } as SingleGeneQuery;
+    } else {
+        return {
+            gene: gene2HugoSymbol,
+            alterations: [
+                {
+                    alteration_type: 'upstream_fusion',
+                    gene: gene1HugoSymbol,
+                },
+            ],
+        } as SingleGeneQuery;
+    }
+}
+
+// TODO add tests !!!!!!!!!!!!
+export function queryContainsStructVarAlteration(
+    parsed_oql_line: SingleGeneQuery
+): boolean {
+    if (!parsed_oql_line.alterations) {
+        return false;
+    }
+    return !!_.find(parsed_oql_line.alterations, alteration =>
+        alterationIsStructVar(alteration)
+    );
+}
+
+// TODO add tests !!!!!!!!!!!!
 export function alterationIsStructVar(alteration: Alteration): boolean {
     return (
         alteration.alteration_type === 'upstream_fusion' ||

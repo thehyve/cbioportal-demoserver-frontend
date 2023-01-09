@@ -4,7 +4,11 @@ type CallbackHandler = (err: any, res ? : request.Response) => void;
 export type AlterationCountByGene = {
     'entrezGeneId': number
 
+        'entrezGeneIds': Array < number >
+
         'hugoGeneSymbol': string
+
+        'hugoGeneSymbols': Array < string >
 
         'matchingGenePanelIds': Array < string >
 
@@ -15,6 +19,32 @@ export type AlterationCountByGene = {
         'qValue': number
 
         'totalCount': number
+
+        'uniqueEventKey': string
+
+};
+export type AlterationCountByStructuralVariant = {
+    'entrezGeneIds': Array < number >
+
+        'gene1EntrezGeneId': number
+
+        'gene1HugoGeneSymbol': string
+
+        'gene2EntrezGeneId': number
+
+        'gene2HugoGeneSymbol': string
+
+        'hugoGeneSymbols': Array < string >
+
+        'matchingGenePanelIds': Array < string >
+
+        'numberOfAlteredCases': number
+
+        'numberOfProfiledCases': number
+
+        'totalCount': number
+
+        'uniqueEventKey': string
 
 };
 export type AlterationEnrichment = {
@@ -103,6 +133,24 @@ export type ClinicalAttributeCountFilter = {
         'sampleListId': string
 
 };
+export type ClinicalData = {
+    'clinicalAttribute': ClinicalAttribute
+
+        'clinicalAttributeId': string
+
+        'patientId': string
+
+        'sampleId': string
+
+        'studyId': string
+
+        'uniquePatientKey': string
+
+        'uniqueSampleKey': string
+
+        'value': string
+
+};
 export type ClinicalDataBin = {
     'attributeId': string
 
@@ -135,6 +183,12 @@ export type ClinicalDataBinFilter = {
         'end': number
 
         'start': number
+
+};
+export type ClinicalDataCollection = {
+    'patientClinicalData': Array < ClinicalData >
+
+        'sampleClinicalData': Array < ClinicalData >
 
 };
 export type ClinicalDataCount = {
@@ -274,7 +328,11 @@ export type CopyNumberCountByGene = {
 
         'entrezGeneId': number
 
+        'entrezGeneIds': Array < number >
+
         'hugoGeneSymbol': string
+
+        'hugoGeneSymbols': Array < string >
 
         'matchingGenePanelIds': Array < string >
 
@@ -285,6 +343,8 @@ export type CopyNumberCountByGene = {
         'qValue': number
 
         'totalCount': number
+
+        'uniqueEventKey': string
 
 };
 export type CopyNumberCountIdentifier = {
@@ -844,6 +904,28 @@ export type SampleTreatmentFilter = {
         'treatment': string
 
 };
+export type StructVarFilterQuery = {
+    'gene1Query': StructuralVariantGeneSubQuery
+
+        'gene2Query': StructuralVariantGeneSubQuery
+
+        'includeDriver': boolean
+
+        'includeGermline': boolean
+
+        'includeSomatic': boolean
+
+        'includeUnknownOncogenicity': boolean
+
+        'includeUnknownStatus': boolean
+
+        'includeUnknownTier': boolean
+
+        'includeVUS': boolean
+
+        'tiersBooleanMap': {}
+
+};
 export type StructuralVariant = {
     'annotation': string
 
@@ -999,7 +1081,16 @@ export type StudyViewFilter = {
 
         'sampleTreatmentTargetFilters': AndedSampleTreatmentFilters
 
+        'structuralVariantFilters': Array < StudyViewStructuralVariantFilter >
+
         'studyIds': Array < string >
+
+};
+export type StudyViewStructuralVariantFilter = {
+    'molecularProfileIds': Array < string >
+
+        'structVarQueries': Array < Array < StructVarFilterQuery >
+        >
 
 };
 export type VariantCount = {
@@ -1891,6 +1982,146 @@ export default class CBioPortalAPIInternal {
                 return response.body;
             });
         };
+    fetchClinicalDataClinicalTableUsingPOSTURL(parameters: {
+        'direction' ? : "ASC" | "DESC",
+        'pageNumber' ? : number,
+        'pageSize' ? : number,
+        'searchTerm' ? : string,
+        'sortBy' ? : "clinicalAttributeId" | "value",
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any
+    }): string {
+        let queryParameters: any = {};
+        let path = '/clinical-data-table/fetch';
+        if (parameters['direction'] !== undefined) {
+            queryParameters['direction'] = parameters['direction'];
+        }
+
+        if (parameters['pageNumber'] !== undefined) {
+            queryParameters['pageNumber'] = parameters['pageNumber'];
+        }
+
+        if (parameters['pageSize'] !== undefined) {
+            queryParameters['pageSize'] = parameters['pageSize'];
+        }
+
+        if (parameters['searchTerm'] !== undefined) {
+            queryParameters['searchTerm'] = parameters['searchTerm'];
+        }
+
+        if (parameters['sortBy'] !== undefined) {
+            queryParameters['sortBy'] = parameters['sortBy'];
+        }
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                var parameter = parameters.$queryParameters[parameterName];
+                queryParameters[parameterName] = parameter;
+            });
+        }
+        let keys = Object.keys(queryParameters);
+        return this.domain + path + (keys.length > 0 ? '?' + (keys.map(key => key + '=' + encodeURIComponent(queryParameters[key])).join('&')) : '');
+    };
+
+    /**
+     * Fetch clinical data for the Clinical Tab of Study View
+     * @method
+     * @name CBioPortalAPIInternal#fetchClinicalDataClinicalTableUsingPOST
+     * @param {string} direction - Direction of the sort
+     * @param {integer} pageNumber - Page number of the result list
+     * @param {integer} pageSize - Page size of the result list
+     * @param {string} searchTerm - Search term to filter sample rows. Samples are returned with a partial match to the search term for any sample clinical attribute.
+     * @param {string} sortBy - Name of the property that the result list is sorted by
+     * @param {} studyViewFilter - Study view filter
+     */
+    fetchClinicalDataClinicalTableUsingPOSTWithHttpInfo(parameters: {
+        'direction' ? : "ASC" | "DESC",
+        'pageNumber' ? : number,
+        'pageSize' ? : number,
+        'searchTerm' ? : string,
+        'sortBy' ? : "clinicalAttributeId" | "value",
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any,
+            $domain ? : string
+    }): Promise < request.Response > {
+        const domain = parameters.$domain ? parameters.$domain : this.domain;
+        const errorHandlers = this.errorHandlers;
+        const request = this.request;
+        let path = '/clinical-data-table/fetch';
+        let body: any;
+        let queryParameters: any = {};
+        let headers: any = {};
+        let form: any = {};
+        return new Promise(function(resolve, reject) {
+            headers['Accept'] = 'application/json';
+            headers['Content-Type'] = 'application/json';
+
+            if (parameters['direction'] !== undefined) {
+                queryParameters['direction'] = parameters['direction'];
+            }
+
+            if (parameters['pageNumber'] !== undefined) {
+                queryParameters['pageNumber'] = parameters['pageNumber'];
+            }
+
+            if (parameters['pageSize'] !== undefined) {
+                queryParameters['pageSize'] = parameters['pageSize'];
+            }
+
+            if (parameters['searchTerm'] !== undefined) {
+                queryParameters['searchTerm'] = parameters['searchTerm'];
+            }
+
+            if (parameters['sortBy'] !== undefined) {
+                queryParameters['sortBy'] = parameters['sortBy'];
+            }
+
+            if (parameters['studyViewFilter'] !== undefined) {
+                body = parameters['studyViewFilter'];
+            }
+
+            if (parameters['studyViewFilter'] === undefined) {
+                reject(new Error('Missing required  parameter: studyViewFilter'));
+                return;
+            }
+
+            if (parameters.$queryParameters) {
+                Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                    var parameter = parameters.$queryParameters[parameterName];
+                    queryParameters[parameterName] = parameter;
+                });
+            }
+
+            request('POST', domain + path, body, headers, queryParameters, form, reject, resolve, errorHandlers);
+
+        });
+    };
+
+    /**
+     * Fetch clinical data for the Clinical Tab of Study View
+     * @method
+     * @name CBioPortalAPIInternal#fetchClinicalDataClinicalTableUsingPOST
+     * @param {string} direction - Direction of the sort
+     * @param {integer} pageNumber - Page number of the result list
+     * @param {integer} pageSize - Page size of the result list
+     * @param {string} searchTerm - Search term to filter sample rows. Samples are returned with a partial match to the search term for any sample clinical attribute.
+     * @param {string} sortBy - Name of the property that the result list is sorted by
+     * @param {} studyViewFilter - Study view filter
+     */
+    fetchClinicalDataClinicalTableUsingPOST(parameters: {
+        'direction' ? : "ASC" | "DESC",
+        'pageNumber' ? : number,
+        'pageSize' ? : number,
+        'searchTerm' ? : string,
+        'sortBy' ? : "clinicalAttributeId" | "value",
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any,
+            $domain ? : string
+    }): Promise < ClinicalDataCollection > {
+        return this.fetchClinicalDataClinicalTableUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
+            return response.body;
+        });
+    };
     fetchClinicalDataViolinPlotsUsingPOSTURL(parameters: {
         'axisEnd' ? : number,
         'axisStart' ? : number,
@@ -5610,6 +5841,83 @@ export default class CBioPortalAPIInternal {
         }): Promise < Array < StructuralVariant >
         > {
             return this.fetchStructuralVariantsUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
+                return response.body;
+            });
+        };
+    fetchStructuralVariantCountsUsingPOSTURL(parameters: {
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any
+    }): string {
+        let queryParameters: any = {};
+        let path = '/structuralvariant-counts/fetch';
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                var parameter = parameters.$queryParameters[parameterName];
+                queryParameters[parameterName] = parameter;
+            });
+        }
+        let keys = Object.keys(queryParameters);
+        return this.domain + path + (keys.length > 0 ? '?' + (keys.map(key => key + '=' + encodeURIComponent(queryParameters[key])).join('&')) : '');
+    };
+
+    /**
+     * Fetch structural variant genes by study view filter
+     * @method
+     * @name CBioPortalAPIInternal#fetchStructuralVariantCountsUsingPOST
+     * @param {} studyViewFilter - Study view filter
+     */
+    fetchStructuralVariantCountsUsingPOSTWithHttpInfo(parameters: {
+        'studyViewFilter': StudyViewFilter,
+        $queryParameters ? : any,
+        $domain ? : string
+    }): Promise < request.Response > {
+        const domain = parameters.$domain ? parameters.$domain : this.domain;
+        const errorHandlers = this.errorHandlers;
+        const request = this.request;
+        let path = '/structuralvariant-counts/fetch';
+        let body: any;
+        let queryParameters: any = {};
+        let headers: any = {};
+        let form: any = {};
+        return new Promise(function(resolve, reject) {
+            headers['Accept'] = 'application/json';
+            headers['Content-Type'] = 'application/json';
+
+            if (parameters['studyViewFilter'] !== undefined) {
+                body = parameters['studyViewFilter'];
+            }
+
+            if (parameters['studyViewFilter'] === undefined) {
+                reject(new Error('Missing required  parameter: studyViewFilter'));
+                return;
+            }
+
+            if (parameters.$queryParameters) {
+                Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
+                    var parameter = parameters.$queryParameters[parameterName];
+                    queryParameters[parameterName] = parameter;
+                });
+            }
+
+            request('POST', domain + path, body, headers, queryParameters, form, reject, resolve, errorHandlers);
+
+        });
+    };
+
+    /**
+     * Fetch structural variant genes by study view filter
+     * @method
+     * @name CBioPortalAPIInternal#fetchStructuralVariantCountsUsingPOST
+     * @param {} studyViewFilter - Study view filter
+     */
+    fetchStructuralVariantCountsUsingPOST(parameters: {
+            'studyViewFilter': StudyViewFilter,
+            $queryParameters ? : any,
+            $domain ? : string
+        }): Promise < Array < AlterationCountByStructuralVariant >
+        > {
+            return this.fetchStructuralVariantCountsUsingPOSTWithHttpInfo(parameters).then(function(response: request.Response) {
                 return response.body;
             });
         };

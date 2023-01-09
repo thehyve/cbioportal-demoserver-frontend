@@ -56,6 +56,7 @@ import {
     isOccupied,
     makePatientToClinicalAnalysisGroup,
     needAdditionShiftForLogScaleBarChart,
+    oqlQueryToGene1Gene2Representation,
     pickClinicalDataColors,
     shouldShowChart,
     showOriginStudiesInSummaryDescription,
@@ -65,6 +66,7 @@ import {
     updateCustomIntervalFilter,
     updateGeneQuery,
     updateSavedUserPreferenceChartIds,
+    updateStructuralVariantQuery,
 } from 'pages/studyView/StudyViewUtils';
 import {
     CancerStudy,
@@ -95,6 +97,7 @@ import { remoteData, toPromise } from 'cbioportal-frontend-commons';
 import { autorun, observable, runInAction } from 'mobx';
 
 import { AlterationTypeConstants, DataTypeConstants } from 'shared/constants';
+import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 
 describe('StudyViewUtils', () => {
     const emptyStudyViewFilter: StudyViewFilter = {
@@ -174,6 +177,76 @@ describe('StudyViewUtils', () => {
                 ]
             );
         });
+    });
+
+    describe('updateStructuralVariantQuery', () => {
+        it.each([
+            [
+                [
+                    {
+                        gene: 'A',
+                        alterations: [
+                            { alteration_type: 'downstream_fusion', gene: 'B' },
+                        ],
+                    },
+                ] as SingleGeneQuery[],
+                'A',
+                'B',
+                [] as SingleGeneQuery[],
+            ],
+            [
+                [
+                    {
+                        gene: 'B',
+                        alterations: [
+                            { alteration_type: 'upstream_fusion', gene: 'A' },
+                        ],
+                    },
+                ] as SingleGeneQuery[],
+                'A',
+                'B',
+                [] as SingleGeneQuery[],
+            ],
+            [
+                [] as SingleGeneQuery[],
+                'A',
+                'B',
+                [
+                    {
+                        gene: 'A',
+                        alterations: [
+                            { alteration_type: 'downstream_fusion', gene: 'B' },
+                        ],
+                    },
+                ] as SingleGeneQuery[],
+            ],
+            [
+                [{ gene: 'X' }] as SingleGeneQuery[],
+                'A',
+                'B',
+                [
+                    { gene: 'X' },
+                    {
+                        gene: 'A',
+                        alterations: [
+                            { alteration_type: 'downstream_fusion', gene: 'B' },
+                        ],
+                    },
+                ] as SingleGeneQuery[],
+            ],
+        ])(
+            'updates queries',
+            (input, selectedGene1, selectedGene2, expected) => {
+                assert.deepEqual(
+                    updateStructuralVariantQuery(
+                        input,
+                        selectedGene1,
+                        selectedGene2
+                    ),
+                    expected
+                );
+            }
+        );
     });
 
     describe('getVirtualStudyDescription', () => {
@@ -4908,5 +4981,73 @@ describe('StudyViewUtils', () => {
                 result
             );
         });
+    });
+
+    describe('oqlQueryToGene1Gene2Representation', () => {
+        it.each([
+            [
+                {
+                    gene: 'A',
+                    alterations: [
+                        { alteration_type: 'downstream_fusion', gene: 'B' },
+                    ],
+                } as SingleGeneQuery,
+                [{ gene1: 'A', gene2: 'B' }],
+            ],
+            [
+                {
+                    gene: 'A',
+                    alterations: [
+                        { alteration_type: 'upstream_fusion', gene: 'B' },
+                    ],
+                } as SingleGeneQuery,
+                [{ gene1: 'B', gene2: 'A' }],
+            ],
+            [
+                {
+                    gene: 'A',
+                    alterations: [
+                        { alteration_type: 'downstream_fusion', gene: 'B' },
+                        {
+                            alteration_type: 'upstream_fusion',
+                            gene: 'B',
+                        },
+                    ],
+                } as SingleGeneQuery,
+                [
+                    { gene1: 'A', gene2: 'B' },
+                    { gene1: 'B', gene2: 'A' },
+                ],
+            ],
+            [
+                {
+                    gene: 'A',
+                    alterations: [
+                        { alteration_type: 'downstream_fusion', gene: '*' },
+                    ],
+                } as SingleGeneQuery,
+                [{ gene1: 'A', gene2: undefined }],
+            ],
+            [
+                {
+                    gene: 'A',
+                    alterations: [
+                        {
+                            alteration_type: 'downstream_fusion',
+                            gene: undefined,
+                        },
+                    ],
+                } as SingleGeneQuery,
+                [{ gene1: 'A', gene2: 'null' }],
+            ],
+        ])(
+            'should convert oql query to gene1/gene2 representation',
+            (oqlQuery, expected) => {
+                assert.deepEqual(
+                    expected,
+                    oqlQueryToGene1Gene2Representation(oqlQuery)
+                );
+            }
+        );
     });
 });
