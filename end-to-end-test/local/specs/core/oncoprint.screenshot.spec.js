@@ -221,15 +221,16 @@ describe('oncoprint', function() {
     describe('oql structural variant tracks', () => {
         it('shows oql structural variant variations', function() {
             const oql =
-                // Downstream KIAA1549 has one struct var events (0.1%):
+                // Downstream KIAA1549 has 1 struct var event (0.1%):
                 'KIAA1549: FUSION::\n' +
-                // Downstream KIAA1549 (using NULL special value) has no struct vars events:
+                // Downstream KIAA1549 (using NULL special value) has 0 struct vars events:
                 'KIAA1549: FUSION::-\n' +
-                // Downstream BRAF one struct var events (0.1%):
+                // Downstream BRAF has 1 struct var event (0.1%):
                 'BRAF: FUSION::\n' +
-                // Upstream BRAF has one 35 struct var events (4%):
-                'BRAF: ::FUSION';
-
+                // Upstream BRAF has 35 struct var events (4%):
+                'BRAF: ::FUSION\n' +
+                // Upstream TMPRSS2 and downstream ERG have 1 struct var events (0.1%):
+                'ERG: TMPRSS2::FUSION\n';
             const encodedOql = encodeURI(encodeURIComponent(oql));
 
             const stuctVarUrl =

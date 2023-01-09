@@ -742,6 +742,9 @@ export class ResultsViewPageStore
         this.setHideUnprofiledSamples(include);
     }
 
+    /**
+     * All genes found in all 'single' and 'fusion' queries
+     */
     @computed get hugoGeneSymbols() {
         if (
             this.urlWrapper.query.gene_list &&
@@ -753,6 +756,10 @@ export class ResultsViewPageStore
         }
     }
 
+    /**
+     * Genes of 'single gene' queries
+     * (i.e. non-fusion queries, without an upstream or downstream gene)
+     */
     @computed get singleHugoGeneSymbols() {
         if (
             this.urlWrapper.query.gene_list &&
@@ -775,12 +782,13 @@ export class ResultsViewPageStore
         }
     }
 
+    /**
+     * All genes ($.gene and $.alterations.gene) of fusion queries
+     * (i.e. queries with an upstream or downstream gene or special value)
+     */
     @computed get structVarHugoGeneSymbols(): string[] {
         return _(this.structVarQueries)
-            .flatMap(singleGeneQuery => [
-                getFirstGene(singleGeneQuery),
-                getSecondGene(singleGeneQuery),
-            ])
+            .flatMap(query => [getFirstGene(query), getSecondGene(query)])
             .compact()
             .uniq()
             .value();
