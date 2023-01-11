@@ -3042,7 +3042,7 @@ export function mergeClinicalDataCollection(
         sampleKeyedData,
         clinicalData => {
             const data = _.map(clinicalData, (datum: ClinicalData) => {
-                const obj = {} as { [attrId: string]: string };
+                const obj: { [attrId: string]: string } = {};
                 obj[datum.clinicalAttributeId] = datum.value;
                 return obj;
             });
