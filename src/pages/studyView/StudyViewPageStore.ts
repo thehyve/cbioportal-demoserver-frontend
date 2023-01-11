@@ -8358,9 +8358,9 @@ export class StudyViewPageStore
             if (this.selectedSamples.result.length === 0) {
                 return Promise.resolve([]);
             }
-            let sampleClinicalDataMap: {
-                [sampleId: string]: { [attributeId: string]: string };
-            } = await getAllClinicalDataByStudyViewFilter(this.filters);
+            let sampleClinicalDataMap = await getAllClinicalDataByStudyViewFilter(
+                this.filters
+            );
 
             const sampleClinicalDataArray = _.mapValues(
                 sampleClinicalDataMap,
@@ -8873,9 +8873,9 @@ export class StudyViewPageStore
         if (this.selectedSamples.result.length === 0) {
             return Promise.resolve('');
         }
-        let sampleClinicalDataMap: {
-            [sampleId: string]: { [attributeId: string]: string };
-        } = await getAllClinicalDataByStudyViewFilter(this.filters);
+        let sampleClinicalDataMap = await getAllClinicalDataByStudyViewFilter(
+            this.filters
+        );
 
         let clinicalAttributesNameSet = _.reduce(
             this.clinicalAttributes.result,
