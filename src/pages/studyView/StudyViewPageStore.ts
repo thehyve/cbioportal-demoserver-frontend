@@ -15,6 +15,7 @@ import {
     AlterationFilter,
     AndedPatientTreatmentFilters,
     AndedSampleTreatmentFilters,
+    BinsGeneratorConfig,
     CancerStudy,
     ClinicalAttribute,
     ClinicalAttributeCount,
@@ -34,6 +35,10 @@ import {
     GeneFilterQuery,
     GenePanel,
     GenericAssayData,
+    GenericAssayDataBin,
+    GenericAssayDataBinFilter,
+    GenericAssayDataCountFilter,
+    GenericAssayDataCountItem,
     GenericAssayDataFilter,
     GenericAssayDataMultipleStudyFilter,
     GenericAssayMeta,
@@ -226,13 +231,6 @@ import {
     CNA_AMP_VALUE,
     CNA_HOMDEL_VALUE,
 } from 'pages/resultsView/enrichments/EnrichmentsUtil';
-import {
-    BinsGeneratorConfig,
-    GenericAssayDataBin,
-    GenericAssayDataBinFilter,
-    GenericAssayDataCountFilter,
-    GenericAssayDataCountItem,
-} from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
 import {
     fetchGenericAssayMetaByMolecularProfileIdsGroupByMolecularProfileId,
     fetchGenericAssayMetaByMolecularProfileIdsGroupedByGenericAssayType,

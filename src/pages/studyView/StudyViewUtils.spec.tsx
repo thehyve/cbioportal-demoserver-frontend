@@ -70,6 +70,7 @@ import {
 import {
     CancerStudy,
     ClinicalAttribute,
+    ClinicalDataCollection,
     DataFilterValue,
     Sample,
     StudyViewFilter,
@@ -95,7 +96,6 @@ import { remoteData, toPromise } from 'cbioportal-frontend-commons';
 import { autorun, observable, runInAction } from 'mobx';
 
 import { AlterationTypeConstants, DataTypeConstants } from 'shared/constants';
-import { ClinicalDataCollection } from 'cbioportal-ts-api-client/src/generated/CBioPortalAPIInternal';
 
 describe('StudyViewUtils', () => {
     const emptyStudyViewFilter: StudyViewFilter = {

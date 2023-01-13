@@ -1,10 +1,13 @@
 import _ from 'lodash';
 import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import {
+    BinsGeneratorConfig,
     CancerStudy,
     ClinicalAttribute,
     ClinicalData,
+    ClinicalDataBin,
     ClinicalDataBinFilter,
+    ClinicalDataCollection,
     ClinicalDataCount,
     ClinicalDataMultiStudyFilter,
     DataFilterValue,
@@ -13,6 +16,7 @@ import {
     GeneFilterQuery,
     GenePanelData,
     GenericAssayData,
+    GenericAssayDataBin,
     GenericAssayDataMultipleStudyFilter,
     GenomicDataBin,
     GenomicDataCount,
@@ -68,12 +72,6 @@ import {
     CNAProfilesEnum,
     StructuralVariantProfilesEnum,
 } from 'shared/components/query/QueryStoreUtils';
-import {
-    ClinicalDataBin,
-    GenericAssayDataBin,
-    BinsGeneratorConfig,
-    ClinicalDataCollection,
-} from 'cbioportal-ts-api-client/dist/generated/CBioPortalAPIInternal';
 import { ChartOption } from './addChartButton/AddChartButton';
 import { observer } from 'mobx-react';
 import {
