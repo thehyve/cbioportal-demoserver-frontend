@@ -3826,7 +3826,7 @@ export class StudyViewPageStore
         sampleIdentifiersSet: { [id: string]: SampleIdentifier[] };
     } {
         return {
-            ...this.filters,
+            ...this.filtersProx,
             sampleIdentifiersSet: _.fromPairs(
                 this._chartSampleIdentifiersFilterSet.toJSON()
             ),
