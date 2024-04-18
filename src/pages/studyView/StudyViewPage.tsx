@@ -27,6 +27,8 @@ import IFrameLoader from '../../shared/components/iframeLoader/IFrameLoader';
 import { StudySummaryTab } from 'pages/studyView/tabs/SummaryTab';
 import StudyPageHeader from './studyPageHeader/StudyPageHeader';
 import CNSegments from './tabs/CNSegments';
+// ADDED NEW HERE
+import { SurvivalTab } from './tabs/SurvivalTab';
 
 import AddChartButton from './addChartButton/AddChartButton';
 import { sleep } from '../../shared/lib/TimeUtils';
@@ -877,8 +879,7 @@ export default class StudyViewPage extends React.Component<
                                             StudyViewPageTabDescriptions.SURVIVAL
                                         }
                                     >
-                                        {this.resourceTabs.component}
-                                        {this.customTabs}
+                                        <ClinicalDataTab store={this.store} />
                                     </MSKTab>
                                     {this.resourceTabs.component}
                                     {this.customTabs}
