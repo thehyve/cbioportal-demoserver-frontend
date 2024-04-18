@@ -870,7 +870,16 @@ export default class StudyViewPage extends React.Component<
                                             patients={this.store.patients}
                                         />
                                     </MSKTab>
-
+                                    <MSKTab
+                                        key={6}
+                                        id={StudyViewPageTabKeyEnum.SURVIVAL}
+                                        linkText={
+                                            StudyViewPageTabDescriptions.SURVIVAL
+                                        }
+                                    >
+                                        {this.resourceTabs.component}
+                                        {this.customTabs}
+                                    </MSKTab>
                                     {this.resourceTabs.component}
                                     {this.customTabs}
                                 </MSKTabs>
