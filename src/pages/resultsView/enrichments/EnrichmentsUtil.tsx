@@ -586,12 +586,26 @@ export function getFilteredData(
     return data.filter(enrichmentDatum => {
         let result = false;
         expressedGroups.forEach(enrichedGroup => {
+            console.log(enrichmentDatum);
+            let trueCounter = 0;
+            if (
+                (qValueFilter &&
+                    enrichmentDatum.groupsSet['Altered group'].alteredCount ===
+                        0) ||
+                enrichmentDatum.groupsSet['Unaltered group'].alteredCount === 0
+            ) {
+                trueCounter++;
+                //console.log(enrichmentDatum.hugoGeneSymbol);
+                return undefined;
+            }
+            console.log(trueCounter);
             const enrichedGroupData = enrichmentDatum.groupsSet[
                 enrichedGroup
             ] as any;
             if (!enrichedGroupData) {
                 return false;
             }
+
             let enrichedGroupAlteredPercentage =
                 enrichedGroupData.meanExpression ||
                 enrichedGroupData.alteredPercentage;
