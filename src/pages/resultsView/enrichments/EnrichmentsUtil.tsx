@@ -587,18 +587,25 @@ export function getFilteredData(
         let result = false;
         expressedGroups.forEach(enrichedGroup => {
             console.log(enrichmentDatum);
-            let trueCounter = 0;
-            if (
-                (qValueFilter &&
-                    enrichmentDatum.groupsSet['Altered group'].alteredCount ===
-                        0) ||
-                enrichmentDatum.groupsSet['Unaltered group'].alteredCount === 0
-            ) {
-                trueCounter++;
-                //console.log(enrichmentDatum.hugoGeneSymbol);
-                return undefined;
+
+            for (const groupName in enrichmentDatum.groupsSet) {
+                if (enrichmentDatum.groupsSet.hasOwnProperty(groupName)) {
+                    console.log(groupName); // Access each object dynamically
+                    if (
+                        qValueFilter &&
+                        enrichmentDatum.groupsSet[groupName].alteredCount === 0
+                    ) {
+                        return undefined;
+                    }
+                }
             }
-            console.log(trueCounter);
+
+            //if (moreshares && (enrichmentDatum.groupsSet["Altered group"].alteredCount === 5 || enrichmentDatum.groupsSet["Unaltered group"].alteredCount === 5)){
+            //return undefined
+            //}
+            //if (evenmoreshares && (enrichmentDatum.groupsSet["Altered group"].alteredCount === 10 || enrichmentDatum.groupsSet["Unaltered group"].alteredCount === 10)){
+            //return undefined
+            //}
             const enrichedGroupData = enrichmentDatum.groupsSet[
                 enrichedGroup
             ] as any;

@@ -675,6 +675,16 @@ export default class AlterationEnrichmentContainer extends React.Component<
                                 height={36}
                             />
                         </div>
+                        <div style={{ width: 250, marginRight: 7 }}>
+                            <CheckedSelect
+                                name={'significanceFilter'}
+                                placeholder={'Enriched in ...'}
+                                onChange={this.onChange}
+                                options={this.options}
+                                value={this.selectedValues}
+                                height={36}
+                            />
+                        </div>
                         <label className="checkbox-inline">
                             <input
                                 type="checkbox"
