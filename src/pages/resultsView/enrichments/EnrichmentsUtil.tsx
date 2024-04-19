@@ -594,11 +594,15 @@ export function getFilteredData(
             if (!enrichedGroupData) {
                 return false;
             }
-            // if ((myAlteredFilter &&
-            //     enrichmentDatum.groupsSet['Altered group'].alteredCount === 0) ||
-            //     enrichmentDatum.groupsSet['Unaltered group'].alteredCount === 0) {
-            //     return undefined;
-            // }
+            if (
+                myAlteredFilter &&
+                (enrichmentDatum.groupsSet['Altered group'].alteredCount ===
+                    0 ||
+                    enrichmentDatum.groupsSet['Unaltered group']
+                        .alteredCount === 0)
+            ) {
+                return undefined;
+            }
             // if (myAlteredFilter && enrichedGroupData.alteredCount === 0) {
             //     return undefined;
             // }
