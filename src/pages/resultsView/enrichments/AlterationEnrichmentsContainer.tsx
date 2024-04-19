@@ -673,6 +673,80 @@ export default class AlterationEnrichmentContainer extends React.Component<
                                 })}
                             />
                         </div>
+
+                        <div style={{ width: 250, marginRight: 7 }}>
+                            <ReactSelect
+                                name="select enrichments level: sample or patient"
+                                onChange={(option: any | null) => {
+                                    if (option) {
+                                        this.props.onSetPatientLevelEnrichments(
+                                            option.value
+                                        );
+                                    }
+                                }}
+                                options={[
+                                    // {
+                                    //     label: 'Shared alterations >= 10',
+                                    //     value: true,
+                                    // },
+                                    {
+                                        label: 'Shared alterations >= 1',
+                                        value: true,
+                                    },
+                                    {
+                                        label: 'All alterations',
+                                        value: false,
+                                    },
+                                ]}
+                                clearable={false}
+                                searchable={false}
+                                value={{
+                                    label: this.props.patientLevelEnrichments
+                                        ? // ? 'Shared alterations >= 10'
+                                          'Shared alterations >= 1'
+                                        : 'All alterations',
+                                    value: this.props.patientLevelEnrichments,
+                                }}
+                                styles={{
+                                    control: (provided: any) => ({
+                                        ...provided,
+                                        height: 36,
+                                        minHeight: 36,
+                                        border: '1px solid rgb(204,204,204)',
+                                    }),
+                                    menu: (provided: any) => ({
+                                        ...provided,
+                                        maxHeight: 400,
+                                    }),
+                                    menuList: (provided: any) => ({
+                                        ...provided,
+                                        maxHeight: 400,
+                                    }),
+                                    placeholder: (provided: any) => ({
+                                        ...provided,
+                                        color: '#000000',
+                                    }),
+                                    dropdownIndicator: (provided: any) => ({
+                                        ...provided,
+                                        color: '#000000',
+                                    }),
+                                    option: (provided: any, state: any) => {
+                                        return {
+                                            ...provided,
+                                            cursor: 'pointer',
+                                        };
+                                    },
+                                }}
+                                theme={(theme: any) => ({
+                                    ...theme,
+                                    colors: {
+                                        ...theme.colors,
+                                        neutral80: 'black',
+                                        //primary: theme.colors.primary50
+                                    },
+                                })}
+                            />
+                        </div>
                         <div style={{ width: 250, marginRight: 7 }}>
                             <CheckedSelect
                                 name={'groupsSelector'}
