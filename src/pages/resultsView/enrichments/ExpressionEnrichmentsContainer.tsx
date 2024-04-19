@@ -64,6 +64,7 @@ export default class ExpressionEnrichmentContainer extends React.Component<
     @observable overExpressedFilter: boolean = true;
     @observable underExpressedFilter: boolean = true;
     @observable significanceFilter: boolean = false;
+    @observable myAlterationFilter: boolean = false;
     @observable.shallow checkedGenes: string[] = [];
     @observable.ref clickedGeneHugo: string;
     @observable clickedGeneEntrez: number;
@@ -87,6 +88,7 @@ export default class ExpressionEnrichmentContainer extends React.Component<
             this.data,
             this._expressedGroups,
             this.significanceFilter,
+            this.myAlterationFilter,
             this.filterByGene
         );
     }

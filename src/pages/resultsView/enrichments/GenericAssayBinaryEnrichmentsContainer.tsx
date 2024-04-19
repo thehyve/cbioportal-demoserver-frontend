@@ -63,6 +63,7 @@ export default class GenericAssayBinaryEnrichmentsContainer extends React.Compon
     };
 
     @observable significanceFilter: boolean = false;
+    @observable myAlterationFilter: boolean = false;
     @observable.ref clickedEntityStableId: string;
     @observable.ref selectedStableIds: string[] | null;
     @observable.ref highlightedRow: GenericAssayBinaryEnrichmentRow | undefined;
@@ -82,6 +83,7 @@ export default class GenericAssayBinaryEnrichmentsContainer extends React.Compon
             this.data,
             this._enrichedGroups,
             this.significanceFilter,
+            this.myAlterationFilter,
             this.filterByStableId,
             true
         );

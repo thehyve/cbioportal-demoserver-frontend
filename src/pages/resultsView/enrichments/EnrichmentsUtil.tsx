@@ -580,6 +580,8 @@ export function getFilteredData(
     )[],
     expressedGroups: string[],
     qValueFilter: boolean,
+    // Add filter here
+    myAlteredFilter: boolean,
     filterFunction: (value: string) => boolean,
     isGenericAssayData: boolean = false
 ): any[] {
@@ -592,6 +594,14 @@ export function getFilteredData(
             if (!enrichedGroupData) {
                 return false;
             }
+            // if ((myAlteredFilter &&
+            //     enrichmentDatum.groupsSet['Altered group'].alteredCount === 0) ||
+            //     enrichmentDatum.groupsSet['Unaltered group'].alteredCount === 0) {
+            //     return undefined;
+            // }
+            // if (myAlteredFilter && enrichedGroupData.alteredCount === 0) {
+            //     return undefined;
+            // }
             let enrichedGroupAlteredPercentage =
                 enrichedGroupData.meanExpression ||
                 enrichedGroupData.alteredPercentage;
@@ -618,6 +628,14 @@ export function getFilteredData(
         if (qValueFilter && enrichmentDatum.qValue) {
             result = result && enrichmentDatum.qValue < 0.05;
         }
+        // Where is alteredCount coming from?
+        // if (myAlteredFilter && enrichmentDatum.groupsSet) {
+        //     let result = false;
+        //     if (enrichmentDatum.groupsSet['Altered group'].alteredCount === 0) {
+        //         result = result;
+        //         return true;
+        //     }
+        // }
         if (isGenericAssayData) {
             result =
                 result &&

@@ -69,6 +69,8 @@ export default class AlterationEnrichmentContainer extends React.Component<
     };
 
     @observable significanceFilter: boolean = false;
+    // Adding new here
+    @observable myAlterationFilter: boolean = false;
     @observable.shallow checkedGenes: string[] = [];
     @observable.shallow selectedGenes: string[] | null;
     @observable.ref highlightedRow: AlterationEnrichmentRow | undefined;
@@ -124,6 +126,7 @@ export default class AlterationEnrichmentContainer extends React.Component<
             this.data,
             this._enrichedGroups,
             this.significanceFilter,
+            this.myAlterationFilter,
             this.filterByGene
         );
     }
@@ -141,6 +144,11 @@ export default class AlterationEnrichmentContainer extends React.Component<
     @autobind
     private toggleSignificanceFilter() {
         this.significanceFilter = !this.significanceFilter;
+    }
+
+    @autobind
+    private toggleMyAlterationFilter() {
+        this.myAlterationFilter = !this.myAlterationFilter;
     }
 
     @autobind
@@ -683,6 +691,15 @@ export default class AlterationEnrichmentContainer extends React.Component<
                                 data-test="SwapAxes"
                             />
                             Significant only
+                        </label>
+                        <label className="checkbox-inline">
+                            <input
+                                type="checkbox"
+                                checked={this.myAlterationFilter}
+                                onClick={this.toggleMyAlterationFilter}
+                                data-test="SwapAxes"
+                            />
+                            Shared alterations
                         </label>
                     </div>
                     <AlterationEnrichmentTable

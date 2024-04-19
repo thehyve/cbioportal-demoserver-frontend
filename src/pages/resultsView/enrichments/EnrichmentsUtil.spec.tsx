@@ -612,6 +612,7 @@ describe('EnrichmentsUtil', () => {
                     exampleAlterationEnrichmentRowData as any,
                     ['altered group', 'unaltered group'],
                     false,
+                    false,
                     () => true
                 ),
                 exampleAlterationEnrichmentRowData
@@ -621,6 +622,7 @@ describe('EnrichmentsUtil', () => {
                 getFilteredData(
                     exampleAlterationEnrichmentRowData as any,
                     ['unaltered group'],
+                    true,
                     true,
                     () => true
                 ),
@@ -632,6 +634,7 @@ describe('EnrichmentsUtil', () => {
                     exampleAlterationEnrichmentRowData as any,
                     ['altered group'],
                     false,
+                    true,
                     (hugoGeneSymbol: string) =>
                         ['FBXW4'].includes(hugoGeneSymbol)
                 ),

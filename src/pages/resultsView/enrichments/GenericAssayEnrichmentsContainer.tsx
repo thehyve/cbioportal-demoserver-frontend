@@ -48,6 +48,7 @@ export default class GenericAssayEnrichmentsContainer extends React.Component<
     };
 
     @observable significanceFilter: boolean = false;
+    @observable myAlterationFilter: boolean = false;
     @observable.ref clickedEntityStableId: string;
     @observable.ref selectedStableIds: string[] | null;
     @observable.ref highlightedRow: GenericAssayEnrichmentRow | undefined;
@@ -67,6 +68,7 @@ export default class GenericAssayEnrichmentsContainer extends React.Component<
             this.data,
             this._enrichedGroups,
             this.significanceFilter,
+            this.myAlterationFilter,
             this.filterByStableId,
             true
         );
