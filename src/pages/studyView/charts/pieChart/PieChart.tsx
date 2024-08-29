@@ -303,8 +303,8 @@ export default class PieChart extends React.Component<IPieChartProps, {}>
                     placement={this.props.placement}
                     overlay={
                         <ClinicalTable
-                            width={300}
-                            height={150}
+                            width={400}
+                            height={250}
                             openComparisonPage={this.props.openComparisonPage}
                             data={this.props.data}
                             label={this.props.label}

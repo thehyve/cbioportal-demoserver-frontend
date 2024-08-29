@@ -40,6 +40,8 @@ export interface IBarChartProps {
     filters: DataFilterValue[];
     onUserSelection: (dataBins: DataBin[]) => void;
     showNAChecked: boolean;
+    xAxisLabel?: string;
+    yAxisLabel?: string;
 }
 
 export type BarDatum = {
@@ -329,12 +331,19 @@ export default class BarChart extends React.Component<IBarChartProps, {}>
                             tickFormat={(t: number) => this.tickFormat[t - 1]}
                             domain={[0, this.maximumX]}
                             tickLabelComponent={<BarChartAxisLabel />}
+                            label={this.props.xAxisLabel || ''}
                             style={{
                                 tickLabels: {
                                     angle: TILT_ANGLE,
                                     verticalAnchor: 'start',
                                     textAnchor: 'start',
                                 },
+                                ...(this.props.xAxisLabel && {
+                                    axisLabel: {
+                                        padding: 27,
+                                        fontSize: 15,
+                                    },
+                                }),
                             }}
                         />
                         <VictoryAxis
@@ -342,6 +351,15 @@ export default class BarChart extends React.Component<IBarChartProps, {}>
                             tickFormat={(t: number) =>
                                 Number.isInteger(t) ? t.toFixed(0) : ''
                             }
+                            style={{
+                                ...(this.props.yAxisLabel && {
+                                    axisLabel: {
+                                        padding: 25,
+                                        fontSize: 15,
+                                    },
+                                }),
+                            }}
+                            label={this.props.yAxisLabel || ''}
                         />
                         <VictoryBar
                             barRatio={this.barRatio}

@@ -111,7 +111,7 @@ const BarChart: React.FC<BarChartProps> = observer(
             );
             setDatabinState(gaDataBins);
         };
-
+        console.log(databinState, 'here are gaDatabins');
         const filteredData = !state.filterNA
             ? databinState.filter((bin: any) => bin.specialValue !== 'NA')
             : databinState;
@@ -200,9 +200,14 @@ const BarChart: React.FC<BarChartProps> = observer(
             const regex = /^(\d+(\.\d+)?(,\d+(\.\d+)?)*|\d*\.?\d+)?$/;
             return regex.test(trimmedInput);
         };
+
         const [validationMessage, setValidationMessage] = useState('');
+
         const handleSave = () => {
-            if (!isCommaSeparatedNumeric(state.editValues)) {
+            const trimmedInput = state.editValues.replace(/\s/g, '');
+            if (trimmedInput.toUpperCase().includes('NA')) {
+                setValidationMessage('Please remove "NA" from the input.');
+            } else if (!isCommaSeparatedNumeric(trimmedInput)) {
                 setValidationMessage(
                     'Please enter valid comma-separated numeric values.'
                 );
@@ -216,300 +221,319 @@ const BarChart: React.FC<BarChartProps> = observer(
                 handleCloseXAxisValuesModal();
             }
         };
+
         return (
             <>
-                <div
-                    id="div-to-download"
-                    style={{
-                        textAlign: 'center',
-                        position: 'relative',
-                        marginBottom: '20px',
-                    }}
-                >
-                    <h2>
-                        {heading && heading.length > 0
-                            ? heading.replace(/_/g, ' ')
-                            : 'No Data'}
-                    </h2>
-                    <label
-                        style={{
-                            display: 'block',
-                            marginBottom: '10px',
-                            marginTop: '10px',
-                            textAlign: 'end',
-                        }}
-                    >
-                        <input
-                            type="checkbox"
-                            checked={state.filterNA}
-                            onChange={handleCheckboxChange}
-                        />{' '}
-                        Show NA values
-                    </label>
-
-                    {processedData.length !== 0 && (
-                        <div ref={chartRef}>
-                            <VictoryChart
-                                theme={CBIOPORTAL_VICTORY_THEME}
-                                domainPadding={{ x: 15, y: 20 }}
-                                height={400}
-                                width={640}
-                                padding={{
-                                    bottom: 80,
-                                    left: 60,
-                                    right: 60,
-                                }}
-                            >
-                                <VictoryAxis
-                                    label={`Absolute/Relative Counts (${selectedEntity?.stableId})`}
-                                    style={{
-                                        tickLabels: {
-                                            angle: 45,
-                                            textAnchor: 'start',
-                                        },
-                                        axisLabel: {
-                                            padding: 50,
-                                            fontSize: 15,
-                                        },
-                                    }}
-                                    tickValues={xAxisLabels}
-                                />
-                                <VictoryAxis
-                                    label="No. of Samples"
-                                    style={{
-                                        axisLabel: {
-                                            padding: 30,
-                                            fontSize: 15,
-                                        },
-                                    }}
-                                    dependentAxis
-                                />
-                                <VictoryBar
-                                    data={processedData}
-                                    barWidth={600 / processedData.length - 7}
-                                    alignment={'start'}
-                                    labels={(data: any) =>
-                                        `Number of samples: ${data.count}\nRange: ${data.range}`
-                                    }
-                                    labelComponent={
-                                        <VictoryTooltip
-                                            cornerRadius={5}
-                                            style={{ fontSize: 14 }}
-                                            flyoutStyle={{
-                                                fill: 'white',
-                                                stroke: 'black',
-                                                strokeWidth: 1,
-                                            }}
-                                            flyoutPadding={{
-                                                top: 5,
-                                                bottom: 5,
-                                                left: 10,
-                                                right: 10,
-                                            }}
-                                        />
-                                    }
-                                    style={{ data: { fill: '#2986E2' } }}
-                                />
-                            </VictoryChart>
-                        </div>
-                    )}
-
+                {processedData.length !== 0 && (
                     <div
-                        className="exclude-from-svg"
+                        id="div-to-download"
                         style={{
-                            position: 'absolute',
-                            top: '0',
-                            right: '0',
-                            cursor: 'pointer',
-                            zIndex: 100,
-                        }}
-                        onMouseLeave={() => {
-                            state.setOptionsVisible(false);
-                            state.setDownloadOptionsVisible(false);
+                            textAlign: 'center',
+                            position: 'relative',
+                            marginBottom: '20px',
                         }}
                     >
-                        <i
-                            className="fa fa-ellipsis-v"
-                            aria-hidden="true"
-                            onMouseEnter={() => state.setOptionsVisible(true)}
+                        <h2>
+                            {heading && heading.length > 0
+                                ? heading.replace(/_/g, ' ')
+                                : 'No Data'}
+                        </h2>
+                        <label
                             style={{
-                                padding: '10px',
-                                borderRadius: '50%',
-                                border: '1px solid lightgrey',
-                                transition: 'background-color 0.3s ease',
+                                display: 'block',
+                                marginBottom: '10px',
+                                marginTop: '10px',
+                                textAlign: 'end',
                             }}
-                        />
-                        {state.optionsVisible && (
-                            <div
+                        >
+                            <input
+                                type="checkbox"
+                                checked={state.filterNA}
+                                onChange={handleCheckboxChange}
+                            />{' '}
+                            Show NA values
+                        </label>
+
+                        {processedData.length !== 0 && (
+                            <div ref={chartRef}>
+                                {/* <VictoryChart
+                            theme={CBIOPORTAL_VICTORY_THEME}
+                            domainPadding={{ x: 15, y: 20 }}
+                            height={400}
+                            width={640}
+                            padding={{
+                                bottom: 80,
+                                left: 60,
+                                right: 60,
+                            }}
+                        >
+                            <VictoryAxis
+                                label={`Absolute/Relative Counts (${selectedEntity?.stableId})`}
                                 style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    right: 0,
-                                    backgroundColor: 'white',
-                                    boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-                                    zIndex: 200,
-                                    borderRadius: '4px',
-                                    overflow: 'hidden',
-                                    minWidth: '160px',
-                                    textAlign: 'center',
+                                    tickLabels: {
+                                        angle: 45,
+                                        textAnchor: 'start',
+                                    },
+                                    axisLabel: {
+                                        padding: 50,
+                                        fontSize: 15,
+                                    },
                                 }}
-                            >
-                                <div
-                                    style={{
-                                        padding: '8px',
-                                        cursor: 'pointer',
-                                        borderBottom: '1px solid #ddd',
-                                        transition:
-                                            'background-color 0.3s ease',
-                                    }}
-                                    onClick={() =>
-                                        state.setDownloadOptionsVisible(
-                                            !state.downloadOptionsVisible
-                                        )
-                                    }
-                                    onMouseEnter={e =>
-                                        (e.currentTarget.style.backgroundColor =
-                                            '#f0f0f0')
-                                    }
-                                    onMouseLeave={e =>
-                                        (e.currentTarget.style.backgroundColor =
-                                            'white')
-                                    }
-                                >
-                                    <span style={{ marginRight: '8px' }}>
-                                        <i className="fa fa-download" />
-                                    </span>
-                                    Download{' '}
-                                    <span style={{ fontSize: '12px' }}>
-                                        {state.downloadOptionsVisible
-                                            ? '▲'
-                                            : '▼'}
-                                    </span>
-                                </div>
-                                {state.downloadOptionsVisible && (
-                                    <div
-                                        style={{
-                                            backgroundColor: 'white',
-                                            boxShadow:
-                                                '0 0 10px rgba(0,0,0,0.2)',
-                                            zIndex: 200,
-                                            borderRadius: '4px',
-                                            overflow: 'hidden',
+                                tickValues={xAxisLabels}
+                            />
+                            <VictoryAxis
+                                label="No. of Samples"
+                                style={{
+                                    axisLabel: {
+                                        padding: 30,
+                                        fontSize: 15,
+                                    },
+                                }}
+                                dependentAxis
+                            />
+                            <VictoryBar
+                                data={processedData}
+                                barWidth={600 / processedData.length - 7}
+                                alignment={'start'}
+                                labels={(data: any) =>
+                                    `Number of samples: ${data.count}\nRange: ${data.range}`
+                                }
+                                labelComponent={
+                                    <VictoryTooltip
+                                        cornerRadius={5}
+                                        style={{ fontSize: 14 }}
+                                        flyoutStyle={{
+                                            fill: 'white',
+                                            stroke: 'black',
+                                            strokeWidth: 1,
                                         }}
-                                    >
-                                        <div
-                                            style={{
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                borderBottom: '1px solid #ddd',
-                                                transition:
-                                                    'background-color 0.3s ease',
-                                            }}
-                                            onClick={handleDownloadPDFWrapper}
-                                            onMouseEnter={e =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    '#f0f0f0')
-                                            }
-                                            onMouseLeave={e =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    'white')
-                                            }
-                                        >
-                                            <i
-                                                className="fa fa-file-pdf-o"
-                                                style={{
-                                                    marginRight: '8px',
-                                                }}
-                                            />
-                                            PDF
-                                        </div>
-                                        <div
-                                            style={{
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                transition:
-                                                    'background-color 0.3s ease',
-                                            }}
-                                            onClick={() =>
-                                                handleDownloadSvgUtils(
-                                                    'div-to-download',
-                                                    'histogram_chart',
-                                                    'histogram'
-                                                )
-                                            }
-                                            onMouseEnter={e =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    '#f0f0f0')
-                                            }
-                                            onMouseLeave={e =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    'white')
-                                            }
-                                        >
-                                            <i
-                                                className="fa fa-file-image-o"
-                                                style={{
-                                                    marginRight: '8px',
-                                                }}
-                                            />
-                                            SVG
-                                        </div>
-                                        <div
-                                            style={{
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                transition:
-                                                    'background-color 0.3s ease',
-                                            }}
-                                            onClick={() =>
-                                                handleDownloadDataUtils(
-                                                    BarDownloadData,
-                                                    'Histogram_data.txt'
-                                                )
-                                            }
-                                            onMouseEnter={e =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    '#f0f0f0')
-                                            }
-                                            onMouseLeave={e =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    'white')
-                                            }
-                                        >
-                                            <i
-                                                className="fa fa-database"
-                                                style={{
-                                                    marginRight: '8px',
-                                                }}
-                                            />
-                                            Data
-                                        </div>
-                                    </div>
-                                )}
-                                <div
-                                    style={{
-                                        padding: '8px',
-                                        cursor: 'pointer',
-                                        borderBottom: '1px solid #ddd',
-                                        transition:
-                                            'background-color 0.3s ease',
-                                    }}
-                                    onClick={handleCustomDatabins}
-                                    onMouseEnter={e =>
-                                        (e.currentTarget.style.backgroundColor =
-                                            '#f0f0f0')
-                                    }
-                                    onMouseLeave={e =>
-                                        (e.currentTarget.style.backgroundColor =
-                                            'white')
-                                    }
-                                >
-                                    Custom Databins
-                                </div>
+                                        flyoutPadding={{
+                                            top: 5,
+                                            bottom: 5,
+                                            left: 10,
+                                            right: 10,
+                                        }}
+                                    />
+                                }
+                                style={{ data: { fill: '#2986E2' } }}
+                            />
+                        </VictoryChart> */}
+                                <BarChart1
+                                    width={750}
+                                    height={550}
+                                    ref={undefined}
+                                    onUserSelection={() => {}}
+                                    filters={[]}
+                                    data={databinState}
+                                    showNAChecked={state.filterNA}
+                                    xAxisLabel={`Absolute/Relative Counts (${selectedEntity?.stableId})`}
+                                    yAxisLabel={'No. of Samples'}
+                                />
                             </div>
                         )}
+
+                        <div
+                            className="exclude-from-svg"
+                            style={{
+                                position: 'absolute',
+                                top: '0',
+                                right: '0',
+                                cursor: 'pointer',
+                                zIndex: 100,
+                            }}
+                            onMouseLeave={() => {
+                                state.setOptionsVisible(false);
+                                state.setDownloadOptionsVisible(false);
+                            }}
+                        >
+                            <i
+                                className="fa fa-ellipsis-v"
+                                aria-hidden="true"
+                                onMouseEnter={() =>
+                                    state.setOptionsVisible(true)
+                                }
+                                style={{
+                                    padding: '10px',
+                                    borderRadius: '50%',
+                                    border: '1px solid lightgrey',
+                                    transition: 'background-color 0.3s ease',
+                                }}
+                            />
+                            {state.optionsVisible && (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        right: 0,
+                                        backgroundColor: 'white',
+                                        boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+                                        zIndex: 200,
+                                        borderRadius: '4px',
+                                        overflow: 'hidden',
+                                        minWidth: '160px',
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            padding: '8px',
+                                            cursor: 'pointer',
+                                            borderBottom: '1px solid #ddd',
+                                            transition:
+                                                'background-color 0.3s ease',
+                                        }}
+                                        onClick={() =>
+                                            state.setDownloadOptionsVisible(
+                                                !state.downloadOptionsVisible
+                                            )
+                                        }
+                                        onMouseEnter={e =>
+                                            (e.currentTarget.style.backgroundColor =
+                                                '#f0f0f0')
+                                        }
+                                        onMouseLeave={e =>
+                                            (e.currentTarget.style.backgroundColor =
+                                                'white')
+                                        }
+                                    >
+                                        <span style={{ marginRight: '8px' }}>
+                                            <i className="fa fa-download" />
+                                        </span>
+                                        Download{' '}
+                                        <span style={{ fontSize: '12px' }}>
+                                            {state.downloadOptionsVisible
+                                                ? '▲'
+                                                : '▼'}
+                                        </span>
+                                    </div>
+                                    {state.downloadOptionsVisible && (
+                                        <div
+                                            style={{
+                                                backgroundColor: 'white',
+                                                boxShadow:
+                                                    '0 0 10px rgba(0,0,0,0.2)',
+                                                zIndex: 200,
+                                                borderRadius: '4px',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    borderBottom:
+                                                        '1px solid #ddd',
+                                                    transition:
+                                                        'background-color 0.3s ease',
+                                                }}
+                                                onClick={
+                                                    handleDownloadPDFWrapper
+                                                }
+                                                onMouseEnter={e =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        '#f0f0f0')
+                                                }
+                                                onMouseLeave={e =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        'white')
+                                                }
+                                            >
+                                                <i
+                                                    className="fa fa-file-pdf-o"
+                                                    style={{
+                                                        marginRight: '8px',
+                                                    }}
+                                                />
+                                                PDF
+                                            </div>
+                                            <div
+                                                style={{
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    transition:
+                                                        'background-color 0.3s ease',
+                                                }}
+                                                onClick={() =>
+                                                    handleDownloadSvgUtils(
+                                                        'div-to-download',
+                                                        'histogram_chart',
+                                                        'histogram'
+                                                    )
+                                                }
+                                                onMouseEnter={e =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        '#f0f0f0')
+                                                }
+                                                onMouseLeave={e =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        'white')
+                                                }
+                                            >
+                                                <i
+                                                    className="fa fa-file-image-o"
+                                                    style={{
+                                                        marginRight: '8px',
+                                                    }}
+                                                />
+                                                SVG
+                                            </div>
+                                            <div
+                                                style={{
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    transition:
+                                                        'background-color 0.3s ease',
+                                                }}
+                                                onClick={() =>
+                                                    handleDownloadDataUtils(
+                                                        BarDownloadData,
+                                                        'Histogram_data.txt'
+                                                    )
+                                                }
+                                                onMouseEnter={e =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        '#f0f0f0')
+                                                }
+                                                onMouseLeave={e =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        'white')
+                                                }
+                                            >
+                                                <i
+                                                    className="fa fa-database"
+                                                    style={{
+                                                        marginRight: '8px',
+                                                    }}
+                                                />
+                                                Data
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div
+                                        style={{
+                                            padding: '8px',
+                                            cursor: 'pointer',
+                                            borderBottom: '1px solid #ddd',
+                                            transition:
+                                                'background-color 0.3s ease',
+                                        }}
+                                        onClick={handleCustomDatabins}
+                                        onMouseEnter={e =>
+                                            (e.currentTarget.style.backgroundColor =
+                                                '#f0f0f0')
+                                        }
+                                        onMouseLeave={e =>
+                                            (e.currentTarget.style.backgroundColor =
+                                                'white')
+                                        }
+                                    >
+                                        Custom Databins
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {state.showXAxisValuesModal && (
                     <div

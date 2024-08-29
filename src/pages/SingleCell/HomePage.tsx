@@ -655,6 +655,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
 
     render() {
         const { selectedEntity, selectedValue, pieChartData } = this.state;
+        console.log(pieChartData, 'fasfasf');
         const selectedOption = singleCellStore.selectedOption;
         const entityNames = singleCellStore.entityNames;
         const molecularProfiles = singleCellStore.molecularProfiles;
@@ -684,7 +685,17 @@ class HomePage extends Component<HomePageProps, HomePageState> {
 
         return (
             <div className="home-page-container">
-                <div className="chart-configurations">
+                <div
+                    className="chart-configurations"
+                    style={{
+                        maxHeight:
+                            chartType === 'bar'
+                                ? '250px'
+                                : chartType === 'pie'
+                                ? '200px'
+                                : '400px',
+                    }}
+                >
                     <h2>Chart Configurations</h2>
                     <div>
                         <div className="dropdown-container">
@@ -749,7 +760,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                             </div>
                         )}
 
-                        {chartType === 'pie' && (
+                        {/* {chartType === 'pie' && (
                             <div className="checkbox-wrapper-3">
                                 <input
                                     type="checkbox"
@@ -772,7 +783,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                     Show the data table
                                 </label>
                             </div>
-                        )}
+                        )} */}
 
                         {chartType === 'stack' && (
                             <>
@@ -925,7 +936,9 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                 </div>
 
                 <div
-                    className={chartType == 'bar' ? 'chart-display' : ''}
+                    className={
+                        chartType == ('bar' || 'pie') ? 'chart-display' : ''
+                    }
                     style={
                         chartType == 'stack'
                             ? {
@@ -935,7 +948,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                               }
                             : chartType == 'pie'
                             ? {
-                                  width: '48%',
+                                  width: '80%',
                               }
                             : {}
                     }
@@ -995,7 +1008,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                           border: '1px dashed lightgrey',
                                           borderRadius: '5px',
                                           padding: '10px',
-                                          width: '600px',
+                                          width: '750px',
                                       }
                             }
                         >
@@ -1167,18 +1180,6 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                 this.setState({ tooltipHovered: value })
                             }
                         />
-                    </div>
-                )}
-                {chartType == 'pie' && (
-                    <div
-                        style={{
-                            width: '22%',
-                            marginTop: '60px',
-                            marginLeft: '20px',
-                            textAlign: 'center',
-                        }}
-                    >
-                        <PieToolTip />
                     </div>
                 )}
             </div>

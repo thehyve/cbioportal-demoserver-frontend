@@ -11,7 +11,7 @@ import singleCellStore_importedDirectly from './SingleCellStore';
 import { colors, PatientData } from './SingleCellStore';
 import { StudyViewPageStore } from 'pages/studyView/StudyViewPageStore';
 import { GenericAssayData } from 'cbioportal-ts-api-client';
-
+import PieChart from 'pages/studyView/charts/pieChart/PieChart';
 interface ChartProps {
     singleCellStore: any;
     pieChartData: GenericAssayData[];
@@ -21,7 +21,7 @@ interface ChartProps {
 }
 
 interface PieChartData {
-    typeOfCell: string;
+    value: string;
     percentage: number;
     color?: string;
 }
@@ -119,14 +119,30 @@ const Chart: React.FC<ChartProps> = observer(
         const pieData = Object.keys(sumValues).map((key, index) => {
             const color = colors[index];
             return {
-                typeOfCell: key,
+                value: key,
                 percentage: sumValues[key],
                 color: color,
             };
         });
+        const pieData2 = Object.keys(sumValues).map((key, index) => {
+            const color = colors[index];
+            const count = sumValues[key];
+            const percentage = count / totalSum;
+            const freq = (percentage * 100).toFixed(2) + '%';
+
+            return {
+                value: key,
+                count: count,
+                freq: freq,
+                color: color,
+                percentage: percentage,
+            };
+        });
+
         useEffect(() => {
             setStudyViewFilterFlag(true);
         }, [store.selectedSamples.result]);
+        console.log(pieData, 'here is piedata');
         return (
             <>
                 <div id="div-to-download">
@@ -137,168 +153,36 @@ const Chart: React.FC<ChartProps> = observer(
                                 : 'No Data'}
                         </h2>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                        <div>
-                            <VictoryChart height={510} width={800}>
-                                <VictoryAxis
-                                    style={{
-                                        axis: { stroke: 'none' },
-                                        ticks: { stroke: 'none' },
-                                        tickLabels: { fill: 'none' },
-                                    }}
-                                />
-                                <VictoryAxis
-                                    dependentAxis
-                                    style={{
-                                        axis: { stroke: 'none' },
-                                        ticks: { stroke: 'none' },
-                                        tickLabels: { fill: 'none' },
-                                    }}
-                                />
-
-                                <VictoryPie
-                                    standalone={false}
-                                    data={pieData}
-                                    x="typeOfCell"
-                                    y="percentage"
-                                    colorScale={colors}
-                                    innerRadius={60}
-                                    labelRadius={50}
-                                    labelComponent={<VictoryTooltip />}
-                                    labels={(data: any) =>
-                                        `Cell type: ${
-                                            data.typeOfCell
-                                        }\nPercentage: ${(
-                                            (data.percentage / totalSum) *
-                                            100
-                                        ).toFixed(2)}%`
-                                    }
-                                    events={[
-                                        {
-                                            target: 'data',
-                                            eventHandlers: {
-                                                onMouseOver: (
-                                                    evt: React.MouseEvent<any>,
-                                                    props: VictoryEventProps
-                                                ) => {
-                                                    singleCellStore_importedDirectly.setHoveredSliceIndex(
-                                                        props.index
-                                                    );
-                                                    if (!tooltipEnabled) {
-                                                        singleCellStore_importedDirectly.setIsHovered(
-                                                            true
-                                                        );
-                                                        singleCellStore_importedDirectly.setHoveredSliceIndex(
-                                                            props.index
-                                                        );
-                                                    }
-
-                                                    return [];
-                                                },
-                                                onMouseOut: () => {
-                                                    singleCellStore_importedDirectly.setHoveredSliceIndex(
-                                                        -1
-                                                    );
-                                                    if (!tooltipEnabled) {
-                                                        singleCellStore_importedDirectly.setIsHovered(
-                                                            false
-                                                        );
-                                                    }
-
-                                                    return [];
-                                                },
-                                            },
-                                        },
-                                    ]}
-                                />
-                            </VictoryChart>
-                        </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '60vh',
+                        }}
+                    >
                         <div
                             style={{
-                                cursor: 'pointer',
-                                border: '1px solid lightgrey',
-                                padding: '5px',
-                                borderRadius: '4px',
-                                transition: 'background-color 0.3s ease',
-
-                                position: 'relative',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                marginTop: '100px',
+                                alignItems: 'center',
+                                marginBottom: '20px',
                             }}
-                            onMouseEnter={() => setDownloadOptionsVisible(true)}
-                            onMouseLeave={() =>
-                                setDownloadOptionsVisible(false)
-                            }
-                            className="exclude-from-svg"
                         >
-                            <i
-                                className="fa fa-cloud-download"
-                                aria-hidden="true"
+                            <PieChart
+                                width={500}
+                                height={560}
+                                ref={undefined}
+                                onUserSelection={() => {}}
+                                openComparisonPage={undefined}
+                                filters={[]}
+                                data={pieData2}
+                                placement={'right'}
+                                label={'Type of cell'}
+                                labelDescription={'dummy'}
+                                patientAttribute={true}
                             />
-                            {downloadOptionsVisible && (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        backgroundColor: 'white',
-                                        boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-                                        zIndex: 220,
-                                        borderRadius: '4px',
-                                        overflow: 'hidden',
-                                        transition: 'opacity 0.3s ease-out',
-                                        opacity: downloadOptionsVisible ? 1 : 0,
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            padding: '8px',
-                                            cursor: 'pointer',
-                                            transition:
-                                                'background-color 0.3s ease',
-                                        }}
-                                        onClick={() =>
-                                            handleDownloadSvgUtils(
-                                                'div-to-download',
-                                                'piechart_chart',
-                                                'pieChart'
-                                            )
-                                        }
-                                        onMouseEnter={e =>
-                                            (e.currentTarget.style.backgroundColor =
-                                                '#f0f0f0')
-                                        }
-                                        onMouseLeave={e =>
-                                            (e.currentTarget.style.backgroundColor =
-                                                'white')
-                                        }
-                                    >
-                                        SVG
-                                    </div>
-                                    <div
-                                        style={{
-                                            padding: '8px',
-                                            cursor: 'pointer',
-                                            transition:
-                                                'background-color 0.3s ease',
-                                        }}
-                                        onClick={() =>
-                                            handleDownloadDataUtils(
-                                                pieChartData,
-                                                'pie_chart_data.txt'
-                                            )
-                                        }
-                                        onMouseEnter={e =>
-                                            (e.currentTarget.style.backgroundColor =
-                                                '#f0f0f0')
-                                        }
-                                        onMouseLeave={e =>
-                                            (e.currentTarget.style.backgroundColor =
-                                                'white')
-                                        }
-                                    >
-                                        Data
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
 
@@ -306,13 +190,16 @@ const Chart: React.FC<ChartProps> = observer(
                         style={{
                             display: 'flex',
                             flexWrap: 'wrap',
-                            marginLeft: '120px',
-                            marginRight: '40px',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            marginLeft: '250px',
+                            marginRight: '250px',
                             marginBottom: '40px',
                         }}
                     >
                         {pieData.map((data: any, index: any) => (
-                            <div key={index} style={{ marginTop: '6px' }}>
+                            <div key={index} style={{ marginTop: '10px' }}>
                                 <div
                                     style={{
                                         width: '20px',
@@ -330,7 +217,7 @@ const Chart: React.FC<ChartProps> = observer(
                                         100
                                     ).toFixed(2)}
                                 >
-                                    {data.typeOfCell}
+                                    {data.value}
                                 </span>
                             </div>
                         ))}
