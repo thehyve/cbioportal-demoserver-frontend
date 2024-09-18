@@ -25,7 +25,6 @@ interface DataItem {
 interface StackedBarChartProps {
     store: StudyViewPageStore;
     pieChartData: GenericAssayData[];
-    dataBins: DataBin[];
     studyViewFilterFlag: boolean;
     setStudyViewFilterFlag: (value: any) => void;
     stackEntity: any;
@@ -66,7 +65,6 @@ const StackedBarChart: React.FC<StackedBarChartProps> = ({
     store,
     pieChartData,
     setPieChartData,
-    dataBins,
     studyViewFilterFlag,
     setStudyViewFilterFlag,
     stackEntity,

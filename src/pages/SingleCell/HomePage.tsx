@@ -10,6 +10,7 @@ import {
 import autobind from 'autobind-decorator';
 import Select from 'react-select';
 import ReactSelect from 'react-select1';
+import jsondata from './jsonData/sample.json';
 import singleCellStore, { SampleOption } from './SingleCellStore';
 import {
     ChartMeta,
@@ -35,6 +36,8 @@ import StackToolTip from './StackToolTip';
 import PieToolTip from './PieToolTip';
 import './styles.css';
 import { selectable } from 'shared/components/query/styles/styles.module.scss';
+import ComparisonScatterPlot from './ComparisonScatterPlot';
+import BoxPlot from './BoxPlot';
 
 interface Option {
     value: string;
@@ -73,6 +76,10 @@ interface HomePageProps {
 interface MolecularProfileDataItem {
     sampleId: string;
 }
+type CellOption = {
+    value: string;
+    label: string;
+};
 
 interface HomePageState {
     selectedOption: string | null;
@@ -121,6 +128,27 @@ interface HomePageState {
     stableIdBin: string;
     profileTypeBin: string;
     databinState: any;
+    selectedIdBox: any;
+    selectedKeyBox: any;
+    selectedNestedKeyBox: any;
+    optionsIdBox: any;
+    optionsKeyBox: any;
+    optionsNestedKeyBox: any;
+    selectedObjectBox: any;
+    transformedData: any;
+    boxPlotData: any;
+    scatterColor: string;
+    loader: boolean;
+    selectedGene: any;
+    isComparision: boolean;
+    compareGene1: string;
+    compareGene2: string;
+    cellOptions: CellOption[];
+    geneCellSelect: string;
+    gene1Map: any;
+    gene2Map: any;
+    gene1Data: any;
+    gene2Data: any;
 }
 
 class HomePage extends Component<HomePageProps, HomePageState> {
@@ -173,6 +201,27 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             profileTypeBin: '',
             stableIdBin: '',
             databinState: [],
+            selectedIdBox: null,
+            selectedKeyBox: null,
+            selectedNestedKeyBox: null,
+            optionsIdBox: Object.keys(jsondata),
+            optionsKeyBox: [],
+            optionsNestedKeyBox: [],
+            selectedObjectBox: null,
+            selectedGene: null,
+            transformedData: [],
+            boxPlotData: [],
+            scatterColor: 'Default',
+            loader: false,
+            isComparision: false,
+            compareGene1: '',
+            compareGene2: '',
+            cellOptions: [],
+            geneCellSelect: '',
+            gene1Map: [],
+            gene2Map: [],
+            gene1Data: [],
+            gene2Data: [],
         };
     }
     async fetchGenericAssayData(
@@ -207,6 +256,10 @@ class HomePage extends Component<HomePageProps, HomePageState> {
     handleTooltipCheckboxChange(event: React.ChangeEvent<HTMLInputElement>) {
         singleCellStore.setTooltipEnabled(event.target.checked);
         this.setState({ tooltipEnabled: event.target.checked });
+    }
+    @autobind
+    handleIsCompareChange(event: React.ChangeEvent<HTMLInputElement>) {
+        this.setState({ isComparision: event.target.checked });
     }
     @autobind
     handleReverseChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -273,85 +326,96 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         this.setState({ stackEntity: '' });
         singleCellStore.setStackEntity('');
         const selectedValue = event.value;
-        const studyId = 'gbm_cptac_2021';
-        const selectedProfile = singleCellStore.molecularProfiles.find(
-            profile => profile.value === selectedValue
-        );
-        singleCellStore.setChartType(null);
-        this.setState({ selectedValue, chartType: null, selectedEntity: null });
-
-        if (selectedProfile) {
-            const { store } = this.props;
-            const entities =
-                store.genericAssayEntitiesGroupedByProfileId.result;
-            const entityArray = entities
-                ? entities[selectedProfile.genericAssayEntityId]
-                : [];
-            const names = entityArray.map((entity: any) => entity.stableId);
-            singleCellStore.setEntityNames(names);
-            this.setState({ entityNames: names, selectedEntity: null });
-
-            this.retrieveAllProfiledSamples(selectedValue)
-                .then(async MolecularProfileData => {
-                    const extractedData: string[] = (
-                        MolecularProfileData ?? []
-                    ).map(({ sampleId }) => sampleId);
-                    const pieChartData = await this.fetchGenericAssayData(
-                        selectedValue,
-                        names,
-                        extractedData
-                    );
-                    singleCellStore.setPieChartData(
-                        pieChartData as GenericAssayData[]
-                    );
-                    this.setState({
-                        pieChartData: pieChartData as GenericAssayData[],
-                    });
-                })
-                .catch(error => {
-                    toast.error('Failed to fetch data:');
-                });
-
-            const newChartInfo = {
-                name: '',
-                description: selectedProfile.description,
-                profileType: selectedProfile.profileType,
-                genericAssayType: selectedProfile.genericAssayType,
-                dataType: selectedProfile.dataType,
-                genericAssayEntityId: selectedProfile.genericAssayEntityId,
-                patientLevel: selectedProfile.patientLevel,
-            };
+        console.log(event.value, 'this is value');
+        if (event.value == 'gene_expression') {
+            this.setState({ selectedValue: selectedValue });
+            this.setState({ selectedOption: selectedValue });
             singleCellStore.setSelectedOption(selectedValue);
-            this.setState(
-                {
-                    selectedOption: selectedValue,
-                    chartInfo: newChartInfo,
-                },
-
-                async () => {
-                    await this.fetchDataBins(
-                        newChartInfo.genericAssayEntityId,
-                        newChartInfo.profileType
-                    );
-                }
-            );
         } else {
-            singleCellStore.setSelectedOption('');
-            singleCellStore.setEntityNames([]);
+            const studyId = 'gbm_cptac_2021';
+            const selectedProfile = singleCellStore.molecularProfiles.find(
+                profile => profile.value === selectedValue
+            );
+            singleCellStore.setChartType(null);
             this.setState({
-                selectedOption: null,
-                entityNames: [],
-                chartInfo: {
-                    ...this.state.chartInfo,
-                    name: '',
-                    description: '',
-                    profileType: '',
-                    genericAssayType: '',
-                    dataType: '',
-                    genericAssayEntityId: '',
-                    patientLevel: false,
-                },
+                selectedValue,
+                chartType: null,
+                selectedEntity: null,
             });
+
+            if (selectedProfile) {
+                const { store } = this.props;
+                const entities =
+                    store.genericAssayEntitiesGroupedByProfileId.result;
+                const entityArray = entities
+                    ? entities[selectedProfile.genericAssayEntityId]
+                    : [];
+                const names = entityArray.map((entity: any) => entity.stableId);
+                singleCellStore.setEntityNames(names);
+                this.setState({ entityNames: names, selectedEntity: null });
+
+                this.retrieveAllProfiledSamples(selectedValue)
+                    .then(async MolecularProfileData => {
+                        const extractedData: string[] = (
+                            MolecularProfileData ?? []
+                        ).map(({ sampleId }) => sampleId);
+                        const pieChartData = await this.fetchGenericAssayData(
+                            selectedValue,
+                            names,
+                            extractedData
+                        );
+                        singleCellStore.setPieChartData(
+                            pieChartData as GenericAssayData[]
+                        );
+                        this.setState({
+                            pieChartData: pieChartData as GenericAssayData[],
+                        });
+                    })
+                    .catch(error => {
+                        toast.error('Failed to fetch data:');
+                    });
+
+                const newChartInfo = {
+                    name: '',
+                    description: selectedProfile.description,
+                    profileType: selectedProfile.profileType,
+                    genericAssayType: selectedProfile.genericAssayType,
+                    dataType: selectedProfile.dataType,
+                    genericAssayEntityId: selectedProfile.genericAssayEntityId,
+                    patientLevel: selectedProfile.patientLevel,
+                };
+                singleCellStore.setSelectedOption(selectedValue);
+                this.setState(
+                    {
+                        selectedOption: selectedValue,
+                        chartInfo: newChartInfo,
+                    },
+
+                    async () => {
+                        await this.fetchDataBins(
+                            newChartInfo.genericAssayEntityId,
+                            newChartInfo.profileType
+                        );
+                    }
+                );
+            } else {
+                singleCellStore.setSelectedOption('');
+                singleCellStore.setEntityNames([]);
+                this.setState({
+                    selectedOption: null,
+                    entityNames: [],
+                    chartInfo: {
+                        ...this.state.chartInfo,
+                        name: '',
+                        description: '',
+                        profileType: '',
+                        genericAssayType: '',
+                        dataType: '',
+                        genericAssayEntityId: '',
+                        patientLevel: false,
+                    },
+                });
+            }
         }
     }
     @autobind
@@ -425,7 +489,10 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             }
         }
     }
-
+    @autobind
+    handleColorChange(selectedColorOption: any) {
+        this.setState({ scatterColor: selectedColorOption.value });
+    }
     @autobind
     handleChartTypeChange(event: any) {
         singleCellStore.setChartType(event.value);
@@ -433,9 +500,475 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         this.setState({ chartType: event.value, selectedEntity: null });
         this.setState({ stackEntity: '' });
     }
+    handleIdChangeBox = (selectedOption: any) => {
+        const selectedIdBox = selectedOption.value;
+        const optionsKeyBox = Object.keys(jsondata[selectedIdBox]).map(key => ({
+            value: key,
+            label: key,
+        }));
+        this.setState({
+            selectedIdBox,
+            optionsKeyBox,
+            selectedKeyBox: null,
+            optionsNestedKeyBox: [],
+            selectedNestedKeyBox: null,
+            selectedObjectBox: null,
+        });
+    };
+    addJitter = (x: number) => {
+        const jitterAmount = 0.4; // Adjust this value as needed
+        return x + (Math.random() * jitterAmount - jitterAmount / 2);
+    };
+    handleKeyChangeBox = (selectedOption: any) => {
+        const selectedKeyBox = selectedOption.value;
+        const { selectedIdBox } = this.state;
+        const optionsNestedKeyBox = Object.keys(
+            jsondata[selectedIdBox][selectedKeyBox]
+        ).map(key => ({
+            value: key,
+            label: key,
+        }));
+        this.setState({
+            selectedKeyBox,
+            optionsNestedKeyBox,
+            selectedNestedKeyBox: null,
+            selectedObjectBox: null,
+        });
+    };
+    handleGeneChange = (selectedOption: any) => {
+        this.setState({ loader: true });
+        const selectedGene = selectedOption.value;
+        if (selectedGene && this.state.transformedData[selectedGene]) {
+            // Group by cellname for the selected gene
+            const groupedByCellname = this.state.transformedData[
+                selectedGene
+            ].reduce((acc: any, tuple: any) => {
+                const { cellname, ...rest } = tuple;
+                if (!acc[cellname]) {
+                    acc[cellname] = [];
+                }
+                acc[cellname].push(rest);
+                return acc;
+            }, {});
 
+            // Add 'x' property to each element based on the cellname index
+            let cellIndex = 1;
+            for (let cellname in groupedByCellname) {
+                groupedByCellname[cellname] = groupedByCellname[cellname].map(
+                    (item: any) => ({
+                        ...item,
+                        x: this.addJitter(cellIndex),
+                    })
+                );
+                cellIndex++;
+            }
+
+            // Update selectedGene state
+            this.setState({ selectedGene });
+            this.setState({ boxPlotData: groupedByCellname });
+        } else {
+            console.log(`Gene '${selectedGene}' not found in the data.`);
+        }
+        this.setState({ loader: false });
+    };
+    processGeneData(
+        transformedData: any,
+        selectedGene: string,
+        addJitter: (value: number) => number
+    ) {
+        if (selectedGene && transformedData[selectedGene]) {
+            const groupedByCellname = transformedData[selectedGene].reduce(
+                (acc: any, tuple: any) => {
+                    const { cellname, ...rest } = tuple;
+                    if (!acc[cellname]) {
+                        acc[cellname] = [];
+                    }
+                    acc[cellname].push(rest);
+                    return acc;
+                },
+                {}
+            );
+
+            // Add 'x' property to each element based on the cellname index
+            let cellIndex = 1;
+            for (let cellname in groupedByCellname) {
+                groupedByCellname[cellname] = groupedByCellname[cellname].map(
+                    (item: any) => ({
+                        ...item,
+                        x: addJitter(0),
+                    })
+                );
+                cellIndex++;
+            }
+
+            return groupedByCellname;
+        }
+
+        return null;
+    }
+
+    generateComparePlot(gene1: string, gene2: string) {
+        const groupedByCellname1 = this.processGeneData(
+            this.state.transformedData,
+            gene1,
+            this.addJitter.bind(this)
+        );
+        if (groupedByCellname1) {
+            this.setState({ gene1Map: groupedByCellname1 });
+
+            const cellNamesArray = Object.keys(groupedByCellname1);
+            const cellOptions = cellNamesArray.map(cellname => ({
+                value: cellname,
+                label: cellname,
+            }));
+            this.setState({ cellOptions: cellOptions });
+        }
+
+        const groupedByCellname2 = this.processGeneData(
+            this.state.transformedData,
+            gene2,
+            this.addJitter.bind(this)
+        );
+        if (groupedByCellname2) {
+            this.setState({ gene2Map: groupedByCellname2 });
+        }
+    }
+    handleGene1Change = (selectedOption: any) => {
+        this.setState({ compareGene1: selectedOption.value });
+        if (this.state.compareGene2) {
+            this.generateComparePlot(
+                selectedOption.value,
+                this.state.compareGene2
+            );
+        }
+    };
+    handleGene2Change = (selectedOption: any) => {
+        this.setState({ compareGene2: selectedOption.value });
+        if (this.state.compareGene1) {
+            this.generateComparePlot(
+                this.state.compareGene1,
+                selectedOption.value
+            );
+        }
+    };
+
+    handleGeneCellChange = (selectedOption: any) => {
+        this.setState({ geneCellSelect: selectedOption.value });
+        this.setState({ gene1Data: this.state.gene1Map[selectedOption.value] });
+        this.setState({ gene2Data: this.state.gene2Map[selectedOption.value] });
+    };
+
+    handleNestedKeyChangeBox = (selectedOption: any) => {
+        const selectedNestedKeyBox = selectedOption.value;
+        const { selectedIdBox, selectedKeyBox } = this.state;
+        const selectedObjectBox =
+            jsondata[selectedIdBox][selectedKeyBox][selectedNestedKeyBox];
+        this.setState({ selectedNestedKeyBox, selectedObjectBox });
+    };
     async componentDidMount() {
         const { store } = this.props;
+        let transformedData: any = {};
+
+        let colorPalette: string[] = [
+            '#FF5733',
+            '#33FFB8',
+            '#336BFF',
+            '#FF33E8',
+            '#33FFA1',
+            '#FF3333',
+            '#33B8FF',
+            '#FFC733',
+            '#E833FF',
+            '#33FFD7',
+            '#A133FF',
+            '#FF33A8',
+            '#33FF4D',
+            '#FF7F33',
+            '#5B33FF',
+            '#FF33B3',
+            '#33FF70',
+            '#FFA333',
+            '#4D33FF',
+            '#FF33FF',
+            '#33FF33',
+            '#FF5733',
+            '#33FFB8',
+            '#336BFF',
+            '#FF33E8',
+            '#33FFA1',
+            '#FF3333',
+            '#33B8FF',
+            '#FFC733',
+            '#E833FF',
+            '#33FFD7',
+            '#A133FF',
+            '#FF33A8',
+            '#33FF4D',
+            '#FF7F33',
+            '#5B33FF',
+            '#FF33B3',
+            '#33FF70',
+            '#FFA333',
+            '#4D33FF',
+            '#FF33FF',
+            '#33FF33',
+        ];
+        let colorPalettebw: string[] = ['#57ABF9'];
+        let strokeColorPalette: string[] = [
+            '#B33F26',
+            '#26B388',
+            '#263C99',
+            '#B326A3',
+            '#26B36D',
+            '#B32626',
+            '#2699B3',
+            '#B38A26',
+            '#A326B3',
+            '#26B393',
+            '#7126B3',
+            '#B3266D',
+            '#26B33A',
+            '#B35A26',
+            '#3F26B3',
+            '#B32674',
+            '#26B348',
+            '#B37426',
+            '#3A26B3',
+            '#B326B3',
+            '#26B326',
+            '#B33F26',
+            '#26B388',
+            '#263C99',
+            '#B326A3',
+            '#26B36D',
+            '#B32626',
+            '#2699B3',
+            '#B38A26',
+            '#A326B3',
+            '#26B393',
+            '#7126B3',
+            '#B3266D',
+            '#26B33A',
+            '#B35A26',
+            '#3F26B3',
+            '#B32674',
+            '#26B348',
+            '#B37426',
+            '#3A26B3',
+            '#B326B3',
+            '#26B326',
+        ];
+        let strokeColorPalettebw: string[] = ['#4B95D7'];
+        let tissueColorPalette: string[] = [
+            '#FF8A33',
+            '#33FFEC',
+            '#3380FF',
+            '#FF33B0',
+            '#33FF80',
+            '#FF3344',
+            '#33C2FF',
+            '#FFD133',
+            '#E883FF',
+            '#33FFE8',
+            '#B833FF',
+            '#FF33DC',
+            '#33FF72',
+            '#FF8C33',
+            '#6733FF',
+            '#FF33C1',
+            '#33FF6A',
+            '#FFC233',
+            '#6733FF',
+            '#FF33FF',
+            '#33FF38',
+            '#FF8A33',
+            '#33FFEC',
+            '#3380FF',
+            '#FF33B0',
+            '#33FF80',
+            '#FF3344',
+            '#33C2FF',
+            '#FFD133',
+            '#E883FF',
+            '#33FFE8',
+            '#B833FF',
+            '#FF33DC',
+            '#33FF72',
+            '#FF8C33',
+            '#6733FF',
+            '#FF33C1',
+            '#33FF6A',
+            '#FFC233',
+            '#6733FF',
+            '#FF33FF',
+            '#33FF38',
+        ];
+        let tissueStrokeColorPalette: string[] = [
+            '#B35A33',
+            '#26B3A0',
+            '#2662B3',
+            '#B32686',
+            '#26B346',
+            '#B3263A',
+            '#266CB3',
+            '#B39726',
+            '#A326B3',
+            '#26B3AA',
+            '#6E26B3',
+            '#B32693',
+            '#26B350',
+            '#B35F26',
+            '#5126B3',
+            '#B3268C',
+            '#26B360',
+            '#B38226',
+            '#3926B3',
+            '#B326B3',
+            '#26B32E',
+            '#B35A33',
+            '#26B3A0',
+            '#2662B3',
+            '#B32686',
+            '#26B346',
+            '#B3263A',
+            '#266CB3',
+            '#B39726',
+            '#A326B3',
+            '#26B3AA',
+            '#6E26B3',
+            '#B32693',
+            '#26B350',
+            '#B35F26',
+            '#5126B3',
+            '#B3268C',
+            '#26B360',
+            '#B38226',
+            '#3926B3',
+            '#B326B3',
+            '#26B32E',
+        ];
+        let tissueColorMapping: { [key: string]: string } = {};
+        let tissueStrokeColorMapping: { [key: string]: string } = {};
+
+        Object.keys(jsondata).forEach(sampleKey => {
+            const sample = jsondata[sampleKey];
+
+            Object.keys(sample).forEach(tissueKey => {
+                const tissue = sample[tissueKey];
+
+                Object.keys(tissue).forEach(cellTypeKey => {
+                    const cellType = tissue[cellTypeKey];
+
+                    Object.keys(cellType).forEach(geneName => {
+                        const value = cellType[geneName];
+
+                        const tuple = {
+                            value: value,
+                            cellname: cellTypeKey,
+                            tissuename: tissueKey,
+                            parentId: sampleKey,
+                            color: '', // Placeholder for color assignment
+                            bwColor: '', // Placeholder for bwColor assignment
+                            bwStrokeColor: '', // Placeholder for bwStrokeColor assignment
+                            strokeColor: '',
+                            tissueColor: '', // Placeholder for tissue color assignment
+                            tissueStrokeColor: '', // Placeholder for tissue stroke color assignment
+                        };
+
+                        if (!transformedData[geneName]) {
+                            transformedData[geneName] = [];
+                        }
+
+                        // Check if parentId already has a color assigned
+                        const existingTuple = transformedData[geneName].find(
+                            (t: any) => t.parentId === sampleKey
+                        );
+                        if (existingTuple) {
+                            tuple.color = existingTuple.color;
+                            tuple.strokeColor = existingTuple.strokeColor;
+                            tuple.bwColor = existingTuple.bwColor;
+                            tuple.bwStrokeColor = existingTuple.bwStrokeColor;
+                        } else {
+                            // Assign a new color from the palette
+                            tuple.color =
+                                colorPalette[
+                                    transformedData[geneName].length %
+                                        colorPalette.length
+                                ];
+                            tuple.strokeColor =
+                                strokeColorPalette[
+                                    transformedData[geneName].length %
+                                        strokeColorPalette.length
+                                ];
+                            tuple.bwColor =
+                                colorPalettebw[
+                                    transformedData[geneName].length %
+                                        colorPalettebw.length
+                                ];
+                            tuple.bwStrokeColor =
+                                strokeColorPalettebw[
+                                    transformedData[geneName].length %
+                                        strokeColorPalettebw.length
+                                ];
+                        }
+
+                        // Assign tissue color
+                        if (tissueColorMapping[tissueKey]) {
+                            tuple.tissueColor = tissueColorMapping[tissueKey];
+                        } else {
+                            const tissueColor =
+                                tissueColorPalette[
+                                    Object.keys(tissueColorMapping).length %
+                                        tissueColorPalette.length
+                                ];
+                            tissueColorMapping[tissueKey] = tissueColor;
+                            tuple.tissueColor = tissueColor;
+                        }
+
+                        // Assign tissue stroke color
+                        if (tissueStrokeColorMapping[tissueKey]) {
+                            tuple.tissueStrokeColor =
+                                tissueStrokeColorMapping[tissueKey];
+                        } else {
+                            const tissueStrokeColor =
+                                tissueStrokeColorPalette[
+                                    Object.keys(tissueStrokeColorMapping)
+                                        .length %
+                                        tissueStrokeColorPalette.length
+                                ];
+                            tissueStrokeColorMapping[
+                                tissueKey
+                            ] = tissueStrokeColor;
+                            tuple.tissueStrokeColor = tissueStrokeColor;
+                        }
+
+                        transformedData[geneName].push(tuple);
+                    });
+                });
+            });
+        });
+
+        this.setState({ transformedData });
+
+        const geneToSelect = 'CSF3R';
+
+        if (transformedData[geneToSelect]) {
+            // Group by cellname
+            const groupedByCellname = transformedData[geneToSelect].reduce(
+                (acc: any, tuple: any) => {
+                    const { cellname, ...rest } = tuple;
+                    if (!acc[cellname]) {
+                        acc[cellname] = [];
+                    }
+                    acc[cellname].push(rest);
+                    return acc;
+                },
+                {}
+            );
+        } else {
+            console.log(`Gene '${geneToSelect}' not found in the data.`);
+        }
+
         let studyId = 'gbm_cptac_2021';
         const data = this.props.store.genericAssayProfiles.result;
 
@@ -655,6 +1188,20 @@ class HomePage extends Component<HomePageProps, HomePageState> {
 
     render() {
         const { selectedEntity, selectedValue, pieChartData } = this.state;
+        const {
+            optionsIdBox,
+            optionsKeyBox,
+            optionsNestedKeyBox,
+            selectedIdBox,
+            selectedKeyBox,
+            selectedNestedKeyBox,
+            transformedData,
+            isComparision,
+        } = this.state;
+        const geneOptions = Object.keys(transformedData).map(gene => ({
+            value: gene,
+            label: gene,
+        }));
         console.log(pieChartData, 'fasfasf');
         const selectedOption = singleCellStore.selectedOption;
         const entityNames = singleCellStore.entityNames;
@@ -672,17 +1219,36 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                 option.profileType.startsWith('SINGLE_CELL')
         );
 
-        const options = filteredOptions.map(option => ({
-            value: option.value,
-            label:
-                option.label.length > 35
-                    ? `${option.label.slice(0, 35)}...`
-                    : option.label,
-            title: option.label.length > 35 ? option.label : '',
-            isDisabled: false,
-            isHidden: false,
-        }));
-
+        const options = [
+            {
+                value: 'gene_expression',
+                label: 'Gene Expression',
+                title: 'Gene Expression',
+                isDisabled: false,
+                isHidden: false,
+            }, // Default option
+            ...filteredOptions.map(option => ({
+                value: option.value,
+                label:
+                    option.label.length > 35
+                        ? `${option.label.slice(0, 35)}...`
+                        : option.label,
+                title: option.label.length > 35 ? option.label : '',
+                isDisabled: false,
+                isHidden: false,
+            })),
+        ];
+        const chartOptions =
+            this.state.selectedOption === 'gene_expression'
+                ? [
+                      { value: 'box', label: 'Box Plot' },
+                      { value: 'comparison', label: 'Co-expression plot' },
+                  ]
+                : [
+                      { value: 'pie', label: 'Pie Chart' },
+                      { value: 'bar', label: 'Histogram' },
+                      { value: 'stack', label: 'Stacked Bar Chart' },
+                  ];
         return (
             <div className="home-page-container">
                 <div
@@ -715,14 +1281,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                     id="chartTypeSelect"
                                     onChange={this.handleChartTypeChange}
                                     value={chartType}
-                                    options={[
-                                        { value: 'pie', label: 'Pie Chart' },
-                                        { value: 'bar', label: 'Histogram' },
-                                        {
-                                            value: 'stack',
-                                            label: 'Stacked Bar Chart',
-                                        },
-                                    ]}
+                                    options={chartOptions}
                                     placeholder="Select type of chart..."
                                     isDisabled={!selectedOption}
                                     clearable={false}
@@ -759,7 +1318,181 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                 />
                             </div>
                         )}
+                        {chartType === 'box' && (
+                            <div>
+                                <div className="dropdown-container">
+                                    <ReactSelect
+                                        id="geneSelect"
+                                        onChange={this.handleGeneChange}
+                                        value={
+                                            this.state.selectedGene
+                                                ? {
+                                                      value: this.state
+                                                          .selectedGene,
+                                                      label: this.state
+                                                          .selectedGene,
+                                                  }
+                                                : null
+                                        }
+                                        options={geneOptions}
+                                        placeholder="Select a gene..."
+                                        isClearable={true}
+                                        isSearchable={true}
+                                    />
+                                </div>
+                                {this.state.selectedGene && (
+                                    <div className="dropdown-container">
+                                        <ReactSelect
+                                            id="colorBySelect"
+                                            onChange={this.handleColorChange}
+                                            value={
+                                                this.state.scatterColor
+                                                    ? {
+                                                          value: this.state
+                                                              .scatterColor,
+                                                          label:
+                                                              this.state
+                                                                  .scatterColor ==
+                                                              'Default'
+                                                                  ? 'Default color'
+                                                                  : `Color by ${this.state.scatterColor}`,
+                                                      }
+                                                    : null
+                                            }
+                                            options={[
+                                                {
+                                                    value: 'sample id',
+                                                    label: 'Color by sample id',
+                                                },
+                                                {
+                                                    value: 'tissue name',
+                                                    label: 'Color by tissue',
+                                                },
+                                                {
+                                                    value: 'Default',
+                                                    label: 'Default',
+                                                },
+                                            ]}
+                                            placeholder="Color by..."
+                                            clearable={false}
+                                            searchable={true}
+                                        />
+                                    </div>
+                                )}
 
+                                {selectedIdBox && (
+                                    <div className="dropdown-container">
+                                        <ReactSelect
+                                            id="keySelectBox"
+                                            onChange={this.handleKeyChangeBox}
+                                            value={
+                                                selectedKeyBox
+                                                    ? {
+                                                          value: selectedKeyBox,
+                                                          label: selectedKeyBox,
+                                                      }
+                                                    : ''
+                                            }
+                                            options={optionsKeyBox}
+                                            placeholder="Select Key..."
+                                            isDisabled={!selectedIdBox}
+                                        />
+                                    </div>
+                                )}
+
+                                {selectedKeyBox && (
+                                    <div className="dropdown-container">
+                                        <ReactSelect
+                                            id="nestedKeySelectBox"
+                                            onChange={
+                                                this.handleNestedKeyChangeBox
+                                            }
+                                            value={
+                                                selectedNestedKeyBox
+                                                    ? {
+                                                          value: selectedNestedKeyBox,
+                                                          label: selectedNestedKeyBox,
+                                                      }
+                                                    : ''
+                                            }
+                                            options={optionsNestedKeyBox}
+                                            placeholder="Select Nested Key..."
+                                            isDisabled={!selectedKeyBox}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {chartType === 'comparison' && (
+                            <div>
+                                <div className="dropdown-container">
+                                    <ReactSelect
+                                        id="geneSelect1"
+                                        onChange={this.handleGene1Change}
+                                        value={
+                                            this.state.compareGene1
+                                                ? {
+                                                      value: this.state
+                                                          .compareGene1,
+                                                      label: this.state
+                                                          .compareGene1,
+                                                  }
+                                                : null
+                                        }
+                                        options={geneOptions}
+                                        placeholder="Select first gene..."
+                                        isClearable={true}
+                                        isSearchable={true}
+                                    />
+                                </div>
+                                <div className="dropdown-container">
+                                    <ReactSelect
+                                        id="geneSelect2"
+                                        onChange={this.handleGene2Change}
+                                        value={
+                                            this.state.compareGene2
+                                                ? {
+                                                      value: this.state
+                                                          .compareGene2,
+                                                      label: this.state
+                                                          .compareGene2,
+                                                  }
+                                                : null
+                                        }
+                                        options={geneOptions}
+                                        placeholder="Select second gene..."
+                                        isClearable={true}
+                                        isSearchable={true}
+                                    />
+                                </div>
+                                {this.state.compareGene1 &&
+                                    this.state.compareGene2 && (
+                                        <div className="dropdown-container">
+                                            <ReactSelect
+                                                id="geneCellSelect"
+                                                onChange={
+                                                    this.handleGeneCellChange
+                                                }
+                                                value={
+                                                    this.state.geneCellSelect
+                                                        ? {
+                                                              value: this.state
+                                                                  .geneCellSelect,
+                                                              label: this.state
+                                                                  .geneCellSelect,
+                                                          }
+                                                        : null
+                                                }
+                                                options={this.state.cellOptions}
+                                                placeholder="Select Cell type..."
+                                                isClearable={true}
+                                                isSearchable={true}
+                                            />
+                                        </div>
+                                    )}
+                            </div>
+                        )}
                         {/* {chartType === 'pie' && (
                             <div className="checkbox-wrapper-3">
                                 <input
@@ -950,6 +1683,10 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                             ? {
                                   width: '80%',
                               }
+                            : chartType == 'box' || chartType == 'comparison'
+                            ? {
+                                  width: '78%',
+                              }
                             : {}
                     }
                 >
@@ -975,7 +1712,10 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                             />
                         </>
                     )}
-                    {dataBins && (
+
+                    {((dataBins && chartType != 'box') ||
+                        chartType == 'box' ||
+                        chartType == 'comparison') && (
                         <div
                             className="custom-scrollbar"
                             style={
@@ -1002,6 +1742,18 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                           paddingRight: '5px',
                                           paddingBottom: '10px',
                                           marginLeft: '6px',
+                                      }
+                                    : chartType == 'box' ||
+                                      chartType == 'comparison'
+                                    ? {
+                                          width: '100%',
+                                          border: '1px dashed lightgrey',
+                                          padding: '10px',
+                                          marginTop: '20px',
+                                          marginLeft: '10px',
+                                          borderRadius: '5px',
+                                          height: '900px',
+                                          overflow: 'scroll',
                                       }
                                     : {
                                           margin: '12px auto',
@@ -1040,7 +1792,6 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                 <>
                                     <StackedBarChart
                                         store={this.props.store}
-                                        dataBins={dataBins}
                                         pieChartData={pieChartData}
                                         studyViewFilterFlag={
                                             this.state.studyViewFilterFlag
@@ -1140,6 +1891,27 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                             });
                                         }}
                                         isReverse={this.state.isReverse}
+                                    />
+                                </>
+                            ) : chartType === 'box' &&
+                              this.state.selectedGene ? (
+                                <>
+                                    <BoxPlot
+                                        data={this.state.boxPlotData}
+                                        scatterColor={this.state.scatterColor}
+                                    />
+                                </>
+                            ) : chartType === 'comparison' &&
+                              this.state.geneCellSelect ? (
+                                <>
+                                    <ComparisonScatterPlot
+                                        gene1Data={this.state.gene1Data}
+                                        gene2Data={this.state.gene2Data}
+                                        selectedGene1={this.state.compareGene1}
+                                        selectedGene2={this.state.compareGene2}
+                                        geneCellSelect={
+                                            this.state.geneCellSelect
+                                        }
                                     />
                                 </>
                             ) : null}
