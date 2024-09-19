@@ -847,6 +847,12 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             '#B326B3',
             '#26B32E',
         ];
+        const generateRandomRGBColor = () => {
+            const r = Math.floor(Math.random() * 256); // 0 to 255
+            const g = Math.floor(Math.random() * 256); // 0 to 255
+            const b = Math.floor(Math.random() * 256); // 0 to 255
+            return `rgb(${r}, ${g}, ${b})`;
+        };
         let tissueColorMapping: { [key: string]: string } = {};
         let tissueStrokeColorMapping: { [key: string]: string } = {};
 
@@ -890,16 +896,8 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                             tuple.bwStrokeColor = existingTuple.bwStrokeColor;
                         } else {
                             // Assign a new color from the palette
-                            tuple.color =
-                                colorPalette[
-                                    transformedData[geneName].length %
-                                        colorPalette.length
-                                ];
-                            tuple.strokeColor =
-                                strokeColorPalette[
-                                    transformedData[geneName].length %
-                                        strokeColorPalette.length
-                                ];
+                            tuple.color = generateRandomRGBColor();
+                            tuple.strokeColor = tuple.color;
                             tuple.bwColor =
                                 colorPalettebw[
                                     transformedData[geneName].length %
