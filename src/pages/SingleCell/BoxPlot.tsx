@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     VictoryChart,
     VictoryScatter,
@@ -11,16 +11,24 @@ import { jsPDF } from 'jspdf-yworks';
 import svg2pdf from 'svg2pdf.js';
 import { handleDownloadSVG, handleDownloadPDF } from './downloadUtils';
 import LoadingIndicator from 'shared/components/loadingIndicator/LoadingIndicator';
-
+interface DropdownOption {
+    label: string;
+    value: string;
+}
 interface ScatterBoxPlotProps {
     data: any;
     scatterColor: any;
+    selectedSamplesExpression: DropdownOption[];
 }
 
 const ScatterBoxPlot: React.FC<ScatterBoxPlotProps> = ({
     data,
     scatterColor,
+    selectedSamplesExpression,
 }) => {
+    const [filteredData, setFilteredData] = useState<any>(data);
+    console.log(selectedSamplesExpression, 'expressionFilter');
+
     const chartRef = useRef<HTMLDivElement>(null);
 
     const [downloadOptionsVisible, setDownloadOptionsVisible] = useState(false);
@@ -50,13 +58,44 @@ const ScatterBoxPlot: React.FC<ScatterBoxPlotProps> = ({
         return { scatterData, boxPlotData };
     };
 
-    // Combine processed data for all cell types
+    useEffect(() => {
+        console.log('Filter is applied');
+
+        const newFilteredData: any = {};
+
+        if (selectedSamplesExpression.length === 0) {
+            // If no samples are selected, assign all data to filteredData
+            setFilteredData(data);
+        } else {
+            // Filter data based on selectedSamplesExpression
+            Object.keys(data).forEach(cellType => {
+                const filteredCellTypeData = data[
+                    cellType
+                ].filter((item: any) =>
+                    selectedSamplesExpression.includes(item.parentId)
+                );
+                if (filteredCellTypeData.length > 0) {
+                    newFilteredData[cellType] = filteredCellTypeData;
+                }
+            });
+            console.log(newFilteredData, 'newFilteredDatanewFilteredData');
+            setFilteredData(newFilteredData);
+        }
+
+        console.log(newFilteredData, 'filtered data');
+    }, [data, selectedSamplesExpression]);
+
+    // Combine processed data for all cell types using filteredData
     const allScatterData: any[] = [];
     const allBoxPlotData: any[] = [];
 
-    Object.entries(data).forEach(([cellType, cellTypeData], index) => {
+    Object.entries(filteredData).forEach(([cellType, cellTypeData], index) => {
         const { scatterData, boxPlotData } = processData(cellTypeData, index);
         allScatterData.push(...scatterData);
+        if (boxPlotData.y.length === 0) {
+            boxPlotData.y = [0]; // Set y to [0] if empty
+        }
+
         allBoxPlotData.push(boxPlotData);
     });
 
@@ -167,7 +206,7 @@ const ScatterBoxPlot: React.FC<ScatterBoxPlotProps> = ({
                     id="chart-svg"
                     width={1200}
                     padding={{
-                        top: 40,
+                        top: 80,
                         bottom: 250,
                         left: 130,
                         right: 80,

@@ -61,7 +61,10 @@ interface gaData {
     genericAssayStableId: string;
     stableId: string;
 }
-
+interface DropdownOption {
+    label: string;
+    value: string;
+}
 interface ProfileOptions {
     [key: string]: Option[];
 }
@@ -110,6 +113,7 @@ interface HomePageState {
     hoveredSampleId: string;
     currentTooltipData: { [key: string]: { [key: string]: React.ReactNode } };
     map: { [key: string]: string };
+    expressionFilter: DropdownOption[];
     dynamicWidth: number;
     increaseCount: number;
     decreaseCount: number;
@@ -149,6 +153,7 @@ interface HomePageState {
     gene2Map: any;
     gene1Data: any;
     gene2Data: any;
+    selectedSamplesExpression: DropdownOption[];
 }
 
 class HomePage extends Component<HomePageProps, HomePageState> {
@@ -222,6 +227,8 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             gene2Map: [],
             gene1Data: [],
             gene2Data: [],
+            expressionFilter: [],
+            selectedSamplesExpression: [],
         };
     }
     async fetchGenericAssayData(
@@ -566,6 +573,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             // Update selectedGene state
             this.setState({ selectedGene });
             this.setState({ boxPlotData: groupedByCellname });
+            // console.log("this is boxplotData",groupedByCellname)
         } else {
             console.log(`Gene '${selectedGene}' not found in the data.`);
         }
@@ -855,7 +863,18 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         };
         let tissueColorMapping: { [key: string]: string } = {};
         let tissueStrokeColorMapping: { [key: string]: string } = {};
-
+        Object.keys(jsondata).forEach(sampleKey => {
+            if (
+                !this.state.expressionFilter.some(
+                    option => option.value === sampleKey
+                )
+            ) {
+                this.state.expressionFilter.push({
+                    label: sampleKey,
+                    value: sampleKey,
+                });
+            }
+        });
         Object.keys(jsondata).forEach(sampleKey => {
             const sample = jsondata[sampleKey];
 
@@ -947,7 +966,7 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         });
 
         this.setState({ transformedData });
-
+        console.log(transformedData, 'TransformedData');
         const geneToSelect = 'CSF3R';
 
         if (transformedData[geneToSelect]) {
@@ -1134,6 +1153,14 @@ class HomePage extends Component<HomePageProps, HomePageState> {
         singleCellStore.setSelectedSamples(selectedSampleIds);
         this.setState({ selectedSamples: selectedSampleIds });
     };
+    handleSampleSelectionChangeExpression = (selectedOptions: any) => {
+        const selectedSampleIds = selectedOptions
+            ? selectedOptions.map((option: any) => option.value)
+            : [];
+        console.log(selectedSampleIds, 'selectedSampleIdsselectedSampleIds');
+        this.setState({ selectedSamplesExpression: selectedSampleIds });
+    };
+
     componentDidUpdate(prevProps: any) {
         const selectedPatientIds = this.props.store.selectedSamples.result.map(
             (sample: any) => sample.sampleId
@@ -1710,7 +1737,38 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                             />
                         </>
                     )}
-
+                    {chartType == 'box' && (
+                        <>
+                            <div
+                                style={{
+                                    margin: '12px auto',
+                                    marginLeft: '10px',
+                                }}
+                            >
+                                <Select
+                                    placeholder="Select SampleId.."
+                                    options={this.state.expressionFilter}
+                                    isMulti
+                                    onChange={
+                                        this
+                                            .handleSampleSelectionChangeExpression
+                                    }
+                                    value={this.state.selectedSamplesExpression.map(
+                                        (sampleId: any) => ({
+                                            value: sampleId,
+                                            label: sampleId,
+                                        })
+                                    )}
+                                    style={{
+                                        padding: '1000px',
+                                        marginTop: '5px',
+                                        marginBottom: '5px',
+                                        width: '350px',
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )}
                     {((dataBins && chartType != 'box') ||
                         chartType == 'box' ||
                         chartType == 'comparison') && (
@@ -1897,6 +1955,9 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                     <BoxPlot
                                         data={this.state.boxPlotData}
                                         scatterColor={this.state.scatterColor}
+                                        selectedSamplesExpression={
+                                            this.state.selectedSamplesExpression
+                                        }
                                     />
                                 </>
                             ) : chartType === 'comparison' &&

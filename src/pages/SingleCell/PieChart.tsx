@@ -145,7 +145,7 @@ const Chart: React.FC<ChartProps> = observer(
         console.log(pieData, 'here is piedata');
         return (
             <>
-                <div id="div-to-download">
+                <div id="div-to-download" style={{ position: 'relative' }}>
                     <div style={{ marginTop: '30px' }}>
                         <h2 style={{ textAlign: 'center' }}>
                             {heading && heading.length > 0
@@ -153,6 +153,7 @@ const Chart: React.FC<ChartProps> = observer(
                                 : 'No Data'}
                         </h2>
                     </div>
+
                     <div
                         style={{
                             display: 'flex',
@@ -184,6 +185,93 @@ const Chart: React.FC<ChartProps> = observer(
                                 patientAttribute={true}
                             />
                         </div>
+                    </div>
+
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            cursor: 'pointer',
+                            border: '1px solid lightgrey',
+                            padding: '5px',
+                            borderRadius: '4px',
+                            transition: 'background-color 0.3s ease',
+                        }}
+                        onMouseEnter={() => setDownloadOptionsVisible(true)}
+                        onMouseLeave={() => setDownloadOptionsVisible(false)}
+                        className="exclude-from-svg"
+                    >
+                        <i
+                            className="fa fa-cloud-download"
+                            aria-hidden="true"
+                        />
+                        {downloadOptionsVisible && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    backgroundColor: 'white',
+                                    boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+                                    zIndex: 220,
+                                    borderRadius: '4px',
+                                    overflow: 'hidden',
+                                    transition: 'opacity 0.3s ease-out',
+                                    opacity: downloadOptionsVisible ? 1 : 0,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        padding: '8px',
+                                        cursor: 'pointer',
+                                        transition:
+                                            'background-color 0.3s ease',
+                                    }}
+                                    onClick={() =>
+                                        handleDownloadSvgUtils(
+                                            'div-to-download',
+                                            'piechart_chart',
+                                            'pieChart'
+                                        )
+                                    }
+                                    onMouseEnter={e =>
+                                        (e.currentTarget.style.backgroundColor =
+                                            '#f0f0f0')
+                                    }
+                                    onMouseLeave={e =>
+                                        (e.currentTarget.style.backgroundColor =
+                                            'white')
+                                    }
+                                >
+                                    SVG
+                                </div>
+                                <div
+                                    style={{
+                                        padding: '8px',
+                                        cursor: 'pointer',
+                                        transition:
+                                            'background-color 0.3s ease',
+                                    }}
+                                    onClick={() =>
+                                        handleDownloadDataUtils(
+                                            pieChartData,
+                                            'pie_chart_data.txt'
+                                        )
+                                    }
+                                    onMouseEnter={e =>
+                                        (e.currentTarget.style.backgroundColor =
+                                            '#f0f0f0')
+                                    }
+                                    onMouseLeave={e =>
+                                        (e.currentTarget.style.backgroundColor =
+                                            'white')
+                                    }
+                                >
+                                    Data
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div
