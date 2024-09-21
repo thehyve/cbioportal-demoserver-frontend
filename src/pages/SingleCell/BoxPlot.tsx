@@ -19,12 +19,14 @@ interface ScatterBoxPlotProps {
     data: any;
     scatterColor: any;
     selectedSamplesExpression: DropdownOption[];
+    selectedSampleExpressionTissue: DropdownOption[];
 }
 
 const ScatterBoxPlot: React.FC<ScatterBoxPlotProps> = ({
     data,
     scatterColor,
     selectedSamplesExpression,
+    selectedSampleExpressionTissue,
 }) => {
     const [filteredData, setFilteredData] = useState<any>(data);
     console.log(selectedSamplesExpression, 'expressionFilter');
@@ -63,27 +65,59 @@ const ScatterBoxPlot: React.FC<ScatterBoxPlotProps> = ({
 
         const newFilteredData: any = {};
 
-        if (selectedSamplesExpression.length === 0) {
+        if (
+            selectedSamplesExpression.length === 0 &&
+            selectedSampleExpressionTissue.length === 0
+        ) {
             // If no samples are selected, assign all data to filteredData
             setFilteredData(data);
         } else {
             // Filter data based on selectedSamplesExpression
             Object.keys(data).forEach(cellType => {
-                const filteredCellTypeData = data[
-                    cellType
-                ].filter((item: any) =>
-                    selectedSamplesExpression.includes(item.parentId)
+                let n = selectedSamplesExpression.length;
+                let m = selectedSampleExpressionTissue.length;
+
+                const filteredCellTypeData = data[cellType].filter(
+                    (item: any) => {
+                        // First, check for both n > 0 and m > 0
+                        if (n > 0 && m > 0) {
+                            return (
+                                selectedSamplesExpression.includes(
+                                    item.parentId
+                                ) &&
+                                selectedSampleExpressionTissue.includes(
+                                    item.tissuename
+                                )
+                            );
+                        }
+                        // Check if n > 0 and m == 0
+                        else if (n > 0 && m === 0) {
+                            return selectedSamplesExpression.includes(
+                                item.parentId
+                            );
+                        }
+                        // Check if n == 0 and m > 0
+                        else if (n === 0 && m > 0) {
+                            return selectedSampleExpressionTissue.includes(
+                                item.tissuename
+                            );
+                        }
+                        // Default case if none of the above conditions are met
+                        return false;
+                    }
                 );
+
                 if (filteredCellTypeData.length > 0) {
                     newFilteredData[cellType] = filteredCellTypeData;
                 }
             });
+
             console.log(newFilteredData, 'newFilteredDatanewFilteredData');
             setFilteredData(newFilteredData);
         }
 
         console.log(newFilteredData, 'filtered data');
-    }, [data, selectedSamplesExpression]);
+    }, [data, selectedSamplesExpression, selectedSampleExpressionTissue]);
 
     // Combine processed data for all cell types using filteredData
     const allScatterData: any[] = [];

@@ -114,6 +114,7 @@ interface HomePageState {
     currentTooltipData: { [key: string]: { [key: string]: React.ReactNode } };
     map: { [key: string]: string };
     expressionFilter: DropdownOption[];
+    expressionFilterTissue: DropdownOption[];
     dynamicWidth: number;
     increaseCount: number;
     decreaseCount: number;
@@ -154,6 +155,7 @@ interface HomePageState {
     gene1Data: any;
     gene2Data: any;
     selectedSamplesExpression: DropdownOption[];
+    selectedSamplesExpressionTissue: DropdownOption[];
 }
 
 class HomePage extends Component<HomePageProps, HomePageState> {
@@ -229,6 +231,8 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             gene2Data: [],
             expressionFilter: [],
             selectedSamplesExpression: [],
+            expressionFilterTissue: [],
+            selectedSamplesExpressionTissue: [],
         };
     }
     async fetchGenericAssayData(
@@ -879,6 +883,22 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             const sample = jsondata[sampleKey];
 
             Object.keys(sample).forEach(tissueKey => {
+                if (
+                    !this.state.expressionFilterTissue.some(
+                        option => option.value === tissueKey
+                    )
+                ) {
+                    this.state.expressionFilterTissue.push({
+                        label: tissueKey,
+                        value: tissueKey,
+                    });
+                }
+            });
+        });
+        Object.keys(jsondata).forEach(sampleKey => {
+            const sample = jsondata[sampleKey];
+
+            Object.keys(sample).forEach(tissueKey => {
                 const tissue = sample[tissueKey];
 
                 Object.keys(tissue).forEach(cellTypeKey => {
@@ -1159,6 +1179,12 @@ class HomePage extends Component<HomePageProps, HomePageState> {
             : [];
         console.log(selectedSampleIds, 'selectedSampleIdsselectedSampleIds');
         this.setState({ selectedSamplesExpression: selectedSampleIds });
+    };
+    handleSampleSelectionChangeExpressionTissue = (selectedOptions: any) => {
+        const selectedSampleIds = selectedOptions
+            ? selectedOptions.map((option: any) => option.value)
+            : [];
+        this.setState({ selectedSamplesExpressionTissue: selectedSampleIds });
     };
 
     componentDidUpdate(prevProps: any) {
@@ -1767,6 +1793,33 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                     }}
                                 />
                             </div>
+                            <div
+                                style={{
+                                    margin: '12px auto',
+                                    marginLeft: '10px',
+                                }}
+                            >
+                                <Select
+                                    placeholder="Select Tissue.."
+                                    options={this.state.expressionFilterTissue}
+                                    isMulti
+                                    onChange={
+                                        this
+                                            .handleSampleSelectionChangeExpressionTissue
+                                    }
+                                    value={this.state.selectedSamplesExpressionTissue.map(
+                                        (sampleId: any) => ({
+                                            value: sampleId,
+                                            label: sampleId,
+                                        })
+                                    )}
+                                    style={{
+                                        marginTop: '5px',
+                                        marginBottom: '5px',
+                                        width: '350px',
+                                    }}
+                                />
+                            </div>
                         </>
                     )}
                     {((dataBins && chartType != 'box') ||
@@ -1957,6 +2010,10 @@ class HomePage extends Component<HomePageProps, HomePageState> {
                                         scatterColor={this.state.scatterColor}
                                         selectedSamplesExpression={
                                             this.state.selectedSamplesExpression
+                                        }
+                                        selectedSampleExpressionTissue={
+                                            this.state
+                                                .selectedSamplesExpressionTissue
                                         }
                                     />
                                 </>
