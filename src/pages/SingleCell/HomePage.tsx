@@ -10,7 +10,6 @@ import {
 import autobind from 'autobind-decorator';
 import Select from 'react-select';
 import ReactSelect from 'react-select1';
-import jsondata from './jsonData/sample.json';
 import singleCellStore, { SampleOption } from './SingleCellStore';
 import {
     ChartMeta,
@@ -38,6 +37,8 @@ import './styles.css';
 import { selectable } from 'shared/components/query/styles/styles.module.scss';
 import ComparisonScatterPlot from './ComparisonScatterPlot';
 import BoxPlot from './BoxPlot';
+
+const jsondata = require('./jsonData/sample.json');
 
 interface Option {
     value: string;
