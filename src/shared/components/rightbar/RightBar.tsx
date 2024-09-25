@@ -83,8 +83,8 @@ export default class RightBar extends React.Component<
         if (getServerConfig().skin_right_nav_show_whats_new) {
             if (!_.isEmpty(getServerConfig().skin_right_nav_whats_new_blurb)) {
                 return (
-                    <div className="rightBarSection">
-                        <h3>The Hyve</h3>
+                    <div className="rightBarSection" style={{ height: "auto" }}>
+                        <h3>Our custom features</h3>
                         <div
                             dangerouslySetInnerHTML={{
                                 __html: getServerConfig()
@@ -221,9 +221,10 @@ export default class RightBar extends React.Component<
                 return (
                     <div
                         className="rightBarSection exampleQueries"
+                        style={{ height: "auto" }}
                         dangerouslySetInnerHTML={{
                             __html:
-                                '<h3>Explore custom features</h3>' +
+                                '<h3>The Hyve</h3>' +
                                 getServerConfig()
                                     .skin_examples_right_column_html,
                         }}
