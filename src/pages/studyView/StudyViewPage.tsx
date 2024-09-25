@@ -719,7 +719,14 @@ export default class StudyViewPage extends React.Component<
                                                     StudyViewPageTabKeyEnum.SINGLECELL
                                                 }
                                                 linkText={
-                                                    StudyViewPageTabDescriptions.SINGLECELL
+                                                    <span>
+                                                        {
+                                                            StudyViewPageTabDescriptions.SINGLECELL
+                                                        }{' '}
+                                                        <strong className={'beta-text'}>
+                                                            Beta!
+                                                        </strong>
+                                                    </span>
                                                 }
                                             >
                                                 <LazyHomePage
