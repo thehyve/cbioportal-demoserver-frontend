@@ -84,7 +84,7 @@ export default class RightBar extends React.Component<
             if (!_.isEmpty(getServerConfig().skin_right_nav_whats_new_blurb)) {
                 return (
                     <div className="rightBarSection" style={{ height: "auto" }}>
-                        <h3>Our custom features</h3>
+                        <h3>Our Custom Features</h3>
                         <div
                             dangerouslySetInnerHTML={{
                                 __html: getServerConfig()
