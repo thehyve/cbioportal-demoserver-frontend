@@ -179,13 +179,16 @@ export default class PortalHeader extends React.Component<
                         </If>
                     </If>
                     <If condition={!!getInstituteLogoUrl()}>
-                        <Link to="https://www.thehyve.nl/services/cbioportal" id="cbioportal-logo">
+                        <a
+                            href="https://www.thehyve.nl/services/cbioportal"
+                            id="cbioportal-logo"
+                        >
                             <img
                                 id="institute-logo"
                                 src={getInstituteLogoUrl()!}
                                 alt="Institute Logo"
                             />
-                        </Link>
+                        </a>
                     </If>
                 </div>
             </header>
